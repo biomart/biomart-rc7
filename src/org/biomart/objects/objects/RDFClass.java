@@ -46,7 +46,7 @@ public class RDFClass extends MartConfiguratorObject {
 		super.saveConfigurableProperties(element);
 		element.setAttribute(XMLElements.VALUE.toString(), this.getValue());
 		element.setAttribute(XMLElements.UNIQUEID.toString(), this.getUID());
-        if (this.getSubClassOf() != null)
+        if (this.getSubClassOf() != null && !this.getSubClassOf().isEmpty())
             element.setAttribute(XMLElements.SUBCLASSOF.toString(), this.getSubClassOf());
 		return element;
 	}
