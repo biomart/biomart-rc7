@@ -1,5 +1,5 @@
 #openid {
-  background: url(../images/openid/indicator.gif) center center no-repeat;
+  background: url(../../images/openid/indicator.gif) center center no-repeat;
   margin: 0 auto;
   width: 440px;
   height: 162px;
@@ -39,7 +39,7 @@
 }
 
 .openid_large_btn, .openid_small_btn {
-  background: url(../images/openid/openid-icons-20101209.png) no-repeat;
+  background: url(../../images/openid/openid-icons-20101209.png) no-repeat;
   margin: 3px;
   float: left;
 }
