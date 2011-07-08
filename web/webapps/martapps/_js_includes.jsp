@@ -10,6 +10,7 @@
 
 <%-- Common libraries --%>
 <jwr:script src="/lib.js"/>
+<jwr:script src="/js/lib/jquery.jstree.js"/>
 
 <c:choose>
 	<c:when test="${param.version eq '2'}">
