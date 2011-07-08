@@ -151,6 +151,7 @@
 <jsp:include page="/_js_includes.jsp">
 	<jsp:param name="path" value="../"/>
 </jsp:include>
+<script src="../js/lib/jquery.jstree.js"></script>
 <script src="/martexplorer/js/main.js"></script>
 <script type="text/javascript">
 	$(document).ready(function() {
