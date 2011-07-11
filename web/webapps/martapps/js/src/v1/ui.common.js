@@ -481,6 +481,11 @@ $.widget('ui.simplerfilter', {
             datasets = datasets.join(',');
         }
 
+        // Convert array to comma-separated string
+        if ($.isArray(value)) {
+            value = value.join(',');
+        }
+
         if (value) {
             biomart.resource.load('filter_values', function(data) {
                 for (var i=0, item; item=data[i]; i++) {
