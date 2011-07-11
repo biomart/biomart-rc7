@@ -20,6 +20,7 @@
     <mkdir dir="${dist.dir}/logs"/>
     <mkdir dir="${dist.dir}/registry/linkindices"/>
   	<mkdir dir="${build.classes}/icgc"/>
+    <trim input="${theme}" property="theme.trimmed"/>
   </target>
   <target name="clean" depends="-load.properties">
     <available property="serverIsRunning" file="${dist.dir}/biomart.pid"/>
@@ -134,13 +135,13 @@
     </copy>
     <!-- copy theme files -->
     <copy todir="${dist.web.dir}" overwrite="yes" failonerror="no">
-      <fileset dir="${themes.dir}/${theme}">
+      <fileset dir="${themes.dir}/${theme.trimmed}">
         <include name="**/*"/>
         <exclude name="**/_*"/>
       </fileset>
     </copy>
     <copy todir="${dist.web.dir}" preservelastmodified="yes" failonerror="no">
-      <fileset dir="${themes.dir}/${theme}">
+      <fileset dir="${themes.dir}/${theme.trimmed}">
         <include name="**/_*"/>
       </fileset>
     </copy>
@@ -234,4 +235,19 @@
 		     <mapper type="glob" from="*.dot" to="*.png"/>
 		  </apply>
 	</target>
+  <macrodef name="trim">
+    <attribute name="input" />
+    <attribute name="property" />
+    <sequential>
+      <tempfile property="temp.file" />
+      <echo file="${temp.file}" message="@{input}" />
+      <move file="${temp.file}" tofile="${temp.file}.2">
+        <filterchain>
+          <trim/>
+        </filterchain>
+      </move>
+      <loadfile property="@{property}" srcFile="${temp.file}.2" />
+      <delete file="${temp.file}.2" failonerror="false" />
+    </sequential>
+  </macrodef>
 </project>
