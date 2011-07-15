@@ -930,16 +930,6 @@
 			row = rows[i];
 			rawKey = row[rowCancerType];
 			
-			if(rawKey in this._lines){
-            	
-            }else{
-            	this._lines[rawKey] = {
-            			yesGroup : [],
-            			noGroup : [],
-            			boxYesValue : [],
-            			boxNoValue : []
-            	};
-            }
 			index = i;
 
             var value1 = row[rowValue1],
@@ -947,11 +937,25 @@
         	valueX = row[rowX];
             var avg = (parseFloat(value1) + parseFloat(value2))/2;
             
-            if(valueX == "Yes"){
-            	this._lines[rawKey].yesGroup.push(avg);
-            }else if(valueX == "No"){
-            	this._lines[rawKey].noGroup.push(avg);
+            if(rawKey in this._lines){
+            	if(valueX in this._lines[rawKey]){
+            		
+            	}else{
+            		this._lines[rawKey][valueX] = {
+                			Group : [],
+                			boxValue : []
+                	};
+            	}
+            }else{
+            	this._lines[rawKey] = new Array();
+            	this._lines[rawKey][valueX] = {
+            			Group : [],
+            			boxValue : []
+            	};
             }
+
+            this._lines[rawKey][valueX].Group.push(avg);
+            
 		}
 		//calculate all values for box plot
 		function sortNumber(a,b)
@@ -963,33 +967,27 @@
 			if(!this._lines.hasOwnProperty(key)){
 				continue;
 			}
-			this._lines[rawKey].yesGroup.sort(sortNumber);
-    		var yesSize = this._lines[rawKey].yesGroup.length;
-    		this._lines[rawKey].noGroup.sort(sortNumber);
-    		var noSize = this._lines[rawKey].noGroup.length;
+			for( var xkey in this._lines[rawKey]){
+				if(!this._lines[rawKey].hasOwnProperty(xkey)){
+					continue;
+				}
+				this._lines[rawKey][xkey].Group.sort(sortNumber);
+	    		var size = this._lines[rawKey][xkey].Group.length;
+	    		
+	    		index ++;
+	    		if(size == 0){
+	    			this._lines[rawKey][xkey].boxValue = [index, 0, 0 , 0, 0, 0];
+	    		}else{
+	    			this._lines[rawKey][xkey].boxValue = [index,
+	    			                                   this._lines[rawKey][xkey].Group[0],
+	    			                                   this._lines[rawKey][xkey].Group[Math.floor(size/4)],
+	    			                                   this._lines[rawKey][xkey].Group[Math.floor(size/2)],
+	    			                                   this._lines[rawKey][xkey].Group[Math.floor(size*3/4)],
+	    			                                   this._lines[rawKey][xkey].Group[size-1]];
+	    		}
+	    		
+			}
     		
-    		if(yesSize == 0){
-    			this._lines[rawKey].boxYesValue = [index*2+1, 0, 0 , 0, 0, 0];
-    		}else{
-    			this._lines[rawKey].boxYesValue = [index*2+1,
-    			                                   this._lines[rawKey].yesGroup[0],
-    			                                   this._lines[rawKey].yesGroup[Math.floor(yesSize/4)],
-    			                                   this._lines[rawKey].yesGroup[Math.floor(yesSize/2)],
-    			                                   this._lines[rawKey].yesGroup[Math.floor(yesSize*3/4)],
-    			                                   this._lines[rawKey].yesGroup[yesSize-1]];
-    		}
-    		
-    		if(noSize == 0){
-    			this._lines[rawKey].boxNoValue = [index*2 + 2,0,0, 0, 0, 0];
-    		}else {
-    			this._lines[rawKey].boxNoValue = [index*2 + 2,
-    			                                  this._lines[rawKey].noGroup[0],
-    			                                  this._lines[rawKey].noGroup[Math.floor(noSize/4)],
-    			                                  this._lines[rawKey].noGroup[Math.floor(noSize/2)],
-    			                                  this._lines[rawKey].noGroup[Math.floor(noSize*3/4)],
-    			                                  this._lines[rawKey].noGroup[noSize-1]];
-    		}
-    		index ++;
 		}
 	
     };
@@ -1007,21 +1005,30 @@
 		//set height for box plot render
 		this._element.css('height', 500 + 'px');
 		var chartLines = [];
-		
+		var xTicks = [];
+		var index = 0;
 		for( var key in this._lines){
 			if(this._lines.hasOwnProperty(key)){
-    			chartLines.push({
-	        		data : [this._lines[key].boxYesValue , this._lines[key].boxNoValue],
-	        		label : key
-	        	});
+				var chartLine = {
+		        		data : [],
+		        		label : key
+		        };
+				for(var xkey in this._lines[key]){
+					if(this._lines[key].hasOwnProperty(xkey)){
+						chartLine.data.push(this._lines[key][xkey].boxValue);
+						index ++;
+						xTicks.push([index,xkey]);
+					}
+				}
+    			chartLines.push(chartLine);
 			}
 		}
-		var xTicks = [];
+		
+		
+		
 		var ymin = chartLines[0].data[0][1];
 		var ymax = chartLines[0].data[0][5];
     	for(var i = 0; i < chartLines.length ; i++){
-    		xTicks.push([i*2+1,"Yes"]);
-    		xTicks.push([i*2+2, "No"]);
     		if( ymin > chartLines[i].data[0][1])
     			ymin = chartLines[i].data[0][1];
     		if( ymin > chartLines[i].data[1][1])
@@ -1036,7 +1043,7 @@
         	series : {
         		boxplot: {active : true, show : true}
         	},
-            xaxis: {min: 0, max: chartLines.length * 2 + 1 , ticks: xTicks},
+            xaxis: {min: 0, max: index+1 , ticks: xTicks},
             yaxis: {min: ymin - 1, max: ymax + 1, ticks : 20},
             grid: {
                 clickable: true,
