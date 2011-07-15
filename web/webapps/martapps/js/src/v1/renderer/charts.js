@@ -785,7 +785,7 @@
     	
     	// hard coded col value for now
     	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
-    	this._xaxisLabel = "Gene ID: " + rows[0][rowGeneID];
+    	this._xaxisLabel = this._header[rowGeneID] + " " + rows[0][rowGeneID];
         for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
             row = rows[i];
             rawKey = row[rowCancerType],
@@ -925,7 +925,7 @@
     	
     	// hard coded col value for now
     	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
-		this._xaxisLabel = "Gene ID: " + rows[0][rowGeneID];
+    	this._xaxisLabel = this._header[rowGeneID] + " " + rows[0][rowGeneID];
 		for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
 			row = rows[i];
 			rawKey = row[rowCancerType];
