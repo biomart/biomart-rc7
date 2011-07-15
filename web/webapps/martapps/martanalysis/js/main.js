@@ -787,7 +787,6 @@ $.namespace('biomart.martform', function(self) {
         queryMart.config = biomart._state.config;
 
         if (!perDataset) {
-            console.log(queryMart)
              return biomart.query.compile('XML', queryMart, processor, QUERY_LIMIT, header, client);
         }
 
