@@ -533,8 +533,8 @@
     	if (!rows.length) return;
     	
     	// hard coded col value for now
-    	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4;
-    	
+    	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;;
+    	this._xaxisLabel = "Gene ID: " + rows[0][rowGeneID];
     	if(this._header[rowX] == "Survival"){
 	        for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
 	            row = rows[i];
@@ -669,7 +669,7 @@
         //this._sort(false);
 
         //var topRows = this._lines.slice(0, this._max);
-        var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4;
+        var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
     	if(this._header[rowX] == "Survival"){
     		this._attachEvents();
     		//set height for scatter plot render
@@ -784,8 +784,8 @@
     	if (!rows.length) return;
     	
     	// hard coded col value for now
-    	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4;
-	
+    	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
+    	this._xaxisLabel = "Gene ID: " + rows[0][rowGeneID];
         for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
             row = rows[i];
             rawKey = row[rowCancerType],
@@ -828,7 +828,7 @@
                         y = item.datapoint[1].toFixed(2);
                     
                     self._showTooltip(item.pageX, item.pageY,
-                                self._donorIds[item.dataIndex]);
+                                self._donorIds[item.dataIndex] + " ("+x+","+y+")");
                     
                     self._t = setTimeout(function() {
                         self._tooltip.fadeOut(100);
@@ -852,7 +852,7 @@
         //this._sort(false);
 
         //var topRows = this._lines.slice(0, this._max);
-        var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4;
+        var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
     	
 		this._attachEvents();
 		//set height for scatter plot render
@@ -924,8 +924,8 @@
     	if (!rows.length) return;
     	
     	// hard coded col value for now
-    	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4;
-		
+    	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
+		this._xaxisLabel = "Gene ID: " + rows[0][rowGeneID];
 		for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
 			row = rows[i];
 			rawKey = row[rowCancerType];
@@ -1002,7 +1002,7 @@
         //this._sort(false);
 
         //var topRows = this._lines.slice(0, this._max);
-        var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4;
+        var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
     	
 		//set height for box plot render
 		this._element.css('height', 500 + 'px');
