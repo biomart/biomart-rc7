@@ -802,7 +802,7 @@
            
             var value1 = row[rowValue1],
             	value2 = row[rowValue2],
-            	valueX = row[rowX];
+            	valueX = row[rowX],
             	valueID = row[rowID];
             var avg = (parseFloat(value1) + parseFloat(value2))/2;
             
@@ -1045,6 +1045,156 @@
         	},
             xaxis: {min: 0, max: index+1 , ticks: xTicks},
             yaxis: {min: ymin - 1, max: ymax + 1, ticks : 20},
+            grid: {
+                clickable: true,
+                hoverable: true,
+                autoHighlight: true
+            },
+            legend: {
+                margin: [5, 5],
+                backgroundOpacity: .6,
+                  show: true,
+                position: 'ne'
+            }
+        });
+        
+	
+        if (this._xaxisLabel) {
+            $(['<p class="plot-label">', this._xaxisLabel, '</p>'].join(''))
+                .width(this._plot.width())
+                .appendTo(this._element);
+        }
+    };
+    
+    /* DOT PLOT */
+    results.dotplot = Object.create(results.chart);
+    results.dotplot.tagName = 'div';
+    results.dotplot._keyMap = {};
+    results.dotplot._lines = [];
+    results.dotplot._donorIds = [];
+    results.dotplot._lineIndices = [1];
+    results.dotplot._labels = [];
+    results.dotplot._max = 20;
+    results.dotplot._header = null;
+    results.dotplot.initExport = function(url) {};
+    results.dotplot._doExport = function(form) {};
+    results.dotplot.printHeader = function(header, writee) {
+        this._header = header;
+    };
+    results.dotplot.parse = function(rows, writee) {
+    	if (!rows.length) return;
+    	
+    	// hard coded col value for now
+    	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
+    	this._xaxisLabel = this._header[rowGeneID] + " " + rows[0][rowGeneID];
+		for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
+			row = rows[i];
+			rawKey = row[rowCancerType];
+			
+			index = i;
+
+            var value1 = row[rowValue1],
+        	value2 = row[rowValue2],
+        	valueX = row[rowX],
+            valueID = row[rowID];
+            var avg = (parseFloat(value1) + parseFloat(value2))/2;
+            
+            if(rawKey in this._lines){
+            	if(valueX in this._lines[rawKey]){
+            		
+            	}else{
+            		this._lines[rawKey][valueX] = {
+                			Group : [],
+                			boxValue : []
+                	};
+            	}
+            }else{
+            	this._lines[rawKey] = new Array();
+            	this._lines[rawKey][valueX] = {
+            			Group : [],
+            			boxValue : []
+            	};
+            }
+
+            this._lines[rawKey][valueX].Group.push(avg);
+            this._donorIds.push(valueID);
+		}
+	
+    };
+    results.dotplot._attachEvents = function() {
+    	var self = this;
+        this._element.bind('plothover', function (ev, pos, item) {
+        	if (item) {
+                if (previousPoint != item.dataIndex) {
+                    previousPoint = item.dataIndex;
+                    clearTimeout(self._t);
+                    //$("#tooltip").remove();
+                    var x = item.datapoint[0].toFixed(2),
+                        y = item.datapoint[1].toFixed(2);
+                    
+                    self._showTooltip(item.pageX, item.pageY,
+                                self._donorIds[item.dataIndex] + " ("+x+","+y+")");
+                    
+                    self._t = setTimeout(function() {
+                        self._tooltip.fadeOut(100);
+                    }, 3000);
+                }
+            }
+            else {
+            	self._tooltip.fadeOut(100);
+                //$("#tooltip").remove();
+                previousPoint = null;            
+            }
+        
+        });
+    };
+    results.scatterplot.clear = function() {
+        this._lines = [];
+        this._labels = [];
+        this._donorIds = [];
+        this._keyMap = {};
+    };
+    results.dotplot.draw = function() {
+    	if (this._hasError) return;
+        this.initExport('plot');
+
+        // sort by total
+        //this._sort(false);
+        this._attachEvents();
+        //var topRows = this._lines.slice(0, this._max);
+        var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
+    	
+		//set height for box plot render
+		this._element.css('height', 500 + 'px');
+		var chartLines = [];
+		var xTicks = [];
+		var index = 0;
+		for( var key in this._lines){
+			if(this._lines.hasOwnProperty(key)){
+				var chartLine = {
+		        		data : [],
+		        		label : key
+		        };
+				for(var xkey in this._lines[key]){
+					if(this._lines[key].hasOwnProperty(xkey)){
+						index ++;
+						for(var i = 0; i<this._lines[key][xkey].Group.length; i++){
+							chartLine.data.push([index, this._lines[key][xkey].Group[i]]);
+						}
+						
+						xTicks.push([index,xkey]);
+					}
+				}
+    			chartLines.push(chartLine);
+			}
+		}
+
+        this._plot = $.plot(this._element, chartLines, {
+        	series: {
+                points: { show: true }
+            },
+            xaxis: {min: 0, max: index+1 , ticks: xTicks},
+            yaxis: {},
             grid: {
                 clickable: true,
                 hoverable: true,
