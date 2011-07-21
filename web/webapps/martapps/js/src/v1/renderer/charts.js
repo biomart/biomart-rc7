@@ -1324,6 +1324,7 @@
         
         this._plot = $.plot(this._element, chartLines, {
             series: {
+            	stack: true,
                 bars: { show: true }
             },
             xaxis: {},
