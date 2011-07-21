@@ -696,6 +696,7 @@ iframe.streaming {
 #biomart-results .scatterplot,
 #biomart-results .boxplot,
 #biomart-results .dotplot,
+#biomart-results .barchart,
 #biomart-results .plot {
     overflow: visible;
 }

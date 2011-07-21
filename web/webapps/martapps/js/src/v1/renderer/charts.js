@@ -1133,7 +1133,7 @@
                         y = item.datapoint[1].toFixed(2);
                     
                     self._showTooltip(item.pageX, item.pageY,
-                                self._donorIds[item.dataIndex] + " ("+x+","+y+")");
+                                self._donorIds[item.dataIndex] + " ("+item.series.xaxis.ticks[x-1].label+","+y+")");
                     
                     self._t = setTimeout(function() {
                         self._tooltip.fadeOut(100);
@@ -1148,7 +1148,7 @@
         
         });
     };
-    results.scatterplot.clear = function() {
+    results.dotplot.clear = function() {
         this._lines = [];
         this._labels = [];
         this._donorIds = [];
@@ -1214,5 +1214,146 @@
                 .width(this._plot.width())
                 .appendTo(this._element);
         }
+    };
+    
+    /* Bar chart */
+    results.barchart = Object.create(results.chart);
+    results.barchart.tagName = 'div';
+    results.barchart._keyMap = {};
+    results.barchart._lines = [];
+    results.barchart._donorIds = [];
+    results.barchart._lineIndices = [1];
+    results.barchart._labels = [];
+    results.barchart._max = 20;
+    results.barchart._header = null;
+    results.barchart.initExport = function(url) {};
+    results.barchart._doExport = function(form) {};
+    results.barchart.printHeader = function(header, writee) {
+        this._header = header;
+    };
+    results.barchart.parse = function(rows, writee) {
+    	if (!rows.length) return;
+    	
+    	// hard coded col value for now
+    	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
+    	this._xaxisLabel = this._header[rowGeneID] + " " + rows[0][rowGeneID];
+        for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
+            row = rows[i];
+            rawKey = row[rowCancerType],
+            cleanedKey = typeof rawKey == 'string' ? biomart.stripHtml(rawKey) : rawKey;
+            
+            /*this._lines.push({
+                key: cleanedKey,
+                raw: rawKey,
+                values: [],
+                totals: []
+            });*/
+            
+            index = this._lines.length - 1;
+           
+            var value1 = row[rowValue1],
+            	value2 = row[rowValue2],
+            	valueX = row[rowX],
+            	valueID = row[rowID];
+            var avg = (parseFloat(value1) + parseFloat(value2))/2;
+            
+            if(rawKey in this._lines){
+            	
+            }else{
+            	this._lines[rawKey] = [];
+            }
+            this._lines[rawKey].push( [parseInt(valueX) , avg] );
+            this._donorIds.push(valueID);
+        }
+	
+    };
+    results.barchart._attachEvents = function() {
+    	var self = this;
+        this._element.bind('plothover', function (ev, pos, item) {
+        	if (item) {
+                if (previousPoint != item.dataIndex) {
+                    previousPoint = item.dataIndex;
+                    clearTimeout(self._t);
+                    //$("#tooltip").remove();
+                    var x = item.datapoint[0].toFixed(2),
+                        y = item.datapoint[1].toFixed(2);
+                    
+                    self._showTooltip(item.pageX, item.pageY,
+                                self._donorIds[item.dataIndex] + " ("+x+","+y+")");
+                    
+                    self._t = setTimeout(function() {
+                        self._tooltip.fadeOut(100);
+                    }, 3000);
+                }
+            }
+            else {
+            	self._tooltip.fadeOut(100);
+                //$("#tooltip").remove();
+                previousPoint = null;            
+            }
+        
+        });
+    };
+   
+    results.barchart.draw = function() {
+    	if (this._hasError) return;
+        this.initExport('plot');
+
+        // sort by total
+        //this._sort(false);
+
+        //var topRows = this._lines.slice(0, this._max);
+        var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
+    	
+		this._attachEvents();
+		//set height for scatter plot render
+		this._element.css('height', ( 200 + 155) + 'px');
+		
+        var chartLines = [];
+        for (var key in this._lines) {
+        	if(this._lines.hasOwnProperty(key)){
+	        	chartLines.push({
+	        		data : this._lines[key],
+	        		label : key
+	        	});
+        	}
+            //if (!chartLines[j]) chartLines[j] = { data: [] , label:''};
+            //chartLines[0].data[j] = line.values;
+            //chartLines[0].label = line.rawKey;
+        }
+        
+        this._plot = $.plot(this._element, chartLines, {
+            series: {
+                bars: { show: true }
+            },
+            xaxis: {},
+            yaxis: {},
+            grid: {
+                clickable: true,
+                hoverable: true,
+                autoHighlight: true
+            },
+            legend: {
+                margin: [5, 5],
+                backgroundOpacity: .6,
+                  show: true,
+                position: 'ne'
+            }
+        });
+        
+        //var series = this._plot.getData();
+        
+        if (this._xaxisLabel) {
+            $(['<p class="plot-label">', this._xaxisLabel, '</p>'].join(''))
+                .width(this._plot.width())
+                .appendTo(this._element);
+        }
+    };
+    
+    results.barchart.clear = function() {
+        this._lines = [];
+        this._labels = [];
+        this._donorIds = [];
+        this._keyMap = {};
     };
 })(jQuery);
