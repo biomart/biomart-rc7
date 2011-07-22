@@ -232,7 +232,17 @@ public class Mart extends MartConfiguratorObject {
 				element.addContent(schema.generateXml());
 			}
 
-		for (Config config : this.configList) {
+		/*
+		 * save master config first
+		 */
+		List<Config> orderedConfig = new ArrayList<Config>();
+		for(Config config: this.configList) {
+			if(config.isMasterConfig())
+				orderedConfig.add(0,config);
+			else
+				orderedConfig.add(config);
+		}
+		for (Config config : orderedConfig) {
 			if(McUtils.isStringEmpty(configName))
 				element.addContent(config.generateXml());
 			else {
