@@ -473,8 +473,10 @@ $.widget('ui.simplerfilter', {
             datasets = biomart._state.datasets || biomart._state.queryMart.datasets,
             arr = [];
 
-        if (typeof mart == 'object') {
-            mart = mart.name;
+        if ($.isArray(mart)) {
+            mart = mart[0].config;
+        } else if (typeof mart == 'object') {
+            mart = mart.config;
         }
 
         if ($.isArray(datasets)) {
