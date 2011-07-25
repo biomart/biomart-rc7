@@ -14,10 +14,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -238,7 +242,19 @@ public class MartMetaPanel extends JPanel implements PropertyChangeListener {
 				return DialectFactory.getDialect(conObject.getJdbcType()).
 					getMetaTablesFromOldConfig(conObject, schemaName, true);
 			}else {
-				return mcsql.getTablesNodeFromTarget(conObject, schemaName, false);
+				//get tables from sql
+				List<String> tables = mcsql.getTablesFromTarget(conObject, schemaName);
+				Collections.sort(tables);	
+				List<LeafCheckBoxNode> tableNodes = new ArrayList<LeafCheckBoxNode>();
+				for(String table: tables) {
+					LeafCheckBoxNode cbn = new LeafCheckBoxNode(table,false);
+					DatasetFromUrl dsUrl = new DatasetFromUrl();
+					dsUrl.setName(table);
+					dsUrl.setDisplayName(table);
+					cbn.setUserObject(dsUrl);
+					tableNodes.add(cbn);
+				}
+				return tableNodes;
 			}			
 		}
 		return new ArrayList<LeafCheckBoxNode>();

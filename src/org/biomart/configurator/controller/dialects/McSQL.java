@@ -291,4 +291,40 @@ public class McSQL {
 	public List<String> getMainTableInfo(JdbcLinkObject conObj) throws MartBuilderException {
 		return ((MySQLDialect)DialectFactory.getDialect(JdbcType.MySQL)).getMainTables(conObj);
 	}
+
+	public List<String> getTablesFromTarget(JdbcLinkObject conObject, String schemaName) {		
+		List<String> result = new ArrayList<String>();
+		JdbcLinkObject dbConObj = new JdbcLinkObject(conObject.getConnectionBase(),
+				conObject.getDatabaseName(),schemaName,conObject.getUserName(),conObject.getPassword(),
+				conObject.getJdbcType(), conObject.getPartitionRegex(),conObject.getPtNameExpression(),
+				conObject.isKeyGuessing());
+		
+		Connection con = ConnectionPool.Instance.getConnection(dbConObj);
+		if (null==con) {
+			String message = "connection is null: " + conObject.toString() + ", " + dbConObj.toString();
+			Log.error(message);
+			new Throwable().printStackTrace();
+			JOptionPane.showMessageDialog(null, message);
+		}
+		try {
+			String catalog = con.getCatalog();
+			if(conObject.getJdbcType() == JdbcType.MySQL)
+				catalog = schemaName;
+			ResultSet rs2 = con.getMetaData().getTables(catalog, schemaName, "%", new String[]{"TABLE"}); // "SELECT TABNAME AS TABLE_NAME, COLNAME AS COLUMN_NAME FROM SYSCAT.COLUMNS WHERE TABSCHEMA='" + schemaName + "'";
+			while (rs2.next()) {
+				String tableName = rs2.getString("TABLE_NAME");
+				if((tableName.endsWith("__main") || tableName.endsWith("__MAIN")) 
+						&& !tableName.contains("$")	// exclude ORACLE's temporary tables (although unlikely to happen here)
+						) {
+					result.add(tableName);
+				}
+			}	
+			rs2.close();
+		} catch(SQLException ex) {
+			ex.printStackTrace();
+		}
+		ConnectionPool.Instance.releaseConnection(dbConObj);
+		return result;
+	}
+
 }

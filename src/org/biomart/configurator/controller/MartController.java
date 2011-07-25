@@ -938,7 +938,11 @@ public class MartController {
 			String tbName = entry.getValue().get(0).getName();
 			int index = tbName.indexOf(Resources.get("tablenameSep"));
 			String dsName = tbName.substring(0,index);
-			Mart mc = this.requestCreateDataSetFromTarget(registry, dsName,dlinkInfo);
+			Mart mc = null;
+			if(!dlinkInfo.isBCPartitioned())
+				mc = this.requestCreateDataSetFromTarget(registry, dsName,dlinkInfo);
+			else
+				mc = this.requestCreateDataSetFromTargetPartitioned(registry, entry.getKey(), dlinkInfo);
 			if(mc!=null)
 				result.add(mc);
 			//only one for now
@@ -955,14 +959,6 @@ public class MartController {
 
 		//add datasettable
 		McSQL mcSql = new McSQL();
-//		String dbName = dlinkInfo.getJdbcLinkObject().getDsInfoMap().keySet().iterator().next().getDatabase();
-		//String dbName = dlinkInfo.getSelectedTablesMap().keySet().iterator().next();
-/*		JdbcLinkObject oldConObj = dlinkInfo.getJdbcLinkObject();
-		JdbcLinkObject dbconObj = new JdbcLinkObject(oldConObj.getConnectionBase(),
-				oldConObj.useSchema()?oldConObj.getDatabaseName():dbName, dbName,
-				oldConObj.getUserName(),oldConObj.getPassword(),
-				oldConObj.getJdbcType(),oldConObj.getPartitionRegex(),
-				oldConObj.getPtNameExpression(),oldConObj.isKeyGuessing());*/
 		JdbcLinkObject dbconObj = dlinkInfo.getJdbcLinkObject().getDsInfoMap().keySet().iterator().next().getJdbcLinkObject();
 		//dataset.setConnectionObject(dbconObj);
 		//dataset name is the martName + "_" + last part of the database name
@@ -1182,6 +1178,227 @@ public class MartController {
     	return mart;
 	}
 
+	private Mart requestCreateDataSetFromTargetPartitioned(MartRegistry registry, MartInVirtualSchema martInVS, DataLinkInfo dlinkInfo) throws MartBuilderException {
+		//mart name is the database name;
+		JdbcLinkObject dbconObj = dlinkInfo.getJdbcLinkObject().getDsInfoMap().keySet().iterator().next().getJdbcLinkObject();
+		String databaseName = dbconObj.getSchemaName();		
+		Mart mart = new Mart(registry,martInVS.getName(),null);
+		//create a default partitiontable
+		PartitionTable pt = new PartitionTable(mart,PartitionType.SCHEMA);
+		mart.addPartitionTable(pt);
+
+		McSQL mcSql = new McSQL();
+		
+		//load tables for all datasets
+		for(DatasetFromUrl dsurl: dlinkInfo.getJdbcLinkObject().getDsInfoMap().get(martInVS)) {
+			//assume that they all follow the name convention
+			String tablename = dsurl.getName();
+			int index = tablename.indexOf(Resources.get("tablenameSep"));
+			String dsName = tablename.substring(0,index);
+			Map<String,List<String>> tblColMap = mcSql.getMartTablesInfo(dbconObj,dsName);
+			if(tblColMap.isEmpty())
+				return null;
+
+			//get all main tables and keys TODO improve
+			Map<String,List<String>> mainKeyMap = new HashMap<String,List<String>>();
+			List<String> orderedMainTableList = new ArrayList<String>();
+			List<String> mainTableList = new ArrayList<String>();
+			//get all mainTable
+			for(Map.Entry<String, List<String>> entry:tblColMap.entrySet()) {
+				if(!isMainTable(entry.getKey()))
+					continue;
+				mainTableList.add(entry.getKey());
+			}
+			//build the mainKeyMap and order the mainTable
+			String[] mainArray = new String[mainTableList.size()];
+			for(String tblName:mainTableList) {
+				if(!isMainTable(tblName))
+					continue;
+				List<String> keyList = new ArrayList<String>();
+				for(String colStr:tblColMap.get(tblName)) {
+					if(colStr.endsWith(Resources.get("keySuffix")))
+					//if(colStr.indexOf(Resources.get("keySuffix"))>=0)
+						keyList.add(colStr);
+				}
+				mainKeyMap.put(tblName, keyList);
+				if(keyList.size()<1) {
+					JOptionPane.showMessageDialog(null, "no key column in "+tblName);
+					return null;				
+				}
+				mainArray[keyList.size()-1]=tblName;						
+			}
+			orderedMainTableList = Arrays.asList(mainArray);
+			if(orderedMainTableList.isEmpty()) {
+				JOptionPane.showMessageDialog(null, "check "+dbconObj.getDatabaseName());
+				return null;
+			}
+			
+			for(Map.Entry<String, List<String>> entry:tblColMap.entrySet()) {
+				String tblName = entry.getKey();
+				//put it in partition format
+				index = tblName.indexOf(Resources.get("tablenameSep"));
+				String _tblName = tblName.substring(index+1);
+				String tblNamePartitioned = "(p0c"+PartitionUtils.DATASETNAME+")"+"__"+_tblName;
+				DatasetTable dstable = (DatasetTable)mart.getTableByName(tblNamePartitioned);
+				//create datasettable when it is null
+				if(dstable==null){
+					//get table type
+					DatasetTableType dstType;
+					if(isMainTable(tblNamePartitioned)) {					
+						if(orderedMainTableList.indexOf(tblNamePartitioned)>0)
+							dstType = DatasetTableType.MAIN_SUBCLASS;
+						else
+							dstType = DatasetTableType.MAIN;
+					}else
+						dstType = DatasetTableType.DIMENSION;
+					
+					dstable = new DatasetTable(mart,tblNamePartitioned,dstType);
+					dstable.addInPartitions(dsName);
+					mart.addTable(dstable);
+				}//end of if
+				else {
+					dstable.addInPartitions(dsName);
+				}
+				DatasetTableType dstType = dstable.getType();
+				//columns
+				for(String colStr:entry.getValue()) {
+    				//all are fake wrapped column
+    				DatasetColumn column = dstable.getColumnByName(colStr);
+    				if(column == null) {
+    					column = new DatasetColumn(dstable,colStr);
+    					column.addInPartitions(dsName);
+    					dstable.addColumn(column);
+    				}else {
+    					column.addInPartitions(dsName);
+    				}
+    				//set pk or fk if colStr is a key
+    				if(colStr.indexOf(Resources.get("keySuffix"))>=0) {
+    					if(dstType.equals(DatasetTableType.DIMENSION)) {
+    						ForeignKey fkObject = new ForeignKey(column);
+        					//KeyController fk = new KeyController(fkObject);
+        					fkObject.setStatus(ComponentStatus.INFERRED);
+        					if(!dstable.getForeignKeys().contains(fkObject)) {
+    	    					dstable.getForeignKeys().add(fkObject);
+        						//dstable.getForeignKeys().add(fk);
+        					}
+    					}else if(dstType.equals(DatasetTableType.MAIN)) {
+    						PrimaryKey pkObject = new PrimaryKey(column);
+    						//KeyController pk = new KeyController(pkObject);
+    						pkObject.setStatus(ComponentStatus.INFERRED);
+    						dstable.setPrimaryKey(pkObject);
+    					}else {
+    						if(isColPkinTable(colStr,tblName,mainKeyMap,orderedMainTableList)) {
+    							PrimaryKey pkObject = new PrimaryKey(column);
+    							//KeyController pk = new KeyController(pkObject);
+        						pkObject.setStatus(ComponentStatus.INFERRED);
+        						dstable.setPrimaryKey(pkObject);   							
+    						}else {
+    							ForeignKey fkObject = new ForeignKey(column);
+    	       					//KeyController fk = new KeyController(fkObject);
+            					fkObject.setStatus(ComponentStatus.INFERRED);
+            					if(!dstable.getForeignKeys().contains(fkObject)) {
+        	    					dstable.getForeignKeys().add(fkObject);
+            						//dstable.getForeignKeys().add(fk);
+            					}    							
+    						}   							
+    					}
+    				}
+				} //end of columns
+			}
+
+			//relations main -- dimension first
+			for(String mainTStr:orderedMainTableList) {
+				DatasetTable mainTable = mart.getTableByName(mainTStr);
+				for(DatasetTable table:mart.getDatasetTables()) {
+					if(!table.getType().equals(DatasetTableType.DIMENSION))
+						continue;
+					PrimaryKey pk = mainTable.getPrimaryKey();
+					//if pk and fk have the same columns (same name for now), matched
+					List<String> pkColList = new ArrayList<String>();
+					for(Column tmpCol1:pk.getColumns())
+						pkColList.add(tmpCol1.getName());
+
+					for(ForeignKey fk:table.getForeignKeys()) {
+						List<String> fkColList = new ArrayList<String>();
+						for(Column tmpCol2:fk.getColumns())
+							fkColList.add(tmpCol2.getName());
+						if(pkColList.size()==fkColList.size() && 
+								pkColList.containsAll(fkColList)) {
+
+							if(!Relation.isRelationExist(pk, fk))
+								try {
+									Relation rel = new RelationTarget(pk,fk,Cardinality.MANY_A);
+									//pk.getObject().addRelation(rel);
+									//fk.getObject().addRelation(rel);
+									rel.setOriginalCardinality(Cardinality.MANY_A);
+									rel.setStatus(ComponentStatus.INFERRED);
+								} catch (AssociationException e) {
+									e.printStackTrace();
+								}
+						}								
+					}
+				}
+			}//end of main -- dimension relation
+			//sub main relation
+			for(int i=0; i<orderedMainTableList.size()-1; i++) {
+				DatasetTable firstDst = mart.getTableByName(orderedMainTableList.get(i));
+				DatasetTable secondDst = mart.getTableByName(orderedMainTableList.get(i+1));
+				PrimaryKey pk = firstDst.getPrimaryKey();
+				//if pk and fk have the same columns (same name for now), matched
+				List<String> pkColList = new ArrayList<String>();
+				for(Column tmpCol1:pk.getColumns())
+					pkColList.add(tmpCol1.getName());
+
+				for(ForeignKey fk:secondDst.getForeignKeys()){
+					List<String> fkColList = new ArrayList<String>();
+					for(Column tmpCol2:fk.getColumns())
+						fkColList.add(tmpCol2.getName());
+					if(pkColList.size()==fkColList.size() && 
+							pkColList.containsAll(fkColList)) {					
+
+						if(!Relation.isRelationExist(pk, fk))
+							try {
+								Relation rel = new RelationTarget(pk,fk,Cardinality.MANY_A);
+								//pk.getObject().addRelation(rel);
+								//fk.getObject().addRelation(rel);
+								rel.setOriginalCardinality(Cardinality.MANY_A);
+								rel.setStatus(ComponentStatus.INFERRED);
+								rel.setSubclassRelation(true,Relation.DATASET_WIDE);
+							} catch (AssociationException e) {
+								e.printStackTrace();
+							} catch (ValidationException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}	
+					}
+				}
+			}
+			List<String> rowItem = new ArrayList<String>();
+			rowItem.add(dbconObj.getConnectionBase());
+			rowItem.add(dbconObj.getDatabaseName());
+			rowItem.add(dbconObj.getSchemaName());
+			rowItem.add(dbconObj.getUserName());
+			rowItem.add(dbconObj.getPassword());
+			rowItem.add(dsName);
+			rowItem.add(XMLElements.FALSE_VALUE.toString());
+			rowItem.add(dsName);
+			rowItem.add(Resources.BIOMART_VERSION);
+			//add empty string till col 14
+			rowItem.add("");
+			rowItem.add("");
+			rowItem.add("");
+			rowItem.add("");
+			rowItem.add("");
+			rowItem.add("");
+			pt.addNewRow(rowItem);
+
+		}
+
+		mart.setCentralTable(mart.getOrderedMainTableList().get(0));		
+    	return mart;
+	}
+
+	
 	private boolean isMainTable(String tableName) {
 		return tableName.indexOf(Resources.get("tablenameSep")+Resources.get("mainSuffix"))>=0;
 	}
