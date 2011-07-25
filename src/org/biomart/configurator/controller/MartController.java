@@ -1237,7 +1237,7 @@ public class MartController {
 				String tblName = entry.getKey();
 				//put it in partition format
 				index = tblName.indexOf(Resources.get("tablenameSep"));
-				String _tblName = tblName.substring(index+1);
+				String _tblName = tblName.substring(index+2);
 				String tblNamePartitioned = "(p0c"+PartitionUtils.DATASETNAME+")"+"__"+_tblName;
 				DatasetTable dstable = (DatasetTable)mart.getTableByName(tblNamePartitioned);
 				//create datasettable when it is null
