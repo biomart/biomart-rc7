@@ -117,6 +117,17 @@ public class BackwardCompatibility {
 			}
 			if(currentColumnList.contains(column.getName()))
 				column.addInPartitions(datasetName);
+			else
+				Log.debug("Column " + column.getName() + " not found in table " + tableName + " in dataset " + datasetName + ". Checking case insensitive variations.");
+				for(String dbColumn : currentColumnList){
+					if(dbColumn.equalsIgnoreCase(column.getName())){
+						column.setName(dbColumn);
+						Log.debug("Found match: " + dbColumn);
+						column.addInPartitions(datasetName);
+						break;
+					}
+					Log.debug("No matching column found.");
+				}
 		}
 	}
 	
@@ -1062,6 +1073,7 @@ public class BackwardCompatibility {
 			}
 			
 			filter.setPointerInSource(true);
+			filter.setInternalName(pointedFilterName);
 			
 			// Store in the partition table
 			HashMap<String, String> datasetPartitionColumn = this.pointerFilterDatasetPartition.get(filter);
@@ -1185,10 +1197,13 @@ public class BackwardCompatibility {
 				
 				String pointedAttributeName = attributeXML.getAttributeValue("pointerAttribute","").trim();
 				String pointedDatasetName = parseAliasesToPartitionColumn(attributeXML.getAttributeValue("pointerDataset","").trim(), config);
+				
 				if(attribute == null){
 					attribute = new org.biomart.objects.objects.Attribute(name, pointedAttributeName, pointedDatasetName);
 				}
 				attribute.setPointerInSource(true);
+				attribute.setInternalName(pointedAttributeName);
+
 				
 				// Store in the partition table
 				HashMap<String, String> datasetPartitionColumn = this.pointerAttributeDatasetPartition.get(attribute);
@@ -1394,7 +1409,7 @@ public class BackwardCompatibility {
 		
 		List<Mart> martList = new ArrayList<Mart>();
 		
-		if(false){
+		if(true){
 			martList = createMartList();
 			return martList;
 		}
