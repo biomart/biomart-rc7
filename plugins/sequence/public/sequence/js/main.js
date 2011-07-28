@@ -79,7 +79,7 @@ $.namespace('biomart.sequence', function(self) {
         _elements.datasetSelect.bind('change.sequence', datasetChangedHandler);
 
         _elements.typeContainer
-            .delegate('.type-container', 'change.sequence', typeChangedHandler);
+            .delegate('.type-container', 'change.sequence', updateAttributesForSequenceType);
 
         _elements.attributeContainer
             .delegate('.attribute-container', 'addattribute', function() {
@@ -187,6 +187,8 @@ $.namespace('biomart.sequence', function(self) {
                 appendTo: _elements.attributeContainer
             });
         }
+
+        updateAttributesForSequenceType();
     }
 
     function martChangedHandler() {
@@ -234,8 +236,11 @@ $.namespace('biomart.sequence', function(self) {
         });
     }
 
-    function typeChangedHandler() {
-        var type = $(this).data('item');
+    function updateAttributesForSequenceType() {
+        var $active = $('input[type]:checked'),
+            $container = $active.closest('.type-container'),
+            type = $container.data('item');
+
         _state.type = type;
 
         var arr = getDefaultAttributes(),
@@ -337,11 +342,20 @@ $.namespace('biomart.sequence', function(self) {
 
     function getDefaultAttributes() {
         var arr = [];
-        arr.push('ensembl_gene_id');
-        arr.push('ensembl_transcript_id');
-        if (_state.type.name == 'gene_exon') {
-            arr.push('ensembl_exon_id');
+
+        // Figure out attribute names based on displayName
+        // We do this because the names may vary between species
+        var geneId = _elements.attributeContainer.find('.item-name:contains("Ensembl Gene ID")').siblings('input').attr('name'),
+            transcriptId  = _elements.attributeContainer.find('.item-name:contains("Ensembl Transcript ID")').siblings('input').attr('name');
+
+        arr.push(geneId);
+        arr.push(transcriptId);
+
+        if (_state.type.name === 'gene_exon') {
+            var exonId  = _elements.attributeContainer.find('.item-name:contains("Ensembl Exon ID")').siblings('input').attr('name');
+            arr.push(exonId);
         }
+
         return arr;
     }
 });
