@@ -248,12 +248,9 @@ public class Sequence extends ProcessorImpl implements SequenceConstants {
                 .validate()
                 .startup();
 
+        } catch (BioMartException e) {
+            throw e;
         } catch (Exception e) {
-            try {
-                out.write(SEQUENCE_ERROR_ENCOUNTERED.getBytes());
-            } catch (IOException ie) {
-                Log.error("IOException in Sequence processor", ie);
-            }
             throw new BioMartException(e);
         }
     }

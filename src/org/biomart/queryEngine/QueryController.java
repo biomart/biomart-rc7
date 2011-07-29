@@ -1,6 +1,6 @@
 package org.biomart.queryEngine;
 
-import org.biomart.common.exceptions.BioMartQueryException;
+import org.biomart.common.exceptions.BioMartException;
 import java.io.EOFException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -122,18 +122,18 @@ public final class QueryController {
         // 3. Set outputstream on Processor
         // 4. Run query
         // 5. Call done (cleanup) on Processor
-		try {
+        try {
             QueryRunner queryRunnerObj = new QueryRunner(query,
                     processorObj.getCallback(), processorObj.getErrorHandler());
 
             processorObj.setQuery(queryRunnerObj.query);
             processorObj.setOutputStream(outputHandle);
 
-			queryRunnerObj.runQuery();
+            queryRunnerObj.runQuery();
 
             processorObj.done();
 
-        } catch (BioMartQueryException e) {
+        } catch (BioMartException e) {
             if (!(e.getCause() instanceof EOFException)) {
                 throw e;
             }
