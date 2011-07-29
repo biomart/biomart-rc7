@@ -161,6 +161,7 @@ $.namespace('biomart.sequence', function(self) {
 
     function filterContainerLoaded(root) {
         clearContainer(_elements.filterContainer);
+        _state.filters = {};
         for (var i=0, container; container=root.containers[i]; i++) {
             biomart.renderer.container({
                 headerTagName: 'h4',
@@ -174,6 +175,7 @@ $.namespace('biomart.sequence', function(self) {
 
     function attributeContainerLoaded(root) {
         clearContainer(_elements.attributeContainer);
+        _state.attributes = {};
         for (var i=0, container; container=root.containers[i]; i++) {
             biomart.renderer.container({
                 headerTagName: 'h4',
@@ -249,12 +251,9 @@ $.namespace('biomart.sequence', function(self) {
         checkboxes.each(function() {
             var that = $(this).closest('.attribute-container'),
                 item = that.data('item');
-            if ($.inArray(item.name, arr) != -1) {
+            if (~$.inArray(item.name, arr)) {
                 this.checked = true;
                 that.trigger('addattribute');
-            } else if (item.name == 'ensembl_exon_id') {
-                this.checked = false;
-                that.trigger('removeattribute');
             }
         });
 
