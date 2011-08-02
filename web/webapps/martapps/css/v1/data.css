@@ -560,6 +560,18 @@ iframe.streaming {
     font-weight: bold;
     text-shadow: 1px 1px 2px #000;
 }
+.biomart .tmamap {
+	position: relative;
+	height: 400px;
+	/*width: 1000px;*/
+}
+.biomart .tmamap canvas{
+	position: absolute;
+	top:0;
+	left:0;
+	width: 100%;
+	height: 100%;
+}
 .biomart .heat-legend-wrap {
     position: absolute;
     left: 5px;
@@ -697,7 +709,8 @@ iframe.streaming {
 #biomart-results .boxplot,
 #biomart-results .dotplot,
 #biomart-results .barchart,
-#biomart-results .plot {
+#biomart-results .plot,
+#biomart-results .tmamap {
     overflow: visible;
 }
 #biomart-results .actions {
