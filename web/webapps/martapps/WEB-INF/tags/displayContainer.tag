@@ -1,4 +1,6 @@
 <%@ tag import="javax.servlet.jsp.JspWriter" %>
+<%@ tag import="java.util.regex.Pattern" %>
+<%@ tag import="java.util.regex.Matcher" %>
 <%@ tag import="java.io.IOException" %>
 <%@ tag import="java.util.Map" %>
 <%@ tag import="java.util.HashMap" %>
@@ -43,7 +45,9 @@
               martName = mart.getName();
               displayName = mart.getDisplayName();
             }
-            builder.append("<li><a rel=\"noindex nofollow\" href=\"" + url.replaceFirst("%s", containerName).replaceFirst("%s", martName) + "\">");
+            builder.append("<li><a rel=\"noindex nofollow\" href=\"" + 
+				url.replaceFirst("%s", containerName).replaceFirst(
+					Pattern.quote("%s"), Matcher.quoteReplacement(martName)) + "\">");
             builder.append(displayName);
             builder.append("</a></li>\n");
           } else {
