@@ -76,10 +76,14 @@ $.namespace('biomart.sequence', function(self) {
 
     function initEvents() {
         _elements.martSelect.bind('change.sequence', martChangedHandler);
-        _elements.datasetSelect.bind('change.sequence', datasetChangedHandler);
+        _elements.datasetSelect
+            .bind('change.sequence', datasetChangedHandler)
+            .delegate('.type-container', 'change.sequence', resetFlanks);
 
         _elements.typeContainer
-            .delegate('.type-container', 'change.sequence', updateAttributesForSequenceType);
+            .delegate('.type-container', 'change.sequence', resetFlanks)
+            .delegate('.type-container', 'change.sequence', updateAttributesForSequenceType)
+            .delegate('.type-container', 'change.sequence', updateFiltersForSequenceType);
 
         _elements.attributeContainer
             .delegate('.attribute-container', 'addattribute', function() {
@@ -161,28 +165,29 @@ $.namespace('biomart.sequence', function(self) {
 
     function filterContainerLoaded(root) {
         clearContainer(_elements.filterContainer);
-        _state.filters = {};
         for (var i=0, container; container=root.containers[i]; i++) {
             biomart.renderer.container({
                 headerTagName: 'h4',
                 headerClassName: 'container-name',
                 item: container,
                 mode: biomart.renderer.FILTERS,
-                appendTo: _elements.filterContainer
+                appendTo: _elements.filterContainer,
+                selectedFilters: getSelectedFilters(),
             });
         }
+
+        updateFiltersForSequenceType();
     }
 
     function attributeContainerLoaded(root) {
         clearContainer(_elements.attributeContainer);
-        _state.attributes = {};
         for (var i=0, container; container=root.containers[i]; i++) {
             biomart.renderer.container({
                 headerTagName: 'h4',
                 headerClassName: 'container-name',
                 item: container,
                 mode: biomart.renderer.ATTRIBUTES,
-                selectedAttributes: getDefaultAttributes(),
+                selectedAttributes: getSelectedAttributes(),
                 onAttributeSelect: function(attribute) {
                     _state.attributes[attribute.name] = attribute;
                 },
@@ -238,6 +243,26 @@ $.namespace('biomart.sequence', function(self) {
         });
     }
 
+    function updateFiltersForSequenceType() {
+        var $active = $('input[type]:checked'),
+            $container = $active.closest('.type-container'),
+            type = $container.data('item');
+
+        _state.type = type;
+
+        var arr = getSelectedFilters();
+
+        _elements.filterContainer.find('.filter-container.ui-active').each(function() { 
+            var $this = $(this),
+                item = $this.data('item');
+            if (~$.inArray(item.name, arr)) {
+                $this.trigger('addfilter', item);
+            } else {
+                $this.trigger('removefilter', item);
+            }
+        });
+    }
+
     function updateAttributesForSequenceType() {
         var $active = $('input[type]:checked'),
             $container = $active.closest('.type-container'),
@@ -245,7 +270,7 @@ $.namespace('biomart.sequence', function(self) {
 
         _state.type = type;
 
-        var arr = getDefaultAttributes(),
+        var arr = getSelectedAttributes(),
             checkboxes = _elements.attributeContainer.find('input[type=checkbox]');
 
         checkboxes.each(function() {
@@ -254,6 +279,9 @@ $.namespace('biomart.sequence', function(self) {
             if (~$.inArray(item.name, arr)) {
                 this.checked = true;
                 that.trigger('addattribute');
+            } else {
+                this.checked = false;
+                that.trigger('removeattribute');
             }
         });
 
@@ -339,7 +367,23 @@ $.namespace('biomart.sequence', function(self) {
 
     }
 
-    function getDefaultAttributes() {
+    function getSelectedFilters() {
+        var arr = [];
+
+        for (var k in _state.filters) {
+            var filter = _state.filters[k],
+                $found = _elements.filterContainer.find('label:contains("' + filter.displayName + '")');
+            if ($found.length > 0) {
+                arr.push($found.closest('.filter-container').attr('filter-name'));
+            }
+        }
+
+        _state.filters = {};
+
+        return arr;
+    }
+
+    function getSelectedAttributes() {
         var arr = [];
 
         // Figure out attribute names based on displayName
@@ -355,7 +399,29 @@ $.namespace('biomart.sequence', function(self) {
             arr.push(exonId);
         }
 
+        for (var k in _state.attributes) {
+            var attr = _state.attributes[k];
+            switch (attr.displayName) {
+                case 'Ensembl Gene ID':
+                case 'Ensembl Transcript ID':
+                case 'Ensembl Exon ID':
+                      break;
+                default:
+                    var $found = _elements.attributeContainer.find('.item-name:contains("' + attr.displayName + '")');
+                    if ($found.length > 0) {
+                        arr.push($found.siblings('input').attr('name'));
+                    }
+            }
+        }
+
+        _state.attributes = {};
+
         return arr;
+    }
+
+    function resetFlanks() {
+        _elements.upstreamFlank.val('');
+        _elements.downstreamFlank.val('');
     }
 });
 
