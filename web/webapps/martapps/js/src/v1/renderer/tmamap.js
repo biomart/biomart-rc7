@@ -14,8 +14,8 @@
             max = this._max,
             mid = this._mid;
 
-        if (val > max) return 'rgb(255,0,0)';
-        if (val < min) return 'rgb(0,0,255)';
+        if (val > max) return 'rgb(255,255,255)';
+        if (val < min) return 'rgb(255,255,255)';
 
         var r = this._getRed(val, min, mid, max),
             b = this._getBlue(val, min, mid, max),
@@ -182,12 +182,14 @@
 	            			var y = this._lines[category][data].y * 40;
 	            			var value = this._lines[category][data].value;
 	            			ctx.fillStyle = this._getColor(value);
+	            			ctx.strokeStyle = this._getColor(this._max);
 	            			
 	            			ctx.beginPath();
 		            		ctx.arc(x,y,radius, 0, Math.PI*2,true);
 		            		ctx.closePath();
 		            		
 		            		ctx.fill();
+		            		ctx.stroke();
                     	}
             		}
             	}
