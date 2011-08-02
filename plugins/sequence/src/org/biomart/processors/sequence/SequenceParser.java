@@ -237,7 +237,7 @@ public abstract class SequenceParser implements SequenceConstants {
         if (upstreamFlank == 0 && downstreamFlank == 0){
             throw new ValidationException("Validation Error: Requests for flank sequence must be accompanied by an upstream_flank or downstream_flank request");
         } else if (upstreamFlank > 0 && downstreamFlank> 0){
-            throw new ValidationException("Validation Error: For this sequence option choose upstream OR downstream gene flanking sequence, NOT both.");
+            throw new ValidationException("Validation Error: For this sequence option choose upstream OR downstream flanking sequence, NOT both.");
         } else if (upstreamFlank < 0 || downstreamFlank < 0){
             throw new ValidationException("Validation Error: Flank distance can not be negative.");
         }
