@@ -3,7 +3,7 @@ $.namespace('biomart.url', function(self) {
     self.SEPARATOR = '#!/';
 
     var regex = new RegExp([
-        '(https?:\/\/[^\/]+\/?)?([a-zA-Z0-9._\\-/ %]+)?(\\?([^#]+))?(', self.SEPARATOR, '(.+))?'
+        '(https?:\/\/[^\/]+\/?)?([^#\\?]+)?(\\?([^#]+))?(', self.SEPARATOR, '(.+))?'
     ].join(''));
 
     self.jsonify = function(url) {

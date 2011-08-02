@@ -46,7 +46,10 @@ $.namespace('biomart.martform', function(self) {
 
         queryMart = biomart.query.createQueryMart(biomart._state.mart);
 
-        if (!biomart.utils.hasGroupedMarts() && biomart._state.mart.operation == biomart.OPERATION.MULTI_SELECT) multiselect = true;
+        if (!biomart.utils.hasGroupedMarts() && biomart._state.mart.operation == biomart.OPERATION.MULTI_SELECT) {
+            multiselect = true;
+        }
+
         independent = biomart._state.mart.independent === true;
 
         queue.queue(function() {
@@ -60,12 +63,17 @@ $.namespace('biomart.martform', function(self) {
         });
 
         queue.queue(function() {
+            if (biomart._state.datasets.length === 0) {
+                return; 
+            }
+
             // Don't allow partial attribute lists to be returned
             var params = { datasets: biomart._state.datasets, independent: independent, allowPartialList: false },
                 mart;
 
-            if (biomart._state.config)
+            if (biomart._state.config) {
                 params.config = biomart._state.config;
+            }
 
             biomart.resource.load('attributes', function(json) {
                 self.setAttributes(json);
@@ -74,6 +82,10 @@ $.namespace('biomart.martform', function(self) {
         });
 
         queue.queue(function() {
+            if (biomart._state.datasets.length === 0) {
+                return; 
+            }
+
             var params = {datasets: biomart._state.datasets};
 
             if (biomart._state.config)
@@ -130,6 +142,9 @@ $.namespace('biomart.martform', function(self) {
                 dsHash[ds.name] = ds;
             }
         } else {
+            // For keep tracking of first dataset among all marts
+            var num = 0;
+            
             for (var k in d) {
                 var datasets = d[k],
                     mart;
@@ -152,7 +167,7 @@ $.namespace('biomart.martform', function(self) {
                             arr.push(ds.name);
                         }
                     } else {
-                        if (i===0) {
+                        if (num++ === 0) {
                             $li.addClass('ui-selected');
                             arr.push(ds.name);
                         }
