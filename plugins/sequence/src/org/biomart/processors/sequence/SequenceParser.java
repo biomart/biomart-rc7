@@ -147,7 +147,7 @@ public abstract class SequenceParser implements SequenceConstants {
                     closeSilently(rs);
 
                     pstmtEnd.setInt(1, 1);
-                    pstmtEnd.setInt(2, end&CHUNK_SIZE);
+                    pstmtEnd.setInt(2, end%CHUNK_SIZE);
                     pstmtEnd.setInt(4, end);
                     pstmtEnd.setInt(5, CHUNK_SIZE-1);
                     pstmtEnd.setInt(6, end);
