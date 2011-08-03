@@ -41,6 +41,11 @@
         if (val >= mid2) return 255;
         return parseInt(val / mid2 * 255);
     };
+    results.tmamap.clear = function() {
+        this._lines = [];
+        this._labels = [];
+        this._keyMap = {};
+    };
     results.tmamap.parse = function(rows, writee) {
         var n = rows.length,
             arr = [],
@@ -97,6 +102,20 @@
     results.tmamap.option = function(name, value) {
         this['_' + name] = value;
     };
+    results.tmamap._showTooltip = function(x, y, contents) {
+        var left = x - this._tooltip.width() - 5,
+            w = this._element.width(),
+            pw = this._plot.width();
+            diff = w - pw + this._element.offset().left;
+
+        this._tooltip
+            .text(contents)
+            .css({
+                'top': y - 6,
+                left: diff < left ? left : x + 5
+            })
+            .fadeIn(100);
+    };
     results.tmamap.draw = function(writee) {
         if (this._hasError) return;
 
@@ -104,19 +123,6 @@
             writee.html(['<p class="empty">', _('no_results'), '</p>'].join(''));
             return;
         }
-
-        
-/*
-        this._lines.sort(function(left, right) {
-            var a = right[2],
-                b = left[2];
-            if (a > b) return 1;
-            if (a < b) return -1;
-            return 0;
-        });
-*/
-        
-        
 
         if (!this._lines.length) {
             writee.parent().parent().html(['<p class="empty">', _('no_results'), '</p>'].join(''));
@@ -181,6 +187,10 @@
 	            			var x = this._lines[category][data].x * 40 + 450 * parseInt(category-1);
 	            			var y = this._lines[category][data].y * 40;
 	            			var value = this._lines[category][data].value;
+	            			var kin = new Kinetic_2d("tmamap");
+	            			// draw the TMA map dots
+	            			kin.beginRegion();
+	            			
 	            			ctx.fillStyle = this._getColor(value);
 	            			ctx.strokeStyle = this._getColor(this._max);
 	            			
@@ -190,6 +200,15 @@
 		            		
 		            		ctx.fill();
 		            		ctx.stroke();
+		            		
+		            		kin.addRegionEventListener("onmouseover", function(){
+		            			self._showTooltip(x, y, value);
+		            		});
+		            		
+		            		kin.addRegionEventListener("onmouseout", function(){
+		            			self._tooltip.fadeOut(100);
+		            		});
+		            		kin.closeRegion();
                     	}
             		}
             	}
@@ -229,5 +248,7 @@
             ctx.fillStyle = grad;
             ctx.fillRect(x1, y1, x2, y2);
         }
+        
+        this.clear();
     };
 })(jQuery);
