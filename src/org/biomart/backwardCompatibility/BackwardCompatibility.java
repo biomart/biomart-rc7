@@ -897,6 +897,9 @@ public class BackwardCompatibility {
 		String multipleValues = filterXML.getAttributeValue("multipleValues","");
 		String style = filterXML.getAttributeValue("style","");
 		String type = filterXML.getAttributeValue("type","");
+		
+		String tableConstraint = filterXML.getAttributeValue("tableConstraint");
+		
 		if(displayType.equals("container")){
 			if(type.startsWith("boolean")){
 				if(multipleValues.equals("1")){
@@ -904,7 +907,7 @@ public class BackwardCompatibility {
 				} else {
 					filterType = FilterType.SINGLESELECTBOOLEAN;
 				}
-			} else if( type.equals("id_list")){
+			} else if( tableConstraint == null){
 				filterType = FilterType.SINGLESELECTUPLOAD;
 			} else  {
 				filterType = FilterType.SINGLESELECT;
@@ -948,7 +951,7 @@ public class BackwardCompatibility {
 		
 		if(filterXML.getAttributeValue("pointerFilter")==null){
 			filter = config.getFilterByName(name, null);
-			if(displayType.equals("container")){
+			if(type.equals(FilterType.MULTISELECTUPLOAD) || type.equals(FilterType.SINGLESELECTUPLOAD) || type.equals(FilterType.MULTISELECTBOOLEAN) || type.equals(FilterType.SINGLESELECTBOOLEAN)){
 				// Filter list
 				if(filter==null)
 					filter = new Filter(type, name);
