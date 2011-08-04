@@ -24,22 +24,22 @@
         return ['rgb(', r, ',', g, ',', b, ')'].join('')
     };
     results.tmamap._getBlue = function(val, min, mid, max) {
-        if (val >= 0) return 0;
-        var range = Math.abs(min - mid);
-        val = Math.abs(val - mid);
-        return parseInt(val / range * 255);
+        var range = Math.abs(max - min);
+        if(range === 0)
+    		return 255;
+        return 255 - parseInt(val / range * 255);
     };
     results.tmamap._getGreen = function(val, min, mid, max) {
-        if (val <= 0) return 0;
-        var mid2 = (max + mid) / 2,
-        val2 = Math.abs(mid2 - val);
-        return 180 - parseInt(val2 / mid2 * 180);
+    	var range = Math.abs(max - min);
+    	if(range === 0)
+    		return 255;
+        return 255 - parseInt(val / range * 255);
     };
     results.tmamap._getRed = function(val, min, mid, max) {
-        if (val <= 0) return 0;
-        var mid2 = (max + mid) / 2;
-        if (val >= mid2) return 255;
-        return parseInt(val / mid2 * 255);
+    	var range = Math.abs(max - min);
+    	if(range === 0)
+    		return 255;
+        return 255 - parseInt(val / range * 180);
     };
     results.tmamap.clear = function() {
         this._lines = [];
