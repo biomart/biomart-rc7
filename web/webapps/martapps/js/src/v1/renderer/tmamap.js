@@ -55,8 +55,12 @@
     	// hard coded col value for now
     	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
     	this._xaxisLabel = this._header[rowGeneID] + " " + rows[0][rowGeneID];
-    	this._max = parseFloat(rows[0][rowID]);
-    	this._min = parseFloat(rows[0][rowID]);
+    	if(this._max === 5){
+    		this._max = parseFloat(rows[0][rowID]);
+    	}
+    	if(this._min === -5){
+    		this._min = parseFloat(rows[0][rowID]);
+    	}
     	
     	
 		for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
