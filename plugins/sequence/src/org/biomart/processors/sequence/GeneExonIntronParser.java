@@ -18,16 +18,14 @@ public class GeneExonIntronParser extends TranscriptExonIntronParser {
      *  Note that this implementation STILL relies on the ordering by transcriptID, but it does
      *  demonstrate how a generalized parser might be made to deal with unordered input in any field.
      */
-    // TODO Doesn't yet handle flank
-    // TODO Optimize by using the transcript_count info when initializing lists? (Except transcript_count seems to be empty)
 
     // Set up the fields
-    private static final int transcriptIDfield = 0;
-    private static final int chrField = 1;
-    private static final int startField = 2;
-    private static final int endField = 3;
-    private static final int strandField = 4;
-    private static final int geneIDfield = 5;
+    private static final int geneIDfield = 0;
+    private static final int transcriptIDField = 1;
+    private static final int chrField = 2;
+    private static final int startField = 3;
+    private static final int endField = 4;
+    private static final int strandField = 5;
 
     private String chr = null;
     private Integer start = null;
