@@ -52,6 +52,7 @@
             </span>
             <form id="biomart-form" style="visibility: hidden" target="_blank">
               <input type="hidden" name="query"/>
+              <input type="hidden" name="download" value="true"/>
             </form>
           </a>
         </div>

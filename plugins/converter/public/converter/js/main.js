@@ -96,7 +96,7 @@ $.namespace('biomart.converter', function(self) {
                 return false;
             });
         _elements.form = $('#biomart-form')
-            .attr('action', BIOMART_CONFIG.service.url + 'results/download');
+            .attr('action', BIOMART_CONFIG.service.url + 'results');
         _elements.results = $('#biomart-results');
         _elements.resultsWrapper = $('#biomart-results-wrapper').dialog({
             autoOpen: false,
@@ -115,7 +115,7 @@ $.namespace('biomart.converter', function(self) {
         _elements.resultsActions = _elements.resultsWrapper.find('.actions')
             .delegate('a', 'click.converter', function() {
                 _elements.form
-                    .find('input').val(_state.xml)
+                    .find('input[name=query]').val(_state.xml)
                     .end()
                     .submit();
                 return false;
