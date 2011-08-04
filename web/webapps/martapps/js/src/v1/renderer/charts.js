@@ -514,263 +514,12 @@
                 close: function() { $(this).dialog('destroy').remove() }
             });
     };
-
-    /* PLOT */
-    results.plot = Object.create(results.chart);
-    results.plot.tagName = 'div';
-    results.plot._keyMap = {};
-    results.plot._lines = [];
-    results.plot._lineIndices = [1];
-    results.plot._labels = [];
-    results.plot._max = 100;
-    results.plot._header = null;
-    results.plot.initExport = function(url) {};
-    results.plot._doExport = function(form) {};
-    results.plot.printHeader = function(header, writee) {
-        this._header = header;
-    };
-    results.plot.parse = function(rows, writee) {
-    	if (!rows.length) return;
-    	
-    	// hard coded col value for now
-    	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;;
-    	this._xaxisLabel = "Gene ID: " + rows[0][rowGeneID];
-    	if(this._header[rowX] == "Survival"){
-	        for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
-	            row = rows[i];
-	            rawKey = row[rowCancerType],
-	            cleanedKey = typeof rawKey == 'string' ? biomart.stripHtml(rawKey) : rawKey;
-	            
-	            /*this._lines.push({
-	                key: cleanedKey,
-	                raw: rawKey,
-	                values: [],
-	                totals: []
-	            });*/
-	            
-	            index = this._lines.length - 1;
-               
-	            var value1 = row[rowValue1],
-	            	value2 = row[rowValue2],
-	            	valueX = row[rowX];
-	            var avg = (parseFloat(value1) + parseFloat(value2))/2;
-	            
-	            if(rawKey in this._lines){
-	            	
-	            }else{
-	            	this._lines[rawKey] = [];
-	            }
-	            this._lines[rawKey].push( [parseInt(valueX) , avg] );
-	            
-	        }
-    	}else if(this._header[rowX] == "Tumor progress") {
-    		
-    		for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
-    			row = rows[i];
-    			rawKey = row[rowCancerType];
-    			
-    			if(rawKey in this._lines){
-	            	
-	            }else{
-	            	this._lines[rawKey] = {
-	            			yesGroup : [],
-	            			noGroup : [],
-	            			boxYesValue : [],
-	            			boxNoValue : []
-	            	};
-	            }
-    			index = i;
-
-	            var value1 = row[rowValue1],
-            	value2 = row[rowValue2],
-            	valueX = row[rowX];
-	            var avg = (parseFloat(value1) + parseFloat(value2))/2;
-	            
-	            if(valueX == "Yes"){
-	            	this._lines[rawKey].yesGroup.push(avg);
-	            }else if(valueX == "No"){
-	            	this._lines[rawKey].noGroup.push(avg);
-	            }
-    		}
-    		//calculate all values for box plot
-    		function sortNumber(a,b)
-    		{
-    			return a - b;
-    		}
-    		var index = 0;
-    		for( var key in this._lines){
-    			if(!this._lines.hasOwnProperty(key)){
-    				continue;
-    			}
-    			this._lines[rawKey].yesGroup.sort(sortNumber);
-	    		var yesSize = this._lines[rawKey].yesGroup.length;
-	    		this._lines[rawKey].noGroup.sort(sortNumber);
-	    		var noSize = this._lines[rawKey].noGroup.length;
-	    		
-	    		if(yesSize == 0){
-	    			this._lines[rawKey].boxYesValue = [index*2+1, 0, 0 , 0, 0, 0];
-	    		}else{
-	    			this._lines[rawKey].boxYesValue = [index*2+1,
-	    			                                   this._lines[rawKey].yesGroup[0],
-	    			                                   this._lines[rawKey].yesGroup[Math.floor(yesSize/4)],
-	    			                                   this._lines[rawKey].yesGroup[Math.floor(yesSize/2)],
-	    			                                   this._lines[rawKey].yesGroup[Math.floor(yesSize*3/4)],
-	    			                                   this._lines[rawKey].yesGroup[yesSize-1]];
-	    		}
-	    		
-	    		if(noSize == 0){
-	    			this._lines[rawKey].boxNoValue = [index*2 + 2,0,0, 0, 0, 0];
-	    		}else {
-	    			this._lines[rawKey].boxNoValue = [index*2 + 2,
-	    			                                  this._lines[rawKey].noGroup[0],
-	    			                                  this._lines[rawKey].noGroup[Math.floor(noSize/4)],
-	    			                                  this._lines[rawKey].noGroup[Math.floor(noSize/2)],
-	    			                                  this._lines[rawKey].noGroup[Math.floor(noSize*3/4)],
-	    			                                  this._lines[rawKey].noGroup[noSize-1]];
-	    		}
-	    		index ++;
-    		}
-    	}
-    };
-    
-    results.plot._attachEvents = function() {
-        var self = this;
-        this._element.bind('plothover', function (ev, pos, item) {
-        	if (item) {
-                if (previousPoint != item.dataIndex) {
-                    previousPoint = item.dataIndex;
-                    clearTimeout(self._t);
-                    //$("#tooltip").remove();
-                    var x = item.datapoint[0].toFixed(2),
-                        y = item.datapoint[1].toFixed(2);
-                    
-                    self._showTooltip(item.pageX, item.pageY,
-                                "(" + x + "," + y + ")");
-                    
-                    self._t = setTimeout(function() {
-                        self._tooltip.fadeOut(100);
-                    }, 3000);
-                }
-            }
-            else {
-            	self._tooltip.fadeOut(100);
-                //$("#tooltip").remove();
-                previousPoint = null;            
-            }
-        
-        });
-    };
-    
-    results.plot.draw = function() {
-        if (this._hasError) return;
-        this.initExport('plot');
-
-        // sort by total
-        //this._sort(false);
-
-        //var topRows = this._lines.slice(0, this._max);
-        var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
-    	if(this._header[rowX] == "Survival"){
-    		this._attachEvents();
-    		//set height for scatter plot render
-    		this._element.css('height', ( 200 + 155) + 'px');
-    		
-	        var chartLines = [];
-	        for (var key in this._lines) {
-	        	if(this._lines.hasOwnProperty(key)){
-		        	chartLines.push({
-		        		data : this._lines[key],
-		        		label : key
-		        	});
-	        	}
-	            //if (!chartLines[j]) chartLines[j] = { data: [] , label:''};
-	            //chartLines[0].data[j] = line.values;
-	            //chartLines[0].label = line.rawKey;
-	        }
-	        
-	        this._plot = $.plot(this._element, chartLines, {
-	            series: {
-	                points: { show: true }
-	            },
-	            xaxis: {},
-	            yaxis: {},
-	            grid: {
-	                clickable: true,
-	                hoverable: true,
-	                autoHighlight: true
-	            },
-	            legend: {
-	                margin: [5, 5],
-	                backgroundOpacity: .6,
-	                  show: true,
-	                position: 'ne'
-	            }
-	        });
-	        
-	        //var series = this._plot.getData();
-	        
-    	}else if(this._header[rowX] == "Tumor progress"){
-    		//set height for box plot render
-    		this._element.css('height', 500 + 'px');
-    		var chartLines = [];
-    		
-    		for( var key in this._lines){
-    			if(this._lines.hasOwnProperty(key)){
-	    			chartLines.push({
-		        		data : [this._lines[key].boxYesValue , this._lines[key].boxNoValue],
-		        		label : key
-		        	});
-    			}
-    		}
-    		var xTicks = [];
-    		var ymin = chartLines[0].data[0][1];
-    		var ymax = chartLines[0].data[0][5];
-        	for(var i = 0; i < chartLines.length ; i++){
-        		xTicks.push([i*2+1,"Yes"]);
-        		xTicks.push([i*2+2, "No"]);
-        		if( ymin > chartLines[i].data[0][1])
-        			ymin = chartLines[i].data[0][1];
-        		if( ymin > chartLines[i].data[1][1])
-        			ymin = chartLines[i].data[1][1];
-        		if( ymax < chartLines[i].data[0][5])
-        			ymax = chartLines[i].data[0][5];
-        		if( ymax < chartLines[i].data[1][5])
-        			ymax = chartLines[i].data[1][5];
-        	}
-
-	        this._plot = $.plot(this._element, chartLines, {
-	        	series : {
-	        		boxplot: {active : true, show : true}
-	        	},
-	            xaxis: {min: 0, max: chartLines.length * 2 + 1 , ticks: xTicks},
-	            yaxis: {min: ymin - 1, max: ymax + 1, ticks : 20},
-	            grid: {
-	                clickable: true,
-	                hoverable: true,
-	                autoHighlight: true
-	            },
-	            legend: {
-	                margin: [5, 5],
-	                backgroundOpacity: .6,
-	                  show: true,
-	                position: 'ne'
-	            }
-	        });
-	        
-    	}
-        if (this._xaxisLabel) {
-            $(['<p class="plot-label">', this._xaxisLabel, '</p>'].join(''))
-                .width(this._plot.width())
-                .appendTo(this._element);
-        }
-    };
     
     /* SCATTER PLOT */
     results.scatterplot = Object.create(results.chart);
     results.scatterplot.tagName = 'div';
     results.scatterplot._keyMap = {};
     results.scatterplot._lines = [];
-    results.scatterplot._donorIds = [];
     results.scatterplot._lineIndices = [1];
     results.scatterplot._labels = [];
     results.scatterplot._max = 20;
@@ -811,8 +560,7 @@
             }else{
             	this._lines[rawKey] = [];
             }
-            this._lines[rawKey].push( [parseInt(valueX) , avg] );
-            this._donorIds.push(valueID);
+            this._lines[rawKey].push( [parseInt(valueX) , avg , valueID] );
         }
 	
     };
@@ -825,10 +573,19 @@
                     clearTimeout(self._t);
                     //$("#tooltip").remove();
                     var x = item.datapoint[0].toFixed(2),
-                        y = item.datapoint[1].toFixed(2);
+                        y = item.datapoint[1].toFixed(2),
+                        tooltip = '';
+                    
+                    for( var index = 0; index< item.series.data.length; index++){
+                    	var d = item.series.data[index];
+                    	if(item.datapoint[0] === d[0] && item.datapoint[1] === d[1]){
+                    		tooltip = d[2];
+                    		break;
+                    	}                    		
+                    }
                     
                     self._showTooltip(item.pageX, item.pageY,
-                                self._donorIds[item.dataIndex] + " ("+x+","+y+")");
+                                tooltip + " ("+x+","+y+")");
                     
                     self._t = setTimeout(function() {
                         self._tooltip.fadeOut(100);
@@ -897,13 +654,6 @@
                 .width(this._plot.width())
                 .appendTo(this._element);
         }
-    };
-    
-    results.scatterplot.clear = function() {
-        this._lines = [];
-        this._labels = [];
-        this._donorIds = [];
-        this._keyMap = {};
     };
     
     /* BOX PLOT */
@@ -1071,7 +821,6 @@
     results.dotplot.tagName = 'div';
     results.dotplot._keyMap = {};
     results.dotplot._lines = [];
-    results.dotplot._donorIds = [];
     results.dotplot._lineIndices = [1];
     results.dotplot._labels = [];
     results.dotplot._max = 20;
@@ -1116,8 +865,7 @@
             	};
             }
 
-            this._lines[rawKey][valueX].Group.push(avg);
-            this._donorIds.push(valueID);
+            this._lines[rawKey][valueX].Group.push([avg, valueID]);
 		}
 	
     };
@@ -1130,10 +878,19 @@
                     clearTimeout(self._t);
                     //$("#tooltip").remove();
                     var x = item.datapoint[0].toFixed(2),
-                        y = item.datapoint[1].toFixed(2);
+                        y = item.datapoint[1].toFixed(2),
+                        tooltip = '';
+                    
+                    for( var index = 0; index< item.series.data.length; index++){
+                    	var d = item.series.data[index];
+                    	if(item.datapoint[0] === d[0] && item.datapoint[1] === d[1]){
+                    		tooltip = d[2];
+                    		break;
+                    	}                    		
+                    }
                     
                     self._showTooltip(item.pageX, item.pageY,
-                                self._donorIds[item.dataIndex] + " ("+item.series.xaxis.ticks[x-1].label+","+y+")");
+                                tooltip + " ("+x+","+y+")");
                     
                     self._t = setTimeout(function() {
                         self._tooltip.fadeOut(100);
@@ -1148,12 +905,7 @@
         
         });
     };
-    results.dotplot.clear = function() {
-        this._lines = [];
-        this._labels = [];
-        this._donorIds = [];
-        this._keyMap = {};
-    };
+    
     results.dotplot.draw = function() {
     	if (this._hasError) return;
         this.initExport('plot');
@@ -1179,7 +931,7 @@
 					if(this._lines[key].hasOwnProperty(xkey)){
 						index ++;
 						for(var i = 0; i<this._lines[key][xkey].Group.length; i++){
-							chartLine.data.push([index, this._lines[key][xkey].Group[i]]);
+							chartLine.data.push([index, this._lines[key][xkey].Group[i][0], this._lines[key][xkey].Group[i][1]]);
 						}
 						
 						xTicks.push([index,xkey]);
@@ -1221,7 +973,6 @@
     results.barchart.tagName = 'div';
     results.barchart._keyMap = {};
     results.barchart._lines = [];
-    results.barchart._donorIds = [];
     results.barchart._lineIndices = [1];
     results.barchart._labels = [];
     results.barchart._max = 20;
@@ -1262,8 +1013,7 @@
             }else{
             	this._lines[rawKey] = [];
             }
-            this._lines[rawKey].push( [parseInt(valueX) , avg] );
-            this._donorIds.push(valueID);
+            this._lines[rawKey].push( [parseInt(valueX) , avg , valueID] );
         }
 	
     };
@@ -1276,10 +1026,19 @@
                     clearTimeout(self._t);
                     //$("#tooltip").remove();
                     var x = item.datapoint[0].toFixed(2),
-                        y = item.datapoint[1].toFixed(2);
+                        y = item.datapoint[1].toFixed(2),
+                        tooltip = '';
+                    
+                    for( var index = 0; index< item.series.data.length; index++){
+                    	var d = item.series.data[index];
+                    	if(item.datapoint[0] === d[0] && item.datapoint[1] === d[1]){
+                    		tooltip = d[2];
+                    		break;
+                    	}                    		
+                    }
                     
                     self._showTooltip(item.pageX, item.pageY,
-                                self._donorIds[item.dataIndex] + " ("+x+","+y+")");
+                                tooltip + " ("+x+","+y+")");
                     
                     self._t = setTimeout(function() {
                         self._tooltip.fadeOut(100);
