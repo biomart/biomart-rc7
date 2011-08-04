@@ -354,7 +354,8 @@ $.namespace('biomart.sequence', function(self) {
 
         if (upstream) {
             queryMart.params.push({ name: 'upstreamFlank', value: upstream });
-        } else if (downstream) {
+        } 
+        if (downstream) {
             queryMart.params.push({ name: 'downstreamFlank', value: downstream });
         }
 
