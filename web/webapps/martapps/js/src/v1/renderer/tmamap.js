@@ -1,6 +1,6 @@
 (function($) {
 	var results = biomart.renderer.results;
-
+	
     /* HEATMAP */
     results.tmamap = Object.create(results.plain);
     results.tmamap.tagName = 'div';
@@ -138,7 +138,7 @@
         // Use canvas to draw the legend
         var legend,
         	tmamap,
-        	tmacanvas = $('<canvas id="tmamap"/>'),
+        	tmacanvas = $('<canvas id="tmacanvas"/>'),
             canvas = $('<canvas id="legend"/>'),
             ctx,
             grad,
@@ -174,46 +174,37 @@
         
         if (typeof G_vmlCanvasManager != 'undefined')
         	tmacanvas = G_vmlCanvasManager.initElement(tmacanvas);
-        
-        if(tmacanvas.getContext('2d')) {
-        	//create the TMA map
-        	ctx = tmacanvas.getContext('2d');
-        	var radius = 15;
-        	var gap = 2;
-            for(var category in this._lines){
-            	if(this._lines.hasOwnProperty(category)){
-            		for(var data in this._lines[category]){
-                    	if(this._lines[category].hasOwnProperty(data)){
-	            			var x = this._lines[category][data].x * 40 + 450 * parseInt(category-1);
-	            			var y = this._lines[category][data].y * 40;
-	            			var value = this._lines[category][data].value;
-	            			var kin = new Kinetic_2d("tmamap");
-	            			// draw the TMA map dots
-	            			kin.beginRegion();
-	            			
-	            			ctx.fillStyle = this._getColor(value);
-	            			ctx.strokeStyle = this._getColor(this._max);
-	            			
-	            			ctx.beginPath();
-		            		ctx.arc(x,y,radius, 0, Math.PI*2,true);
-		            		ctx.closePath();
-		            		
-		            		ctx.fill();
-		            		ctx.stroke();
-		            		
-		            		kin.addRegionEventListener("onmouseover", function(){
-		            			self._showTooltip(x, y, value);
-		            		});
-		            		
-		            		kin.addRegionEventListener("onmouseout", function(){
-		            			self._tooltip.fadeOut(100);
-		            		});
-		            		kin.closeRegion();
-                    	}
-            		}
-            	}
-            }
+ 
+    	
+    	//draw TMA map
+    	var radius = 15;
+    	var gap = 2;
+        for(var category in this._lines){
+        	if(this._lines.hasOwnProperty(category)){
+        		for(var data in this._lines[category]){
+                	if(this._lines[category].hasOwnProperty(data)){
+            			var x = this._lines[category][data].x * 40 + 450 * parseInt(category-1);
+            			var y = this._lines[category][data].y * 40;
+            			var value = this._lines[category][data].value;
+            			var context = tmacanvas.getContext('2d');
+            			// draw the TMA map dots
+            			
+            			
+            			context.fillStyle = this._getColor(value);
+            			context.strokeStyle = this._getColor(this._max);
+            			
+            			context.beginPath();
+            			context.arc(x,y,radius, 0, Math.PI*2,true);
+            			context.closePath();
+	            		
+            			context.fill();
+            			context.stroke();
+	            		
+                	}
+        		}
+        	}
         }
+    
         
         legend = $('<div class="heat-legend"/>')
             .append(canvas)
