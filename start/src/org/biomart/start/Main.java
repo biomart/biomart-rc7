@@ -145,7 +145,7 @@ public class Main {
         String[] locs = new String[appLocations.size()];
         ResourceCollection resources = new ResourceCollection(appLocations.toArray(locs));
         martappsCxt.setBaseResource(resources);
-		martappsCxt.getServletContext().getContextHandler() .setMaxFormContentSize(5000000);
+		martappsCxt.getServletContext().getContextHandler() .setMaxFormContentSize(1000000);
 
         contexts.add(pagesCxt);
         contexts.add(confCxt);
