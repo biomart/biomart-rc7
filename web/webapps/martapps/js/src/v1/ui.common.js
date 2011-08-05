@@ -128,7 +128,7 @@ $.fn.uploadify = function() {
                 },
                 onComplete: function(file, response){
                     biomart.temp = function(text) {
-                        textarea.text(text).trigger('change');
+                        textarea.val(text).trigger('change');
                     };
                     try { 
                         eval(response);
