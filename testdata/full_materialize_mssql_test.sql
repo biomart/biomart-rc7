@@ -55,7 +55,7 @@ CREATE INDEX I_4 ON [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP4]([seq_
 GO
 ;
 PRINT '15 - SELECT A.*,B.[sequence] AS  ...';
-SELECT A.*,B.[sequence] AS [sequence_1015],B.[n_line] AS [n_line_1015] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP5] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP4] AS A LEFT JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dnac] AS B ON A.[seq_region_id_1021]=B.[seq_region_id];
+SELECT A.*,B.[sequence] AS [sequence_1013] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP5] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP4] AS A LEFT JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dna] AS B ON A.[seq_region_id_1021]=B.[seq_region_id];
 GO
 ;
 PRINT '16 - DROP TABLE [homo_sapiens_ve ...';
@@ -67,7 +67,7 @@ CREATE INDEX I_5 ON [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP5]([seq_
 GO
 ;
 PRINT '18 - SELECT A.*,B.[sequence] AS  ...';
-SELECT A.*,B.[sequence] AS [sequence_1013] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP6] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP5] AS A LEFT JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dna] AS B ON A.[seq_region_id_1021]=B.[seq_region_id];
+SELECT A.*,B.[sequence] AS [sequence_1015],B.[n_line] AS [n_line_1015] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP6] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP5] AS A LEFT JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dnac] AS B ON A.[seq_region_id_1021]=B.[seq_region_id];
 GO
 ;
 PRINT '19 - DROP TABLE [homo_sapiens_ve ...';
@@ -211,7 +211,7 @@ CREATE INDEX I_17 ON [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP17]([se
 GO
 ;
 PRINT '54 - SELECT A.*,B.[sequence] AS  ...';
-SELECT A.*,B.[sequence] AS [sequence_1015],B.[n_line] AS [n_line_1015] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP18] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP17] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dnac] AS B ON A.[seq_region_id_1057]=B.[seq_region_id];
+SELECT A.*,B.[sequence] AS [sequence_1013] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP18] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP17] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dna] AS B ON A.[seq_region_id_1057]=B.[seq_region_id];
 GO
 ;
 PRINT '55 - DROP TABLE [homo_sapiens_ve ...';
@@ -223,7 +223,7 @@ CREATE INDEX I_18 ON [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP18]([se
 GO
 ;
 PRINT '57 - SELECT A.*,B.[sequence] AS  ...';
-SELECT A.*,B.[sequence] AS [sequence_1013] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP19] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP18] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dna] AS B ON A.[seq_region_id_1057]=B.[seq_region_id];
+SELECT A.*,B.[sequence] AS [sequence_1015],B.[n_line] AS [n_line_1015] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP19] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP18] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dnac] AS B ON A.[seq_region_id_1057]=B.[seq_region_id];
 GO
 ;
 PRINT '58 - DROP TABLE [homo_sapiens_ve ...';
@@ -343,7 +343,7 @@ CREATE INDEX I_28 ON [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP28]([se
 GO
 ;
 PRINT '87 - SELECT A.*,B.[sequence] AS  ...';
-SELECT A.*,B.[sequence] AS [sequence_1015_r1],B.[n_line] AS [n_line_1015_r1] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP29] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP28] AS A LEFT JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dnac] AS B ON A.[seq_region_id_1062]=B.[seq_region_id];
+SELECT A.*,B.[sequence] AS [sequence_1013_r1] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP29] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP28] AS A LEFT JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dna] AS B ON A.[seq_region_id_1062]=B.[seq_region_id];
 GO
 ;
 PRINT '88 - DROP TABLE [homo_sapiens_ve ...';
@@ -355,7 +355,7 @@ CREATE INDEX I_29 ON [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP29]([se
 GO
 ;
 PRINT '90 - SELECT A.*,B.[sequence] AS  ...';
-SELECT A.*,B.[sequence] AS [sequence_1013_r1] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP30] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP29] AS A LEFT JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dna] AS B ON A.[seq_region_id_1062]=B.[seq_region_id];
+SELECT A.*,B.[sequence] AS [sequence_1015_r1],B.[n_line] AS [n_line_1015_r1] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP30] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP29] AS A LEFT JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dnac] AS B ON A.[seq_region_id_1062]=B.[seq_region_id];
 GO
 ;
 PRINT '91 - DROP TABLE [homo_sapiens_ve ...';
@@ -479,7 +479,7 @@ CREATE INDEX I_40 ON [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP37]([se
 GO
 ;
 PRINT '121 - SELECT A.*,B.[sequence] AS ...';
-SELECT A.*,B.[sequence] AS [sequence_1015],B.[n_line] AS [n_line_1015] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP38] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP37] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dnac] AS B ON A.[seq_region_id_1016]=B.[seq_region_id];
+SELECT A.*,B.[sequence] AS [sequence_1013] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP38] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP37] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dna] AS B ON A.[seq_region_id_1016]=B.[seq_region_id];
 GO
 ;
 PRINT '122 - DROP TABLE [homo_sapiens_v ...';
@@ -491,7 +491,7 @@ CREATE INDEX I_41 ON [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP38]([se
 GO
 ;
 PRINT '124 - SELECT A.*,B.[sequence] AS ...';
-SELECT A.*,B.[sequence] AS [sequence_1013] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP39] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP38] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dna] AS B ON A.[seq_region_id_1016]=B.[seq_region_id];
+SELECT A.*,B.[sequence] AS [sequence_1015],B.[n_line] AS [n_line_1015] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP39] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP38] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dnac] AS B ON A.[seq_region_id_1016]=B.[seq_region_id];
 GO
 ;
 PRINT '125 - DROP TABLE [homo_sapiens_v ...';
@@ -587,7 +587,7 @@ CREATE INDEX I_49 ON [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP46]([se
 GO
 ;
 PRINT '148 - SELECT A.*,B.[sequence] AS ...';
-SELECT A.*,B.[sequence] AS [sequence_1015],B.[n_line] AS [n_line_1015] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP47] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP46] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dnac] AS B ON A.[seq_region_id_1016]=B.[seq_region_id];
+SELECT A.*,B.[sequence] AS [sequence_1013] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP47] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP46] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dna] AS B ON A.[seq_region_id_1016]=B.[seq_region_id];
 GO
 ;
 PRINT '149 - DROP TABLE [homo_sapiens_v ...';
@@ -599,7 +599,7 @@ CREATE INDEX I_50 ON [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP47]([se
 GO
 ;
 PRINT '151 - SELECT A.*,B.[sequence] AS ...';
-SELECT A.*,B.[sequence] AS [sequence_1013] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP48] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP47] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dna] AS B ON A.[seq_region_id_1016]=B.[seq_region_id];
+SELECT A.*,B.[sequence] AS [sequence_1015],B.[n_line] AS [n_line_1015] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP48] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP47] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dnac] AS B ON A.[seq_region_id_1016]=B.[seq_region_id];
 GO
 ;
 PRINT '152 - DROP TABLE [homo_sapiens_v ...';
@@ -647,7 +647,7 @@ CREATE INDEX I_54 ON [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP51]([se
 GO
 ;
 PRINT '163 - SELECT A.*,B.[sequence] AS ...';
-SELECT A.*,B.[sequence] AS [sequence_1115],B.[n_line] AS [n_line_1115] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP52] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP51] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dnac] AS B ON A.[seq_region_id_1057]=B.[seq_region_id];
+SELECT A.*,B.[sequence] AS [sequence_1113] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP52] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP51] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dna] AS B ON A.[seq_region_id_1057]=B.[seq_region_id];
 GO
 ;
 PRINT '164 - DROP TABLE [homo_sapiens_v ...';
@@ -659,7 +659,7 @@ CREATE INDEX I_55 ON [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP52]([se
 GO
 ;
 PRINT '166 - SELECT A.*,B.[sequence] AS ...';
-SELECT A.*,B.[sequence] AS [sequence_1113] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP53] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP52] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dna] AS B ON A.[seq_region_id_1057]=B.[seq_region_id];
+SELECT A.*,B.[sequence] AS [sequence_1115],B.[n_line] AS [n_line_1115] INTO [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP53] FROM [homo_sapiens_vega_58_37c].[vega58hs_sub_test].[TEMP52] AS A INNER JOIN [homo_sapiens_vega_58_37c].[vega58hs_sub].[dnac] AS B ON A.[seq_region_id_1057]=B.[seq_region_id];
 GO
 ;
 PRINT '167 - DROP TABLE [homo_sapiens_v ...';
