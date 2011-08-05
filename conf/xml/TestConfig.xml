@@ -17,7 +17,7 @@
 	<testcase name="createsavexml_source_pg" category="TestAddingSource" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5432/" username="martadmin" password="Bi0M4rt" 
+			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5433/" username="martadmin" password="Bi0M4rt" 
 				database="homo_sapiens_vega_58_37c" schema="public" tables="gene,transcript,translation"/>
 		</connection>
 		<sourcexml>source_pg.xml</sourcexml>
@@ -64,7 +64,7 @@
 	<testcase name="createsavexml_mart_naive_pg" category="TestAddingSource" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Relational Mart">
-			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5432/" username="martadmin" password="Bi0M4rt" 
+			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5433/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_58" schema="public" tables="hsapiens_gene_vega__gene__main" naive="true"/>
 		</connection>
 		<sourcexml>mart_naive_pg.xml</sourcexml>
@@ -161,7 +161,7 @@
 	<testcase name="mart_materialize_pg" category="TestMartMaterialize" ignore="false" subset="true">
 	<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5432/" username="martadmin" password="Bi0M4rt" 
+			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5433/" username="martadmin" password="Bi0M4rt" 
 				database="homo_sapiens_vega_58_37c" schema="public" tables="gene,transcript,translation"/>
 		</connection>
 		<sourcesql>mart_materialize_pg.sql</sourcesql>
@@ -214,11 +214,11 @@
 	<testcase name="full_materialize_pg" category="TestFullMaterialize" ignore="false" subset="false">
 	<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5432/" username="martadmin" password="Bi0M4rt" 
+			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5433/" username="martadmin" password="Bi0M4rt" 
 				database="homo_sapiens_vega_58_37c" schema="vega58hs_sub" tables="gene,transcript,translation"/>
 		</connection>
 		<mconnection type="Source Schema">
-				<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5432/" username="martadmin" password="Bi0M4rt" 
+				<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5433/" username="martadmin" password="Bi0M4rt" 
 				database="homo_sapiens_vega_58_37c" schema="vega58hs_sub_test" tables="gene,transcript,translation"/>
 		</mconnection>
 		<sourcexml>full_materialize_pg.xml</sourcexml>
@@ -294,7 +294,7 @@
 	<testcase name="query_pg"  category="TestQuery" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5432/" username="martadmin" password="Bi0M4rt" 
+			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5433/" username="martadmin" password="Bi0M4rt" 
 				database="homo_sapiens_vega_58_37c" schema="public" tables="gene"/>
 		</connection>
 		<sourcexml>query_pg.xml</sourcexml>
