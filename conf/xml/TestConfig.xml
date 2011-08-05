@@ -8,7 +8,7 @@
 	<testcase name="createsavexml_source_mysql" category="TestAddingSource" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="homo_sapiens_core_59_37d" schema="homo_sapiens_core_59_37d" tables="gene,transcript,translation"/>
 		</connection>
 		<sourcexml>source_mysql.xml</sourcexml>
@@ -17,7 +17,7 @@
 	<testcase name="createsavexml_source_pg" category="TestAddingSource" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://biomartdb-dev.res.oicr.on.ca:5432/" username="martadmin" password="Bi0M4rt" 
+			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5432/" username="martadmin" password="Bi0M4rt" 
 				database="homo_sapiens_vega_58_37c" schema="public" tables="gene,transcript,translation"/>
 		</connection>
 		<sourcexml>source_pg.xml</sourcexml>
@@ -35,7 +35,7 @@
 	<testcase name="createsavexml_source_db2" category="TestAddingSource" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="DB2" jdbcurl="jdbc:db2://biomartdb-dev.res.oicr.on.ca:50000/" username="martadm" password="Bi0M4rt" 
+			<db type="DB2" jdbcurl="jdbc:db2://127.0.0.1:50000/" username="martadm" password="Bi0M4rt" 
 				database="vega58hs" schema="MARTADM" tables="GENE,TRANSCRIPT,TRANSLATION"/>
 		</connection>
 		<sourcexml>source_db2.xml</sourcexml>
@@ -44,7 +44,7 @@
 	<testcase name="createsavexml_source_oracle" category="TestAddingSource" ignore="false" subset="false">
 		<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//biomartdb-dev.res.oicr.on.ca:1521/" username="martadmin" password="Bi0M4rt" 
+			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//127.0.0.1:1521/" username="martadmin" password="Bi0M4rt" 
 				database="vega58hsap" schema="MARTADMIN" tables="GENE,TRANSCRIPT,TRANSLATION"/>
 		</connection>
 		<sourcexml>source_oracle.xml</sourcexml>
@@ -55,7 +55,7 @@
 	<testcase name="createsavexml_mart_naive_mysql" category="TestAddingSource" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Relational Mart">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_58" schema="vega_mart_58" tables="hsapiens_gene_vega__gene__main" naive="true"/>
 		</connection>
 		<sourcexml>mart_naive_mysql.xml</sourcexml>
@@ -64,7 +64,7 @@
 	<testcase name="createsavexml_mart_naive_pg" category="TestAddingSource" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Relational Mart">
-			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://biomartdb-dev.res.oicr.on.ca:5432/" username="martadmin" password="Bi0M4rt" 
+			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5432/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_58" schema="public" tables="hsapiens_gene_vega__gene__main" naive="true"/>
 		</connection>
 		<sourcexml>mart_naive_pg.xml</sourcexml>
@@ -73,7 +73,7 @@
 	<testcase name="createsavexml_mart_naive_db2" category="TestAddingSource" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Relational Mart">
-			<db type="DB2" jdbcurl="jdbc:db2://biomartdb-dev.res.oicr.on.ca:50000/" username="martadm" password="Bi0M4rt" 
+			<db type="DB2" jdbcurl="jdbc:db2://127.0.0.1:50000/" username="martadm" password="Bi0M4rt" 
 				database="vega_58" schema="MARTADM" tables="HSAPIENS_GENE_VEGA__GENE__MAIN" naive="true"/>
 		</connection>
 		<sourcexml>mart_naive_db2.xml</sourcexml>
@@ -82,7 +82,7 @@
 	<testcase name="createsavexml_mart_naive_oracle" category="TestAddingSource" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Relational Mart">
-			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//biomartdb-dev.res.oicr.on.ca:1521/" username="martadmin" password="Bi0M4rt" 
+			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//127.0.0.1:1521/" username="martadmin" password="Bi0M4rt" 
 				database="vega58" schema="MARTADMIN" tables="AU_B_C__AB__MAIN" naive="true"/>
 		</connection>
 		<sourcexml>mart_naive_oracle.xml</sourcexml>		
@@ -101,7 +101,7 @@
 	<testcase name="createsavexml_mart_bc_mysql" category="TestAddingSource" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Relational Mart">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_58" schema="vega_mart_58" tables="meta_conf__dataset__main, meta_conf__interface__dm, meta_conf__user__dm, meta_conf__xml__dm, meta_template__template__main, meta_template__xml__dm, meta_version__version__main" naive="false"/>
 		</connection>
 		<sourcexml>mart_bc_mysql.xml</sourcexml>		
@@ -141,7 +141,7 @@
 		<usergroup>anonymous</usergroup>
 		<!-- no multiple marts -->
 		<connection type="Relational Mart">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_58" schema="vega_mart_58" tables="meta_conf__dataset__main, meta_conf__interface__dm, meta_conf__user__dm, meta_conf__xml__dm, meta_template__template__main, meta_template__xml__dm, meta_version__version__main" naive="false"/>
 		</connection>
 		<newconfig name="gene_vega_config_1"/>
@@ -152,7 +152,7 @@
 	<testcase name="mart_materialize_mysql" category="TestMartMaterialize" ignore="false" subset="true">
 	<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="homo_sapiens_core_60_37e" schema="homo_sapiens_core_60_37e" tables="gene,transcript,translation"/>
 		</connection>
 		<sourcesql>mart_materialize_mysql.sql</sourcesql>
@@ -161,7 +161,7 @@
 	<testcase name="mart_materialize_pg" category="TestMartMaterialize" ignore="false" subset="true">
 	<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://biomartdb-dev.res.oicr.on.ca:5432/" username="martadmin" password="Bi0M4rt" 
+			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5432/" username="martadmin" password="Bi0M4rt" 
 				database="homo_sapiens_vega_58_37c" schema="public" tables="gene,transcript,translation"/>
 		</connection>
 		<sourcesql>mart_materialize_pg.sql</sourcesql>
@@ -179,7 +179,7 @@
 	<testcase name="mart_materialize_db2" category="TestMartMaterialize" ignore="false" subset="true">
 	<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="DB2" jdbcurl="jdbc:db2://biomartdb-dev.res.oicr.on.ca:50000/" username="martadm" password="Bi0M4rt" 
+			<db type="DB2" jdbcurl="jdbc:db2://127.0.0.1:50000/" username="martadm" password="Bi0M4rt" 
 				database="vega58hs" schema="MARTADM" tables="GENE,TRANSCRIPT,TRANSLATION"/>
 		</connection>
 		<sourcesql>mart_materialize_db2.sql</sourcesql>
@@ -188,7 +188,7 @@
 	<testcase name="mart_materialize_oracle" category="TestMartMaterialize" ignore="false" subset="true">
 	<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//biomartdb-dev.res.oicr.on.ca:1521/" username="martadmin" password="Bi0M4rt" 
+			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//127.0.0.1:1521/" username="martadmin" password="Bi0M4rt" 
 				database="vega58hsap" schema="MARTADMIN" tables="GENE,TRANSCRIPT,TRANSLATION"/>
 		</connection>
 		<sourcesql>mart_materialize_oracle.sql</sourcesql>
@@ -198,11 +198,11 @@
 	<testcase name="full_materialize_mysql" category="TestFullMaterialize" ignore="false" subset="false">
 	<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega58hs_sub" schema="vega58hs_sub" tables="gene,transcript,translation"/>
 		</connection>	
 		<mconnection type="Source Schema">
-				<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt"
+				<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt"
 				database="vega58hs_sub_test" schema="vega58hs_sub_test" tables="gene,transcript,translation"/>
 		</mconnection>
 		<sourcexml>full_materialize_mysql.xml</sourcexml>
@@ -214,11 +214,11 @@
 	<testcase name="full_materialize_pg" category="TestFullMaterialize" ignore="false" subset="false">
 	<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://biomartdb-dev.res.oicr.on.ca:5432/" username="martadmin" password="Bi0M4rt" 
+			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5432/" username="martadmin" password="Bi0M4rt" 
 				database="homo_sapiens_vega_58_37c" schema="vega58hs_sub" tables="gene,transcript,translation"/>
 		</connection>
 		<mconnection type="Source Schema">
-				<db type="PostGreSQL" jdbcurl="jdbc:postgresql://biomartdb-dev.res.oicr.on.ca:5432/" username="martadmin" password="Bi0M4rt" 
+				<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5432/" username="martadmin" password="Bi0M4rt" 
 				database="homo_sapiens_vega_58_37c" schema="vega58hs_sub_test" tables="gene,transcript,translation"/>
 		</mconnection>
 		<sourcexml>full_materialize_pg.xml</sourcexml>
@@ -248,13 +248,13 @@
 	<testcase name="full_materialize_db2" category="TestFullMaterialize" ignore="false" subset="false">
 	<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="DB2" jdbcurl="jdbc:db2://biomartdb-dev.res.oicr.on.ca:50000/" username="MARTADM" password="Bi0M4rt" 
+			<db type="DB2" jdbcurl="jdbc:db2://127.0.0.1:50000/" username="MARTADM" password="Bi0M4rt" 
 				database="VEGA58HS" schema="vega58hs_sub" tables="gene,transcript,translation"/>
-			<!-- <materializedb type="DB2" jdbcurl="jdbc:db2://biomartdb-dev.res.oicr.on.ca:50000/" username="martadm" password="Bi0M4rt" 
+			<!-- <materializedb type="DB2" jdbcurl="jdbc:db2://127.0.0.1:50000/" username="martadm" password="Bi0M4rt" 
 				database="vega58hs" schema="MARTADM_test" tables="GENE"/> -->
 		</connection>
 		<mconnection type="Source Schema">
-			<db type="DB2" jdbcurl="jdbc:db2://biomartdb-dev.res.oicr.on.ca:50000/" username="MARTADM" password="Bi0M4rt" 
+			<db type="DB2" jdbcurl="jdbc:db2://127.0.0.1:50000/" username="MARTADM" password="Bi0M4rt" 
 				database="VEGA58HS" schema="vega58hs_sub_test" tables="gene,transcript,translation"/>
 		</mconnection>
 		<sourcexml>full_materialize_db2.xml</sourcexml>
@@ -266,11 +266,11 @@
 	<testcase name="full_materialize_oracle" category="TestFullMaterialize" ignore="false" subset="false">
 	<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//biomartdb-dev.res.oicr.on.ca:1521/" username="martadmin" password="Bi0M4rt" 
+			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//127.0.0.1:1521/" username="martadmin" password="Bi0M4rt" 
 				database="vega58hsp" schema="vega58hs_sub" tables="G,CC,CQ"/>
 		</connection>
 		<mconnection type="Source Schema">
-			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//biomartdb-dev.res.oicr.on.ca:1521/" username="martadmin" password="Bi0M4rt" 
+			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//127.0.0.1:1521/" username="martadmin" password="Bi0M4rt" 
 				database="vega58hsp" schema="vega58hs_sub_test" tables="G,CC,CQ"/>
 		</mconnection>
 		<sourcesql>full_materialize_oracle.sql</sourcesql>
@@ -283,7 +283,7 @@
 	<testcase name="query_mysql"  category="TestQuery" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="homo_sapiens_core_60_37e" schema="homo_sapiens_core_60_37e" tables="gene"/>
 		</connection>
 		<sourcexml>query_mysql.xml</sourcexml>
@@ -294,7 +294,7 @@
 	<testcase name="query_pg"  category="TestQuery" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://biomartdb-dev.res.oicr.on.ca:5432/" username="martadmin" password="Bi0M4rt" 
+			<db type="PostGreSQL" jdbcurl="jdbc:postgresql://127.0.0.1:5432/" username="martadmin" password="Bi0M4rt" 
 				database="homo_sapiens_vega_58_37c" schema="public" tables="gene"/>
 		</connection>
 		<sourcexml>query_pg.xml</sourcexml>
@@ -317,7 +317,7 @@
 	<testcase name="query_db2"  category="TestQuery" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="DB2" jdbcurl="jdbc:db2://biomartdb-dev.res.oicr.on.ca:50000/" username="martadm" password="Bi0M4rt" 
+			<db type="DB2" jdbcurl="jdbc:db2://127.0.0.1:50000/" username="martadm" password="Bi0M4rt" 
 				database="vega58hs" schema="MARTADM" tables="GENE"/>
 		</connection>
 		<sourcexml>query_db2.xml</sourcexml>
@@ -328,7 +328,7 @@
 	<testcase name="query_oracle"  category="TestQuery" ignore="false" subset="false">
 		<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
-			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//biomartdb-dev.res.oicr.on.ca:1521/" username="martadmin" password="Bi0M4rt" 
+			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//127.0.0.1:1521/" username="martadmin" password="Bi0M4rt" 
 				database="vega58hsap" schema="MARTADMIN" tables="GENE"/>
 		</connection>
 		<sourcexml>query_oracle.xml</sourcexml>
@@ -369,7 +369,7 @@
 			</url>
 		</connection>
 		<connection type="Source Schema">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_60" schema="vega_mart_60" tables="hsapiens_gene_vega__gene__main"/>
 		</connection>
 		<create type="link">
@@ -413,7 +413,7 @@
 			</url>
 		</connection>
 		<connection type="Relational Mart">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_60" schema="vega_mart_60" tables="hsapiens_gene_vega__gene__main,hsapiens_gene_vega__transcript__main,hsapiens_gene_vega__translate__main" naive="false"/>
 		</connection>
 		
@@ -437,7 +437,7 @@
 			</url>
 		</connection>
 		<connection type="Source Schema">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="homo_sapiens_core_61_37f" schema="homo_sapiens_core_61_37f" tables="gene"/>
 		</connection>
 		
@@ -458,7 +458,7 @@
 	<testcase name="mart_update" category="TestUpdate" ignore="false" subset="false">
 		<usergroup>anonymous</usergroup>
 		<connection type="Relational Mart">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_60" schema="vega_mart_60" tables="meta_conf__dataset__main, meta_conf__interface__dm, meta_conf__user__dm, meta_conf__xml__dm, meta_template__template__main, meta_template__xml__dm, meta_version__version__main" naive="false"/>
 		</connection>
 		<updatedatabase database="vega_mart_60" schema="vega_mart_60"></updatedatabase>
@@ -468,7 +468,7 @@
 	<testcase name="mart_update_delete" category="TestUpdate" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Relational Mart">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_60_test" schema="vega_mart_60_test" tables="meta_conf__dataset__main, meta_conf__interface__dm, meta_conf__user__dm, meta_conf__xml__dm, meta_template__template__main, meta_template__xml__dm, meta_version__version__main" naive="false"/>
 		</connection>
 		<updatedatabase database="vega_mart_60_test" schema="vega_mart_60_test"></updatedatabase>
@@ -488,7 +488,7 @@
 		<usergroup>anonymous</usergroup>
 		<!-- no multiple marts -->
 		<connection type="Relational Mart">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_58" schema="vega_mart_58" tables="meta_conf__dataset__main, meta_conf__interface__dm, meta_conf__user__dm, meta_conf__xml__dm, meta_template__template__main, meta_template__xml__dm, meta_version__version__main" naive="false"/>
 		</connection>
 		<newconfig name="gene_vega_config_1"/>
@@ -500,7 +500,7 @@
 		<usergroup>anonymous</usergroup>
 		<!-- no multiple marts -->
 		<connection type="Relational Mart">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_58" schema="vega_mart_58" tables="meta_conf__dataset__main, meta_conf__interface__dm, meta_conf__user__dm, meta_conf__xml__dm, meta_template__template__main, meta_template__xml__dm, meta_version__version__main" naive="false"/>
 		</connection>
 		<newconfig name="gene_vega_config_1"/>
@@ -512,7 +512,7 @@
 		<usergroup>anonymous</usergroup>
 		<!-- no multiple marts -->
 		<connection type="Relational Mart">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_60" schema="vega_mart_60" tables="meta_conf__dataset__main, meta_conf__interface__dm, meta_conf__user__dm, meta_conf__xml__dm, meta_template__template__main, meta_template__xml__dm, meta_version__version__main" naive="false"/>
 		</connection>
 		<create config="gene_vega_config" type="attributelist" name="attribute_list" displayname="attribute_list">
@@ -527,7 +527,7 @@
 		<usergroup>anonymous</usergroup>
 		<!-- no multiple marts -->
 		<connection type="Relational Mart">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_60" schema="vega_mart_60" tables="meta_conf__dataset__main, meta_conf__interface__dm, meta_conf__user__dm, meta_conf__xml__dm, meta_template__template__main, meta_template__xml__dm, meta_version__version__main" naive="false"/>
 		</connection>
 		
@@ -543,7 +543,7 @@
 		<usergroup>anonymous</usergroup>
 		<!-- no multiple marts -->
 		<connection type="Relational Mart">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_60" schema="vega_mart_60" tables="meta_conf__dataset__main, meta_conf__interface__dm, meta_conf__user__dm, meta_conf__xml__dm, meta_template__template__main, meta_template__xml__dm, meta_version__version__main" naive="false"/>
 		</connection>
 		<create config="gene_vega_config" type="filterlist" name="filter_list" displayname="filter_list">
@@ -558,7 +558,7 @@
 		<usergroup>anonymous</usergroup>
 		<!-- no multiple marts -->
 		<connection type="Relational Mart">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_60" schema="vega_mart_60" tables="meta_conf__dataset__main, meta_conf__interface__dm, meta_conf__user__dm, meta_conf__xml__dm, meta_template__template__main, meta_template__xml__dm, meta_version__version__main" naive="false"/>
 		</connection>
 		<create config="gene_vega_config" type="filterlist" name="filter_list" displayname="filter_list">
@@ -573,7 +573,7 @@
 		<usergroup>anonymous</usergroup>
 		<!-- no multiple marts -->
 		<connection type="Relational Mart">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_60" schema="vega_mart_60" tables="meta_conf__dataset__main, meta_conf__interface__dm, meta_conf__user__dm, meta_conf__xml__dm, meta_template__template__main, meta_template__xml__dm, meta_version__version__main" naive="false"/>
 		</connection>
 		<create config="gene_vega_config" type="container" name="testContainer1" parent="root"></create>
@@ -585,7 +585,7 @@
 		<usergroup>anonymous</usergroup>
 		<!-- no multiple marts -->
 		<connection type="Relational Mart">
-			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
+			<db type="mysql" jdbcurl="jdbc:mysql://127.0.0.1:3307/" username="martadmin" password="Bi0M4rt" 
 				database="vega_mart_60" schema="vega_mart_60" tables="meta_conf__dataset__main, meta_conf__interface__dm, meta_conf__user__dm, meta_conf__xml__dm, meta_template__template__main, meta_template__xml__dm, meta_version__version__main" naive="false"/>
 		</connection>
 		<move config="gene_vega_config" type="filter" name="with_signal_domain" offset="2"></move>
