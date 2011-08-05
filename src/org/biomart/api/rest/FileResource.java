@@ -24,7 +24,7 @@ import org.apache.commons.lang.StringEscapeUtils;
  */
 @Path ("martservice/file")
 public class FileResource {
-    private static final int MAX_SIZE = 100000;
+    private static final int MAX_SIZE = 1000000;
     @Context HttpServletRequest request;
 
     @Path("wrap")

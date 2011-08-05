@@ -219,7 +219,8 @@ public class Main {
     }
 
     private void setupConnection(String host, String port) throws GeneralSecurityException, KeyException {
-        final Integer headerBufferSize = Integer.getInteger("connector.headerBufferSize", 2097152);
+        final Integer headerBufferSize = Integer.getInteger("connector.headerBufferSize", 8388608);
+        final Integer reqBufferSize = Integer.getInteger("connector.requestBufferSize", 8388608);
         final Integer maxIdleTime = Integer.getInteger("connector.maxIdleTime", 0);
         final Integer lowResourcesConnections = Integer.getInteger("connector.lowResourcesConnections", 1000);
         final Integer lowResourceMaxidleTime = Integer.getInteger("connector.lowResourceMaxIdleTime", 0);
@@ -228,6 +229,7 @@ public class Main {
             connector.setHost(host);
             connector.setPort(Integer.parseInt(port));
             connector.setHeaderBufferSize(headerBufferSize);
+			connector.setRequestBufferSize(reqBufferSize);
             connector.setMaxIdleTime(maxIdleTime);
             connector.setStatsOn(false);
             connector.setLowResourcesConnections(lowResourcesConnections);
