@@ -145,6 +145,7 @@ public class Main {
         String[] locs = new String[appLocations.size()];
         ResourceCollection resources = new ResourceCollection(appLocations.toArray(locs));
         martappsCxt.setBaseResource(resources);
+		martappsCxt.getServletContext().getContextHandler() .setMaxFormContentSize(5000000);
 
         contexts.add(pagesCxt);
         contexts.add(confCxt);
@@ -241,6 +242,7 @@ public class Main {
 
     private void setupSslConnection(String sslHost, String sslPort) throws GeneralSecurityException, KeyException {
         final Integer headerBufferSize = Integer.getInteger("connector.headerBufferSize", 2097152);
+        final Integer reqBufferSize = Integer.getInteger("connector.requestBufferSize", 8388608);
         final Integer maxIdleTime = Integer.getInteger("connector.maxIdleTime", 0);
         final Integer lowResourceMaxidleTime = Integer.getInteger("connector.lowResourceMaxIdleTime", 0);
         if (sslPort != null) {
@@ -257,6 +259,7 @@ public class Main {
             sslConnector.setHost(sslHost);
             sslConnector.setPort(Integer.parseInt(sslPort));
             sslConnector.setHeaderBufferSize(headerBufferSize);
+			sslConnector.setRequestBufferSize(reqBufferSize);
             sslConnector.setMaxIdleTime(maxIdleTime);
             sslConnector.setStatsOn(false);
             sslConnector.setLowResourceMaxIdleTime(lowResourceMaxidleTime);
