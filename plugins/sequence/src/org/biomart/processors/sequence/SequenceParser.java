@@ -118,52 +118,42 @@ public abstract class SequenceParser implements SequenceConstants {
                 rs = pstmtStart.executeQuery();
                 if (SequenceMain.TURN_ON_TIMING) McUtils.timing2();
 
-                while (rs.next()) {
+                if (rs.next()) {
                     String seq = rs.getString(1);
-                    if (reverseComplement) {
-                        seq = getReverseComplement(seq);
-                    }
                     retrievedSequence.append(seq);
-                }
 
-                closeSilently(rs);
+					closeSilently(rs);
 
-                // Do chunks and end
-                if ((pos.start-1)/CHUNK_SIZE != (pos.end-1)/CHUNK_SIZE){
-                    pstmtMiddle.setInt(2, end/CHUNK_SIZE*CHUNK_SIZE);
-                    pstmtMiddle.setInt(3, CHUNK_SIZE-1);
-                    pstmtMiddle.setInt(4, 1+(1+start/CHUNK_SIZE)*CHUNK_SIZE);
+					// Do chunks and end
+					if ((pos.start-1)/CHUNK_SIZE != (pos.end-1)/CHUNK_SIZE){
+						pstmtMiddle.setInt(2, end/CHUNK_SIZE*CHUNK_SIZE);
+						pstmtMiddle.setInt(3, CHUNK_SIZE-1);
+						pstmtMiddle.setInt(4, 1+(1+start/CHUNK_SIZE)*CHUNK_SIZE);
 
-                    rs = pstmtMiddle.executeQuery();
+						rs = pstmtMiddle.executeQuery();
 
-                    while (rs.next()) {
-                        String seq = rs.getString(1);
-                        if (reverseComplement) {
-                            seq = getReverseComplement(seq);
-                        }
-                        retrievedSequence.append(seq);
-                    }
+						while (rs.next()) {
+							seq = rs.getString(1);
+							retrievedSequence.append(seq);
+						}
 
-                    closeSilently(rs);
+						closeSilently(rs);
 
-                    pstmtEnd.setInt(1, 1);
-                    pstmtEnd.setInt(2, end%CHUNK_SIZE);
-                    pstmtEnd.setInt(4, end);
-                    pstmtEnd.setInt(5, CHUNK_SIZE-1);
-                    pstmtEnd.setInt(6, end);
+						pstmtEnd.setInt(1, 1);
+						pstmtEnd.setInt(2, end%CHUNK_SIZE);
+						pstmtEnd.setInt(4, end);
+						pstmtEnd.setInt(5, CHUNK_SIZE-1);
+						pstmtEnd.setInt(6, end);
 
-                    rs = pstmtEnd.executeQuery();
+						rs = pstmtEnd.executeQuery();
+						
 
-                    while (rs.next()) {
-                        String seq = rs.getString(1);
-                        if (reverseComplement) {
-                            seq = getReverseComplement(seq);
-                        }
-                        retrievedSequence.append(seq);
-                    }
+						rs.next();
+						retrievedSequence.append(rs.getString(1));
 
-                    closeSilently(rs);
-                }
+						closeSilently(rs);
+					}
+				}
             }
 
 		} catch (SQLException e){
@@ -217,16 +207,35 @@ public abstract class SequenceParser implements SequenceConstants {
 	 * @return	The reverse complement sequence as a String.
 	 */
 	protected final String getReverseComplement(String sequence){
-		if(sequence == null) {
+		// I'm sure there are better and faster ways to do this, but this will work for now
+		if(sequence == null){
 			return null;
 		}
-
-        int n = sequence.length();
-        char[] reversed = new char[n];
-        for (int i = n-1; i >= 0; i--) {
-            reversed[n-i-1] = REVERSE_COMPLEMENTS[sequence.charAt(i)];
-        }
-        return new String(reversed);
+		StringBuilder reversed = new StringBuilder(sequence.length());
+		for (int i = sequence.length()-1;i >= 0;--i){
+			switch (sequence.charAt(i)) {
+			case 'A': reversed.append('T'); break;
+			case 'T': reversed.append('A'); break;
+			case 'C': reversed.append('G'); break;
+			case 'G': reversed.append('C'); break;
+			case 'U': reversed.append('A'); break;
+			case 'R': reversed.append('Y'); break;
+			case 'Y': reversed.append('R'); break;
+			case 'K': reversed.append('M'); break;
+			case 'M': reversed.append('K'); break;
+			case 'S': reversed.append('S'); break;
+			case 'W': reversed.append('W'); break;
+			case 'B': reversed.append('V'); break;
+			case 'V': reversed.append('B'); break;
+			case 'D': reversed.append('H'); break;
+			case 'H': reversed.append('D'); break;
+			/*			case 'N': reversed.append('N'); break;
+			case 'X': reversed.append('X'); break;
+			case '-': reversed.append('-'); break;*/
+			default: reversed.append(sequence.charAt(i)); break;
+			}
+		}
+		return reversed.toString();
 	}
 
 	/**

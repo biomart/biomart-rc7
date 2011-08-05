@@ -1,8 +1,6 @@
 package org.biomart.processors.sequence;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import org.biomart.common.exceptions.ValidationException;
@@ -87,23 +85,22 @@ public class CDNAParser extends SequenceParser {
 	 */
 	protected String getCDNA(String header, String chr,
 			Map<Integer,Integer> start, Map<Integer,Integer> end, String strand) {
-        List<Position> positions = new ArrayList<Position>();
+        StringBuilder sequence = new StringBuilder();
         if (!chr.equals("")) {
             if (strand.equals("-1")){
-                positions.add(new Position(end.get(0)+1, end.get(0)+upstreamFlank));
+                sequence.append(getReverseComplement(getSequence(chr,end.get(0)+1,end.get(0)+upstreamFlank)));
                 for (int i = 0; i < start.size(); i++){
-                    positions.add(new Position(start.get(i), end.get(i)));
+                    sequence.append(getReverseComplement(getSequence(chr, start.get(i), end.get(i))));
                 }
-                positions.add(new Position(start.get(start.size()-1)-downstreamFlank, start.get(start.size()-1)-1));
+                sequence.append(getReverseComplement(getSequence(chr,start.get(start.size()-1)-downstreamFlank,start.get(start.size()-1)-1)));
             } else {
-                positions.add(new Position(start.get(0)-upstreamFlank, start.get(0)-1));
+                sequence.append(getSequence(chr,start.get(0)-upstreamFlank,start.get(0)-1));
                 for (int i = 0; i < start.size(); i++){
-                    positions.add(new Position(start.get(i), end.get(i)));
+                    sequence.append((getSequence(chr, start.get(i), end.get(i))));
                 }
-                positions.add(new Position(end.get(end.size()-1)+1, end.get(end.size()-1)+downstreamFlank));
+                sequence.append(getSequence(chr,end.get(end.size()-1)+1,end.get(end.size()-1)+downstreamFlank));
             }
         }
-        String sequence = getSequence(chr, strand.equals("-1"), positions);
-        return getFASTA(sequence, header);
+        return getFASTA(sequence.toString(), header);
 	}
 }
