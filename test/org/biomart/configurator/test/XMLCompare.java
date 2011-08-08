@@ -88,7 +88,10 @@ public class XMLCompare {
 				//ignore rdf for now
 			}else if(a1.getName().equals("password")){
 				//ignore password compare
+			}else if(McUtils.hasPartitionBinding(a1.getValue())) {
+				//ignore the partition value, since the column (p0c?) may be different
 			}
+			
 			else if(!a1.getValue().equals(a2.getValue())) {
 				Log.error("attribute not match "+a1.getName() + " in "+ e1.getName()+" "+e1.getAttributeValue("name"));
 				return false;				
