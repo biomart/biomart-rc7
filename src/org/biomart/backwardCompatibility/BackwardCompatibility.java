@@ -148,7 +148,7 @@ public class BackwardCompatibility {
 		else
 			addToPartition(mainTable, datasetName);
 
-		DatasetColumn mainPKColumn = createColumn(mainTableKeys.get(0).getText(), mainTable, datasetName);
+		DatasetColumn mainPKColumn = createPartitionedColumn(mainTableKeys.get(0).getText(), mainTable, datasetName);
 		
 		PrimaryKey mainPK = mainTable.getPrimaryKey();
 		if(mainPK == null){
@@ -1302,7 +1302,7 @@ public class BackwardCompatibility {
 								dmTable = createTable(mart, tableName, DatasetTableType.DIMENSION, datasetName);
 
 								//TODO double check this for partition-safety
-								DatasetColumn dmFKColumn = createColumn(keyName, dmTable, datasetName);
+								DatasetColumn dmFKColumn = createPartitionedColumn(keyName, dmTable, datasetName);
 								ForeignKey dmFK = new ForeignKey(dmFKColumn);
 								dmTable.addForeignKey(dmFK);
 								new RelationTarget(whichMain.getPrimaryKey(), dmFK, Cardinality.MANY_A);
