@@ -18,17 +18,22 @@ $.namespace('biomart.converter', function(self) {
 
                     for (var i=1, row; row=rows[i]; i++) {
                         row = row.split('\t');
-                        from = row[0]; to = row[1];
-                        if (!hash[from]) {
-                            hash[from] = [];
-                        }
+                        from = row[0].toUpperCase(); 
+                        to = row[1].toUpperCase();
+                        
+                        // Ensure the array exists
+                        hash[from] = hash[from] || [];
+
                         hash[from].push(to);
                     }
                     
                     for (i=0; input=inputs[i]; i++) {
-                        if (hash[input]) {
-                            for (j=0; j<hash[input].length; j++) {
-                                processed.push([input, hash[input][j]].join('\t'));
+                        // Use uppercase for case insensitivity
+                        var upper = input.toUpperCase();
+
+                        if (upper in hash) {
+                            for (var j=0; j<hash[upper].length; j++) {
+                                processed.push([input, hash[upper][j]].join('\t'));
                             }
                         } else {
                             processed.push([input, ''].join('\t'));
