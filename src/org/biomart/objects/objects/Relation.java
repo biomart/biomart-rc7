@@ -394,8 +394,11 @@ public abstract class Relation extends MartConfiguratorObject implements Compara
 			// a) a relation already exists between the FK
 			// and the PK.
 			//if (candidateRel.getOtherKey(secondKey).isKeyEquals(firstKey)) {
+			try{
 			if(candidateRel.getOtherKey(firstKey).equals(secondKey)) {
 				return true;
+			}}catch(Exception e){
+				e.printStackTrace();
 			}
 		}
 		/*

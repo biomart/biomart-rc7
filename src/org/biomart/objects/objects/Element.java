@@ -164,10 +164,14 @@ public abstract class Element extends MartConfiguratorObject {
 	
 	public void addPointedDataset(String ds) {
 		List<String> pdList = this.getPointedDatasetList();
+		try{
 		if(pdList.isEmpty() || !pdList.contains(ds)) {
 			pdList.add(ds);
 			//synchronize pointedDatasetName
 			this.setProperty(XMLElements.POINTEDDATASET, McUtils.StrListToStr(pdList, ","));
+		}
+		}catch(Exception e){
+			e.printStackTrace();
 		}
 	}
 	

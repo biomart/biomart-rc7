@@ -143,20 +143,24 @@ public class MartRegistry extends MartConfiguratorObject implements Serializable
 	public Element generateXml() throws FunctionalException {
 		//clean options
 		Options.getInstance().clear();
-		
-		Element element = new Element(XMLElements.MARTREGISTRY.toString());
-		element.setAttribute(XMLElements.NAME.toString(),this.getPropertyValue(XMLElements.NAME));
-		element.setAttribute(XMLElements.INTERNALNAME.toString(),this.getPropertyValue(XMLElements.INTERNALNAME));
-		element.setAttribute(XMLElements.DISPLAYNAME.toString(), this.getPropertyValue(XMLElements.DISPLAYNAME));
-		element.setAttribute(XMLElements.DESCRIPTION.toString(), this.getPropertyValue(XMLElements.DESCRIPTION));
-		//element.setAttribute(XMLElements.HIDE.toString(), this.getPropertyValue(XMLElements.HIDE));
-		
-		element.addContent(this.portal.generateXml());	
-		element.addContent(this.sourcecontainers.generateXml());
-		for (Mart mart : this.martList) {
-			element.addContent(mart.generateXml());
+		try{
+			Element element = new Element(XMLElements.MARTREGISTRY.toString());
+			element.setAttribute(XMLElements.NAME.toString(),this.getPropertyValue(XMLElements.NAME));
+			element.setAttribute(XMLElements.INTERNALNAME.toString(),this.getPropertyValue(XMLElements.INTERNALNAME));
+			element.setAttribute(XMLElements.DISPLAYNAME.toString(), this.getPropertyValue(XMLElements.DISPLAYNAME));
+			element.setAttribute(XMLElements.DESCRIPTION.toString(), this.getPropertyValue(XMLElements.DESCRIPTION));
+			//element.setAttribute(XMLElements.HIDE.toString(), this.getPropertyValue(XMLElements.HIDE));
+			
+			element.addContent(this.portal.generateXml());	
+			element.addContent(this.sourcecontainers.generateXml());
+			for (Mart mart : this.martList) {
+				element.addContent(mart.generateXml());
+			}
+			return element;
+		}catch(NullPointerException npe){
+			npe.printStackTrace();
 		}
-		return element;
+		return null;		
 	}
 
 	/**
