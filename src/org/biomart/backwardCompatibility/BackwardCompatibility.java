@@ -1309,6 +1309,7 @@ public class BackwardCompatibility {
 							} else {
 								addToPartition(dmTable, datasetName);
 							}
+							createPartitionedColumn(keyName, dmTable, datasetName);
 							createPartitionedColumn(columnName, dmTable, datasetName);
 						}
 					}
