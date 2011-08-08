@@ -71,7 +71,7 @@
         <column name="seq_region_start_1015" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="seq_region_strand_1015" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="stable_id_1016" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="transcript_id_1064_key" inpartitions="mmusculus_gene_vega" />
+        <column name="transcript_id_1064_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="value_1060" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="version_1016" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="transcript_id_1064_key_fk" internalname="transcript_id_1064_key_fk" displayname="transcript_id_1064_key_fk" description="transcript_id_1064_key_fk" column="transcript_id_1064_key" />
@@ -1468,7 +1468,7 @@
         <column name="display_label_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="hit_name_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="interpro_ac_1026" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega" />
+        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="translation_id_1068_key_fk" internalname="translation_id_1068_key_fk" displayname="translation_id_1068_key_fk" description="translation_id_1068_key_fk" column="translation_id_1068_key" />
       </table>
       <table name="(p0c5)__object_xref_AedesGenBank__dm" internalname="(p0c5)__object_xref_AedesGenBank__dm" displayname="(p0c5)__object_xref_AedesGenBank__dm" description="(p0c5)__object_xref_AedesGenBank__dm" hide="false" type="DIMENSION" inpartitions="" subpartition="">
@@ -2468,7 +2468,7 @@
         <column name="db_name_1018" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega" />
+        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="translation_id_1068_key_fk" internalname="translation_id_1068_key_fk" displayname="translation_id_1068_key_fk" description="translation_id_1068_key_fk" column="translation_id_1068_key" />
       </table>
       <table name="(p0c5)__ox_Ens_Hs_gene__dm" internalname="(p0c5)__ox_Ens_Hs_gene__dm" displayname="(p0c5)__ox_Ens_Hs_gene__dm" description="(p0c5)__ox_Ens_Hs_gene__dm" hide="false" type="DIMENSION" inpartitions="" subpartition="">
@@ -2491,7 +2491,7 @@
         <column name="db_name_1018" inpartitions="hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="hsapiens_gene_vega" />
-        <column name="gene_id_1020_key" inpartitions="" />
+        <column name="gene_id_1020_key" inpartitions="hsapiens_gene_vega" />
         <foreignkey name="gene_id_1020_key_fk" internalname="gene_id_1020_key_fk" displayname="gene_id_1020_key_fk" description="gene_id_1020_key_fk" column="gene_id_1020_key" />
       </table>
       <table name="(p0c5)__ox_ENST_CDS__dm" internalname="(p0c5)__ox_ENST_CDS__dm" displayname="(p0c5)__ox_ENST_CDS__dm" description="(p0c5)__ox_ENST_CDS__dm" hide="false" type="DIMENSION" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" subpartition="">
@@ -2499,7 +2499,7 @@
         <column name="db_name_1018" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="transcript_id_1064_key" inpartitions="mmusculus_gene_vega" />
+        <column name="transcript_id_1064_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="transcript_id_1064_key_fk" internalname="transcript_id_1064_key_fk" displayname="transcript_id_1064_key_fk" description="transcript_id_1064_key_fk" column="transcript_id_1064_key" />
       </table>
       <table name="(p0c5)__ox_ENST_ident__dm" internalname="(p0c5)__ox_ENST_ident__dm" displayname="(p0c5)__ox_ENST_ident__dm" description="(p0c5)__ox_ENST_ident__dm" hide="false" type="DIMENSION" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" subpartition="">
@@ -2507,7 +2507,7 @@
         <column name="db_name_1018" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="transcript_id_1064_key" inpartitions="mmusculus_gene_vega" />
+        <column name="transcript_id_1064_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="transcript_id_1064_key_fk" internalname="transcript_id_1064_key_fk" displayname="transcript_id_1064_key_fk" description="transcript_id_1064_key_fk" column="transcript_id_1064_key" />
       </table>
       <table name="(p0c5)__ox_EntrezGene__dm" internalname="(p0c5)__ox_EntrezGene__dm" displayname="(p0c5)__ox_EntrezGene__dm" description="(p0c5)__ox_EntrezGene__dm" hide="false" type="DIMENSION" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" subpartition="">
@@ -2515,7 +2515,7 @@
         <column name="db_name_1018" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="gene_id_1020_key" inpartitions="mmusculus_gene_vega" />
+        <column name="gene_id_1020_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="gene_id_1020_key_fk" internalname="gene_id_1020_key_fk" displayname="gene_id_1020_key_fk" description="gene_id_1020_key_fk" column="gene_id_1020_key" />
       </table>
       <table name="(p0c5)__ox_GO__dm" internalname="(p0c5)__ox_GO__dm" displayname="(p0c5)__ox_GO__dm" description="(p0c5)__ox_GO__dm" hide="false" type="DIMENSION" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" subpartition="">
@@ -2524,7 +2524,7 @@
         <column name="dbprimary_acc_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074_dup" inpartitions="" />
         <column name="display_label_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega" />
+        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="translation_id_1068_key_fk" internalname="translation_id_1068_key_fk" displayname="translation_id_1068_key_fk" description="translation_id_1068_key_fk" column="translation_id_1068_key" />
       </table>
       <table name="(p0c5)__ox_Havana_gene__dm" internalname="(p0c5)__ox_Havana_gene__dm" displayname="(p0c5)__ox_Havana_gene__dm" description="(p0c5)__ox_Havana_gene__dm" hide="false" type="DIMENSION" inpartitions="" subpartition="">
@@ -2537,7 +2537,7 @@
         <column name="db_name_1018" inpartitions="hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="hsapiens_gene_vega" />
-        <column name="gene_id_1020_key" inpartitions="" />
+        <column name="gene_id_1020_key" inpartitions="hsapiens_gene_vega" />
         <foreignkey name="gene_id_1020_key_fk" internalname="gene_id_1020_key_fk" displayname="gene_id_1020_key_fk" description="gene_id_1020_key_fk" column="gene_id_1020_key" />
       </table>
       <table name="(p0c5)__ox_IMGT__dm" internalname="(p0c5)__ox_IMGT__dm" displayname="(p0c5)__ox_IMGT__dm" description="(p0c5)__ox_IMGT__dm" hide="false" type="DIMENSION" inpartitions="" subpartition="">
@@ -2550,7 +2550,7 @@
         <column name="db_name_1018" inpartitions="hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="hsapiens_gene_vega" />
-        <column name="gene_id_1020_key" inpartitions="" />
+        <column name="gene_id_1020_key" inpartitions="hsapiens_gene_vega" />
         <foreignkey name="gene_id_1020_key_fk" internalname="gene_id_1020_key_fk" displayname="gene_id_1020_key_fk" description="gene_id_1020_key_fk" column="gene_id_1020_key" />
       </table>
       <table name="(p0c5)__ox_IMGTGENE_DB__dm" internalname="(p0c5)__ox_IMGTGENE_DB__dm" displayname="(p0c5)__ox_IMGTGENE_DB__dm" description="(p0c5)__ox_IMGTGENE_DB__dm" hide="false" type="DIMENSION" inpartitions="hsapiens_gene_vega" subpartition="">
@@ -2558,7 +2558,7 @@
         <column name="db_name_1018" inpartitions="hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="hsapiens_gene_vega" />
-        <column name="gene_id_1020_key" inpartitions="" />
+        <column name="gene_id_1020_key" inpartitions="hsapiens_gene_vega" />
         <foreignkey name="gene_id_1020_key_fk" internalname="gene_id_1020_key_fk" displayname="gene_id_1020_key_fk" description="gene_id_1020_key_fk" column="gene_id_1020_key" />
       </table>
       <table name="(p0c5)__ox_MGI__dm" internalname="(p0c5)__ox_MGI__dm" displayname="(p0c5)__ox_MGI__dm" description="(p0c5)__ox_MGI__dm" hide="false" type="DIMENSION" inpartitions="mmusculus_gene_vega" subpartition="">
@@ -2574,7 +2574,7 @@
         <column name="db_name_1018" inpartitions="hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="hsapiens_gene_vega" />
-        <column name="gene_id_1020_key" inpartitions="" />
+        <column name="gene_id_1020_key" inpartitions="hsapiens_gene_vega" />
         <foreignkey name="gene_id_1020_key_fk" internalname="gene_id_1020_key_fk" displayname="gene_id_1020_key_fk" description="gene_id_1020_key_fk" column="gene_id_1020_key" />
       </table>
       <table name="(p0c5)__ox_PUBMED__dm" internalname="(p0c5)__ox_PUBMED__dm" displayname="(p0c5)__ox_PUBMED__dm" description="(p0c5)__ox_PUBMED__dm" hide="false" type="DIMENSION" inpartitions="hsapiens_gene_vega" subpartition="">
@@ -2582,7 +2582,7 @@
         <column name="db_name_1018" inpartitions="hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="hsapiens_gene_vega" />
-        <column name="gene_id_1020_key" inpartitions="" />
+        <column name="gene_id_1020_key" inpartitions="hsapiens_gene_vega" />
         <foreignkey name="gene_id_1020_key_fk" internalname="gene_id_1020_key_fk" displayname="gene_id_1020_key_fk" description="gene_id_1020_key_fk" column="gene_id_1020_key" />
       </table>
       <table name="(p0c5)__ox_RefSeq_dna__dm" internalname="(p0c5)__ox_RefSeq_dna__dm" displayname="(p0c5)__ox_RefSeq_dna__dm" description="(p0c5)__ox_RefSeq_dna__dm" hide="false" type="DIMENSION" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" subpartition="">
@@ -2590,7 +2590,7 @@
         <column name="db_name_1018" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="gene_id_1020_key" inpartitions="mmusculus_gene_vega" />
+        <column name="gene_id_1020_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="gene_id_1020_key_fk" internalname="gene_id_1020_key_fk" displayname="gene_id_1020_key_fk" description="gene_id_1020_key_fk" column="gene_id_1020_key" />
       </table>
       <table name="(p0c5)__ox_RefSeq_dna_predicted__dm" internalname="(p0c5)__ox_RefSeq_dna_predicted__dm" displayname="(p0c5)__ox_RefSeq_dna_predicted__dm" description="(p0c5)__ox_RefSeq_dna_predicted__dm" hide="false" type="DIMENSION" inpartitions="hsapiens_gene_vega" subpartition="">
@@ -2598,7 +2598,7 @@
         <column name="db_name_1018" inpartitions="hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="hsapiens_gene_vega" />
-        <column name="gene_id_1020_key" inpartitions="" />
+        <column name="gene_id_1020_key" inpartitions="hsapiens_gene_vega" />
         <foreignkey name="gene_id_1020_key_fk" internalname="gene_id_1020_key_fk" displayname="gene_id_1020_key_fk" description="gene_id_1020_key_fk" column="gene_id_1020_key" />
       </table>
       <table name="(p0c5)__ox_RefSeq_genomic__dm" internalname="(p0c5)__ox_RefSeq_genomic__dm" displayname="(p0c5)__ox_RefSeq_genomic__dm" description="(p0c5)__ox_RefSeq_genomic__dm" hide="false" type="DIMENSION" inpartitions="hsapiens_gene_vega" subpartition="">
@@ -2606,7 +2606,7 @@
         <column name="db_name_1018" inpartitions="hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="hsapiens_gene_vega" />
-        <column name="gene_id_1020_key" inpartitions="" />
+        <column name="gene_id_1020_key" inpartitions="hsapiens_gene_vega" />
         <foreignkey name="gene_id_1020_key_fk" internalname="gene_id_1020_key_fk" displayname="gene_id_1020_key_fk" description="gene_id_1020_key_fk" column="gene_id_1020_key" />
       </table>
       <table name="(p0c5)__ox_RefSeq_peptide__dm" internalname="(p0c5)__ox_RefSeq_peptide__dm" displayname="(p0c5)__ox_RefSeq_peptide__dm" description="(p0c5)__ox_RefSeq_peptide__dm" hide="false" type="DIMENSION" inpartitions="mmusculus_gene_vega" subpartition="">
@@ -2622,7 +2622,7 @@
         <column name="db_name_1018" inpartitions="hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="hsapiens_gene_vega" />
-        <column name="gene_id_1020_key" inpartitions="" />
+        <column name="gene_id_1020_key" inpartitions="hsapiens_gene_vega" />
         <foreignkey name="gene_id_1020_key_fk" internalname="gene_id_1020_key_fk" displayname="gene_id_1020_key_fk" description="gene_id_1020_key_fk" column="gene_id_1020_key" />
       </table>
       <table name="(p0c5)__ox_RefSeq_rna_predicted__dm" internalname="(p0c5)__ox_RefSeq_rna_predicted__dm" displayname="(p0c5)__ox_RefSeq_rna_predicted__dm" description="(p0c5)__ox_RefSeq_rna_predicted__dm" hide="false" type="DIMENSION" inpartitions="hsapiens_gene_vega" subpartition="">
@@ -2630,7 +2630,7 @@
         <column name="db_name_1018" inpartitions="hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="hsapiens_gene_vega" />
-        <column name="gene_id_1020_key" inpartitions="" />
+        <column name="gene_id_1020_key" inpartitions="hsapiens_gene_vega" />
         <foreignkey name="gene_id_1020_key_fk" internalname="gene_id_1020_key_fk" displayname="gene_id_1020_key_fk" description="gene_id_1020_key_fk" column="gene_id_1020_key" />
       </table>
       <table name="(p0c5)__ox_UniprotSWISSPROT__dm" internalname="(p0c5)__ox_UniprotSWISSPROT__dm" displayname="(p0c5)__ox_UniprotSWISSPROT__dm" description="(p0c5)__ox_UniprotSWISSPROT__dm" hide="false" type="DIMENSION" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" subpartition="">
@@ -2638,7 +2638,7 @@
         <column name="db_name_1018" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="gene_id_1020_key" inpartitions="mmusculus_gene_vega" />
+        <column name="gene_id_1020_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="gene_id_1020_key_fk" internalname="gene_id_1020_key_fk" displayname="gene_id_1020_key_fk" description="gene_id_1020_key_fk" column="gene_id_1020_key" />
       </table>
       <table name="(p0c5)__ox_Vega_gene__dm" internalname="(p0c5)__ox_Vega_gene__dm" displayname="(p0c5)__ox_Vega_gene__dm" description="(p0c5)__ox_Vega_gene__dm" hide="false" type="DIMENSION" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" subpartition="">
@@ -2646,7 +2646,7 @@
         <column name="db_name_1018" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="gene_id_1020_key" inpartitions="mmusculus_gene_vega" />
+        <column name="gene_id_1020_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="gene_id_1020_key_fk" internalname="gene_id_1020_key_fk" displayname="gene_id_1020_key_fk" description="gene_id_1020_key_fk" column="gene_id_1020_key" />
       </table>
       <table name="(p0c5)__ox_Vega_transcript__dm" internalname="(p0c5)__ox_Vega_transcript__dm" displayname="(p0c5)__ox_Vega_transcript__dm" description="(p0c5)__ox_Vega_transcript__dm" hide="false" type="DIMENSION" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" subpartition="">
@@ -2654,7 +2654,7 @@
         <column name="db_name_1018" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="transcript_id_1064_key" inpartitions="mmusculus_gene_vega" />
+        <column name="transcript_id_1064_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="transcript_id_1064_key_fk" internalname="transcript_id_1064_key_fk" displayname="transcript_id_1064_key_fk" description="transcript_id_1064_key_fk" column="transcript_id_1064_key" />
       </table>
       <table name="(p0c5)__ox_Vega_translation__dm" internalname="(p0c5)__ox_Vega_translation__dm" displayname="(p0c5)__ox_Vega_translation__dm" description="(p0c5)__ox_Vega_translation__dm" hide="false" type="DIMENSION" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" subpartition="">
@@ -2662,7 +2662,7 @@
         <column name="db_name_1018" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="dbprimary_acc_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="display_label_1074" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega" />
+        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="translation_id_1068_key_fk" internalname="translation_id_1068_key_fk" displayname="translation_id_1068_key_fk" description="translation_id_1068_key_fk" column="translation_id_1068_key" />
       </table>
       <table name="(p0c5)__paralog_Aaeg__dm" internalname="(p0c5)__paralog_Aaeg__dm" displayname="(p0c5)__paralog_Aaeg__dm" description="(p0c5)__paralog_Aaeg__dm" hide="false" type="DIMENSION" inpartitions="" subpartition="">
@@ -3569,7 +3569,7 @@
         <column name="score_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="seq_end_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="seq_start_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega" />
+        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="translation_id_1068_key_fk" internalname="translation_id_1068_key_fk" displayname="translation_id_1068_key_fk" description="translation_id_1068_key_fk" column="translation_id_1068_key" />
       </table>
       <table name="(p0c5)__protein_feature_pfscan__dm" internalname="(p0c5)__protein_feature_pfscan__dm" displayname="(p0c5)__protein_feature_pfscan__dm" description="(p0c5)__protein_feature_pfscan__dm" hide="false" type="DIMENSION" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" subpartition="">
@@ -3580,7 +3580,7 @@
         <column name="score_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="seq_end_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="seq_start_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega" />
+        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="translation_id_1068_key_fk" internalname="translation_id_1068_key_fk" displayname="translation_id_1068_key_fk" description="translation_id_1068_key_fk" column="translation_id_1068_key" />
       </table>
       <table name="(p0c5)__protein_feature_PIRSF__dm" internalname="(p0c5)__protein_feature_PIRSF__dm" displayname="(p0c5)__protein_feature_PIRSF__dm" description="(p0c5)__protein_feature_PIRSF__dm" hide="false" type="DIMENSION" inpartitions="" subpartition="">
@@ -3602,7 +3602,7 @@
         <column name="score_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="seq_end_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="seq_start_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega" />
+        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="translation_id_1068_key_fk" internalname="translation_id_1068_key_fk" displayname="translation_id_1068_key_fk" description="translation_id_1068_key_fk" column="translation_id_1068_key" />
       </table>
       <table name="(p0c5)__protein_feature_scanprosite__dm" internalname="(p0c5)__protein_feature_scanprosite__dm" displayname="(p0c5)__protein_feature_scanprosite__dm" description="(p0c5)__protein_feature_scanprosite__dm" hide="false" type="DIMENSION" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" subpartition="">
@@ -3614,7 +3614,7 @@
         <column name="score_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="seq_end_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="seq_start_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega" />
+        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="translation_id_1068_key_fk" internalname="translation_id_1068_key_fk" displayname="translation_id_1068_key_fk" description="translation_id_1068_key_fk" column="translation_id_1068_key" />
       </table>
       <table name="(p0c5)__protein_feature_Seg__dm" internalname="(p0c5)__protein_feature_Seg__dm" displayname="(p0c5)__protein_feature_Seg__dm" description="(p0c5)__protein_feature_Seg__dm" hide="false" type="DIMENSION" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" subpartition="">
@@ -3626,7 +3626,7 @@
         <column name="score_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="seq_end_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="seq_start_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega" />
+        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="translation_id_1068_key_fk" internalname="translation_id_1068_key_fk" displayname="translation_id_1068_key_fk" description="translation_id_1068_key_fk" column="translation_id_1068_key" />
       </table>
       <table name="(p0c5)__protein_feature_Signalp__dm" internalname="(p0c5)__protein_feature_Signalp__dm" displayname="(p0c5)__protein_feature_Signalp__dm" description="(p0c5)__protein_feature_Signalp__dm" hide="false" type="DIMENSION" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" subpartition="">
@@ -3638,7 +3638,7 @@
         <column name="score_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="seq_end_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <column name="seq_start_1048" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
-        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega" />
+        <column name="translation_id_1068_key" inpartitions="mmusculus_gene_vega,hsapiens_gene_vega" />
         <foreignkey name="translation_id_1068_key_fk" internalname="translation_id_1068_key_fk" displayname="translation_id_1068_key_fk" description="translation_id_1068_key_fk" column="translation_id_1068_key" />
       </table>
       <table name="(p0c5)__protein_feature_Smart__dm" internalname="(p0c5)__protein_feature_Smart__dm" displayname="(p0c5)__protein_feature_Smart__dm" description="(p0c5)__protein_feature_Smart__dm" hide="false" type="DIMENSION" inpartitions="" subpartition="">
@@ -4198,8 +4198,8 @@
       <relation name="(p0c5)__translation__main__(p0c5)__protein_feature_tmhmm__dm" internalname="(p0c5)__translation__main__(p0c5)__protein_feature_tmhmm__dm" displayname="(p0c5)__translation__main__(p0c5)__protein_feature_tmhmm__dm" description="(p0c5)__translation__main__(p0c5)__protein_feature_tmhmm__dm" firsttable="(p0c5)__translation__main" secondtable="(p0c5)__protein_feature_tmhmm__dm" firstkey="translation_id_1068_key_pk" secondkey="translation_id_1068_key_fk" type="1:M" />
     </relations>
     <partitiontable name="p0" internalname="p0" displayname="p0" description="p0" rows="2" cols="26" type="SCHEMA">
-      <row id="0">jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/|vega_mart_58|vega_mart_58|martadmin|464f2b38b2ffb8b895a14d7c924a6e08|hsapiens_gene_vega|false|Homo sapiens genes (GRCh37)|0.7||||||||hsap|Homo sapiens||hsapiens||Homo_sapiens||GRCh37|GRCh37|true</row>
-      <row id="1">jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/|vega_mart_58|vega_mart_58|martadmin|464f2b38b2ffb8b895a14d7c924a6e08|mmusculus_gene_vega|false|Mus musculus genes (NCBIM37)|0.7||||||||mmus|Mus musculus||mmusculus||Mus_musculus||NCBI m37|NCBIM37|</row>
+      <row id="0">jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/|vega_mart_58|vega_mart_58|martadmin|2962dde1b05612397d9d1c09ba61d8b3|hsapiens_gene_vega|false|Homo sapiens genes (GRCh37)|0.7||||||||hsap|Homo sapiens||hsapiens||Homo_sapiens||GRCh37|GRCh37|true</row>
+      <row id="1">jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/|vega_mart_58|vega_mart_58|martadmin|2962dde1b05612397d9d1c09ba61d8b3|mmusculus_gene_vega|false|Mus musculus genes (NCBIM37)|0.7||||||||mmus|Mus musculus||mmusculus||Mus_musculus||NCBI m37|NCBIM37|</row>
     </partitiontable>
     <config rdf="" processor="" name="gene_vega" internalname="gene_vega" displayname="gene_vega" description="gene_vega" hide="false" default="" metainfo="" datasethidevalue="(p0c6)" datasetdisplayname="(p0c7)" master="true" readonly="" password="" rdfclass="">
       <annotations>

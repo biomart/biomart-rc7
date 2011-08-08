@@ -110,7 +110,7 @@
 	<!-- URL Mart -->
 	<testcase name="createLink_url"  category="TestAddingSource" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
-		<connection type="URL" partitioned="true">
+		<connection type="URL" partitioned="false">
 			<url host="http://bm-test.res.oicr.on.ca" port="9002" path="/biomart/martservice">
 				<mart name="vega_mart_60" datasets="all"/>
 				<mart name="test_reactome_mart" datasets="all"/>
@@ -349,7 +349,7 @@
 			<source mart="pathway" attribute="referencedatabase_uniprot">
 					<attribute name="stableidentifier_identifier"></attribute>
 			</source>
-			<target mart="hsapiens_gene_vega" attribute="uniprot_swissprot">
+			<target mart="gene_vega" attribute="uniprot_swissprot">
 					<attribute name="vega_gene_id"></attribute>
 					<attribute name="vega_transcript_id"></attribute>
 					<filter name="vega_transcript_id"></filter>
@@ -357,7 +357,7 @@
 		</create>	
 		<sourcexml>link_url.xml</sourcexml>
 		<sourcequery>link_url.txt</sourcequery>
-		<Query client="biomartclient" processor="TSV" limit="-1" header="1"><Dataset name="hsapiens_gene_vega" config="hsapiens_gene_vega_config"><Filter name="vega_transcript_id" value="OTTHUMT00000021647"/><Attribute name="vega_gene_id"/><Attribute name="vega_transcript_id"/><Attribute name="stableidentifier_identifier"/></Dataset></Query>
+		<Query client="biomartclient" processor="TSV" limit="-1" header="1"><Dataset name="hsapiens_gene_vega" config="gene_vega_config"><Filter name="vega_transcript_id" value="OTTHUMT00000021647"/><Attribute name="vega_gene_id"/><Attribute name="vega_transcript_id"/><Attribute name="stableidentifier_identifier"/></Dataset></Query>
 	</testcase>
 	
 	<!-- source schema mart link test -->
@@ -392,7 +392,7 @@
 		<basexml>link_url_test.xml</basexml>
 		<sourcexml>test_source_link.xml</sourcexml>
 		<sourcequery>test_source_link.txt</sourcequery>
-		<Query client="biomartclient" processor="TSV" limit="-1" header="1"><Dataset name="hsapiens_gene_vega" config="hsapiens_gene_vega_config"><Filter name="vega_transcript_id" value="OTTHUMT00000021647"/><Attribute name="vega_gene_id"/><Attribute name="vega_transcript_id"/><Attribute name="stableidentifier_identifier"/></Dataset></Query>
+		<Query client="biomartclient" processor="TSV" limit="-1" header="1"><Dataset name="hsapiens_gene_vega" config="gene_vega_config"><Filter name="vega_transcript_id" value="OTTHUMT00000021647"/><Attribute name="vega_gene_id"/><Attribute name="vega_transcript_id"/><Attribute name="stableidentifier_identifier"/></Dataset></Query>
 	</testcase>
 	
 	<!-- add naive report test -->
