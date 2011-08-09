@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -173,6 +174,12 @@ public class SettingsForTest {
 					for(MartInVirtualSchema mart: martList) {
 						if(mart.isURLMart()) {
 							List<DatasetFromUrl> dss = McGuiUtils.INSTANCE.getDatasetsFromUrlForMart(mart);
+							//drop those not included
+							for(Iterator<DatasetFromUrl> it = dss.iterator(); it.hasNext();) {
+								if(!mart.getIncludeDatasets().contains(it.next().getName())) {
+									it.remove();
+								}
+							}
 							map.put(mart, dss);
 						} else {
 							map.put(mart, new ArrayList<DatasetFromUrl>());
@@ -190,6 +197,7 @@ public class SettingsForTest {
 				dli.setFileLinkObject(linkObject);
 				dli.setIncludePortal(true);
 				dli.setSourceGrouped(false);
+				dli.setBCPartitioned(false);
 				break;
 			}	
 			//dli.setAllTables(allTablesMap);

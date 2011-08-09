@@ -7,7 +7,7 @@
 (SANGER UK)" port="3306" schema="vega_mart_60" user="martadmin" password="Bi0M4rt" visible="1" default="0" martUser="" 
 includeDatasets="" />
 
- <MartURLLocation database="test_reactome_mart" default="" displayName="REACTOME (CSHL US)" host="reactome.oicr.on.ca" includeDatasets="complex,pathway,reaction,interaction" martUser="" name="REACTOME" path="/biomart/martservice" port="5555" redirect="1" serverVirtualSchema="default" visible="1" />
+ <MartURLLocation database="test_reactome_mart" default="" displayName="REACTOME (CSHL US)" host="reactome.oicr.on.ca" includeDatasets="complex" martUser="" name="REACTOME" path="/biomart/martservice" port="5555" redirect="1" serverVirtualSchema="default" visible="1" />
 
 </virtualSchema>
 
