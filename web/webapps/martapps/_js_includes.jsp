@@ -6,7 +6,7 @@
 
 <c:set var="basepath" value="${param.path}"/>
 <script type="text/javascript" src="${basepath}conf/config.js.jsp"></script>
-<!--[if IE]><script src="${basepath}js/lib/excanvas.min.js"></script><![endif]-->
+<!--[if IE]><jwr:script src="/js/lib/ie/excanvas.min.js"/><![endif]-->
 
 <%-- Common libraries --%>
 <jwr:script src="/lib.js"/>
