@@ -8,8 +8,7 @@
     results.tmamap._max = 5.0;
     results.tmamap._min = -5.0;
     results.tmamap._mid = 0;
-    results.tmamap._maxX = 0;
-    results.tmamap._maxY = 0;
+    results.tmamap._maxXY = [];
     results.tmamap._lines = [];
     results.tmamap._getColor = function(val) {
         var min = this._min,
@@ -47,6 +46,7 @@
         this._lines = [];
         this._labels = [];
         this._keyMap = {};
+        this._maxXY = [];
     };
     results.tmamap.parse = function(rows, writee) {
         var n = rows.length,
@@ -64,7 +64,6 @@
     		this._min = parseFloat(rows[0][rowID]);
     	}
     	
-    	
 		for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
 			row = rows[i];
 			rawKey = row[rowCancerType];
@@ -77,12 +76,6 @@
             valueID = parseFloat(row[rowID]);
             var avg = (parseFloat(value1) + parseFloat(value2))/2;
             
-            if(valueX > this._maxX){
-            	this._maxX = valueX;
-            }
-            if(avg > this._maxY){
-            	this._maxY = avg;
-            }
             if(valueID > this._max){
             	this._max = valueID;
             }
@@ -92,6 +85,16 @@
             if(rawKey in this._lines){
             }else{
             	this._lines[rawKey] = new Array();
+            }
+            if(rawKey in this._maxXY){
+            	if(valueX > this._maxXY[rawKey][0]){
+            		this._maxXY[rawKey][0] = valueX;
+                }
+                if(avg > this._maxXY[rawKey][1]){
+                	this._maxXY[rawKey][1] = avg;
+                }
+            }else{
+            	this._maxXY[rawKey] = [valueX, avg];
             }
 
             this._lines[rawKey].push({
@@ -197,8 +200,8 @@
         	if(this._lines.hasOwnProperty(category)){
         		for(var data in this._lines[category]){
                 	if(this._lines[category].hasOwnProperty(data)){
-            			var x = this._lines[category][data].x * scale + (gap+this._maxX)*scale*(Math.floor(numCat/2));
-            			var y = this._lines[category][data].y * scale + (gap+this._maxY)*scale*(numCat%2);
+            			var x = this._lines[category][data].x * scale + (gap+this._maxXY[category][0])*scale*(Math.floor(numCat/2));
+            			var y = this._lines[category][data].y * scale + (gap+this._maxXY[category][1])*scale*(numCat%2);
             			var value = this._lines[category][data].value;
             			var context = tmacanvas.getContext('2d');
             			// draw the TMA map dots            			
