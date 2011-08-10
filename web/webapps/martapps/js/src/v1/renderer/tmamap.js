@@ -196,12 +196,14 @@
     	var gap = 1;
     	var scale = 40;
     	var numCat = 0;
+    	var preX = 0;
+    	var preY = 0;
         for(var category in this._lines){
         	if(this._lines.hasOwnProperty(category)){
         		for(var data in this._lines[category]){
                 	if(this._lines[category].hasOwnProperty(data)){
-            			var x = this._lines[category][data].x * scale + (gap+this._maxXY[category][0])*scale*(Math.floor(numCat/2));
-            			var y = this._lines[category][data].y * scale + (gap+this._maxXY[category][1])*scale*(numCat%2);
+            			var x = this._lines[category][data].x * scale + (gap+preX)*scale*(Math.floor(numCat/2));
+            			var y = this._lines[category][data].y * scale + (gap+preY)*scale*(numCat%2);
             			var value = this._lines[category][data].value;
             			var context = tmacanvas.getContext('2d');
             			// draw the TMA map dots            			
@@ -217,6 +219,8 @@
 	            		
                 	}
         		}
+        		preX = this._maxXY[category][0];
+        		preY = this._maxXY[category][1];
         	}
         	numCat ++;
         }
