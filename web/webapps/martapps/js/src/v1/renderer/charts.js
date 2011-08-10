@@ -664,6 +664,8 @@
     results.boxplot._lineIndices = [1];
     results.boxplot._labels = [];
     results.boxplot._max = 20;
+    results.boxplot._miny = 100;
+    results.boxplot._maxy = 0;
     results.boxplot._header = null;
     results.boxplot.initExport = function(url) {};
     results.boxplot._doExport = function(form) {};
@@ -724,6 +726,11 @@
 				this._lines[rawKey][xkey].Group.sort(sortNumber);
 	    		var size = this._lines[rawKey][xkey].Group.length;
 	    		
+	    		if(this._lines[rawKey][xkey].Group[0] < this._miny)
+	    			this._miny = this._lines[rawKey][xkey].Group[0];
+	    		if(this._lines[rawKey][xkey].Group[size-1] > this._maxy)
+	    			this._maxy = this._lines[rawKey][xKey].Group[size-1];
+	    		
 	    		index ++;
 	    		if(size == 0){
 	    			this._lines[rawKey][xkey].boxValue = [index, 0, 0 , 0, 0, 0];
@@ -773,28 +780,13 @@
     			chartLines.push(chartLine);
 			}
 		}
-		
-		
-		
-		var ymin = chartLines[0].data[0][1];
-		var ymax = chartLines[0].data[0][5];
-    	for(var i = 0; i < chartLines.length ; i++){
-    		if( ymin > chartLines[i].data[0][1])
-    			ymin = chartLines[i].data[0][1];
-    		if( ymin > chartLines[i].data[1][1])
-    			ymin = chartLines[i].data[1][1];
-    		if( ymax < chartLines[i].data[0][5])
-    			ymax = chartLines[i].data[0][5];
-    		if( ymax < chartLines[i].data[1][5])
-    			ymax = chartLines[i].data[1][5];
-    	}
 
         this._plot = $.plot(this._element, chartLines, {
         	series : {
         		boxplot: {active : true, show : true}
         	},
             xaxis: {min: 0, max: index+1 , ticks: xTicks},
-            yaxis: {min: ymin - 1, max: ymax + 1, ticks : 20},
+            yaxis: {min: this._miny - 1, max: this._maxy + 1, ticks : 20},
             grid: {
                 clickable: true,
                 hoverable: true,

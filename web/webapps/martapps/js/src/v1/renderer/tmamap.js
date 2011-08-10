@@ -5,8 +5,8 @@
     results.tmamap = Object.create(results.plain);
     results.tmamap.tagName = 'div';
     results.tmamap._heatColumn = 4;
-    results.tmamap._max = 5.0;
-    results.tmamap._min = -5.0;
+    results.tmamap._max = 3;
+    results.tmamap._min = 0;
     results.tmamap._mid = 0;
     results.tmamap._maxXY = [];
     results.tmamap._lines = [];
@@ -57,12 +57,6 @@
     	// hard coded col value for now
     	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
     	this._xaxisLabel = this._header[rowGeneID] + " " + rows[0][rowGeneID];
-    	if(this._max === 5){
-    		this._max = parseFloat(rows[0][rowID]);
-    	}
-    	if(this._min === -5){
-    		this._min = parseFloat(rows[0][rowID]);
-    	}
     	
 		for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
 			row = rows[i];
@@ -76,12 +70,6 @@
             valueID = parseFloat(row[rowID]);
             var avg = (parseFloat(value1) + parseFloat(value2))/2;
             
-            if(valueID > this._max){
-            	this._max = valueID;
-            }
-            if(valueID < this._min){
-            	this._min = valueID;
-            }
             if(rawKey in this._lines){
             }else{
             	this._lines[rawKey] = new Array();
