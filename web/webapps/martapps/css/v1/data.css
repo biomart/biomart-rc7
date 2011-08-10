@@ -562,7 +562,7 @@ iframe.streaming {
 }
 .biomart .tmamap {
 	position: relative;
-	height: 400px;
+	height: 600px;
 	/*width: 1000px;*/
 }
 .biomart .tmamap canvas{

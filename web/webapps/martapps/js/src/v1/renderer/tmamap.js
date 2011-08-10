@@ -8,6 +8,8 @@
     results.tmamap._max = 5.0;
     results.tmamap._min = -5.0;
     results.tmamap._mid = 0;
+    results.tmamap._maxX = 0;
+    results.tmamap._maxY = 0;
     results.tmamap._lines = [];
     results.tmamap._getColor = function(val) {
         var min = this._min,
@@ -75,6 +77,12 @@
             valueID = parseFloat(row[rowID]);
             var avg = (parseFloat(value1) + parseFloat(value2))/2;
             
+            if(valueX > this._maxX){
+            	this._maxX = valueX;
+            }
+            if(avg > this._maxY){
+            	this._maxY = avg;
+            }
             if(valueID > this._max){
             	this._max = valueID;
             }
@@ -172,7 +180,7 @@
         	.appendTo(writee);
         
         tmacanvas = tmacanvas.get(0);
-        x1=0; y1=0; x2=400 * this._lines.length-1; y2=400;
+        x1=0; y1=0; x2=400 * this._lines.length-1; y2=600;
         tmacanvas.width = x2;
         tmacanvas.height = y2;
         
@@ -182,18 +190,18 @@
     	
     	//draw TMA map
     	var radius = 15;
-    	var gap = 2;
+    	var gap = 1;
+    	var scale = 40;
+    	var numCat = 0;
         for(var category in this._lines){
         	if(this._lines.hasOwnProperty(category)){
         		for(var data in this._lines[category]){
                 	if(this._lines[category].hasOwnProperty(data)){
-            			var x = this._lines[category][data].x * 40 + 450 * parseInt(category-1);
-            			var y = this._lines[category][data].y * 40;
+            			var x = this._lines[category][data].x * scale + (gap+this._maxX)*scale*(Math.floor(numCat/2));
+            			var y = this._lines[category][data].y * scale + (gap+this._maxY)*scale*(numCat%2);
             			var value = this._lines[category][data].value;
             			var context = tmacanvas.getContext('2d');
-            			// draw the TMA map dots
-            			
-            			
+            			// draw the TMA map dots            			
             			context.fillStyle = this._getColor(value);
             			context.strokeStyle = this._getColor(this._max);
             			
@@ -207,6 +215,7 @@
                 	}
         		}
         	}
+        	numCat ++;
         }
     
         
