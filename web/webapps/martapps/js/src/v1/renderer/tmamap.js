@@ -2,12 +2,12 @@
 	var results = biomart.renderer.results;
 	
     /* HEATMAP */
-    results.tmamap = Object.create(results.plain);
+    results.tmamap = Object.create(results.chart);
     results.tmamap.tagName = 'div';
     results.tmamap._heatColumn = 4;
     results.tmamap._max = 3;
     results.tmamap._min = 0;
-    results.tmamap._mid = 0;
+    results.tmamap._mid = 1.5;
     results.tmamap._maxXY = [];
     results.tmamap._lines = [];
     results.tmamap._getColor = function(val) {
@@ -55,8 +55,8 @@
         if (!rows.length) return;
     	
     	// hard coded col value for now
-    	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
-    	this._xaxisLabel = this._header[rowGeneID] + " " + rows[0][rowGeneID];
+    	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5, tmaName=6;
+    	this._xaxisLabel = this._header[tmaName] + " " + rows[0][tmaName];
     	
 		for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
 			row = rows[i];
@@ -93,7 +93,6 @@
             
 		}
 		
-		this._mid = (this._max + this._min) / 2;
     };
     results.tmamap.setHighlightColumn = function(i) { this._highlight = i };
     results.tmamap.printHeader = function(header, writee) {
@@ -105,19 +104,13 @@
     results.tmamap.option = function(name, value) {
         this['_' + name] = value;
     };
-    results.tmamap._showTooltip = function(x, y, contents) {
-        var left = x - this._tooltip.width() - 5,
-            w = this._element.width(),
-            pw = this._plot.width();
-            diff = w - pw + this._element.offset().left;
-
-        this._tooltip
-            .text(contents)
-            .css({
-                'top': y - 6,
-                left: diff < left ? left : x + 5
-            })
-            .fadeIn(100);
+    results.tmamap.onMouseMove = function(event) {
+    	
+    	var a = event.pageX;
+    	var b = event.pageY;
+    	var content = '('+a +','+b+')';
+    	//results.tmamap._showTooltip(a,b,content);
+    	
     };
     results.tmamap.draw = function(writee) {
         if (this._hasError) return;
@@ -137,7 +130,10 @@
             gravity: 'w',
             opacity: .9
         });
-
+        //make sure of max and min for tma map
+        results.tmamap._max = 3;
+        results.tmamap._min = 0;
+        results.tmamap._mid = 1.5;
         // Use canvas to draw the legend
         var legend,
         	tmamap,
@@ -170,15 +166,19 @@
         	.disableSelection()
         	.appendTo(writee);
         
+        
+        this._plot = tmamap;
         tmacanvas = tmacanvas.get(0);
-        x1=0; y1=0; x2=400 * this._lines.length-1; y2=600;
+        x1=0; y1=0; x2=300 * this._lines.length; y2=600;
         tmacanvas.width = x2;
         tmacanvas.height = y2;
+        this._element.css('width', x2 + 'px');
+        this._element.css('height', y2 + 'px');
         
         if (typeof G_vmlCanvasManager != 'undefined')
         	tmacanvas = G_vmlCanvasManager.initElement(tmacanvas);
  
-    	
+        tmacanvas.onmousemove = this.onMouseMove;
     	//draw TMA map
     	var radius = 15;
     	var gap = 1;
@@ -186,14 +186,20 @@
     	var numCat = 0;
     	var preX = 0;
     	var preY = 0;
+    	var context = tmacanvas.getContext('2d');
         for(var category in this._lines){
         	if(this._lines.hasOwnProperty(category)){
+        		context.fillStyle = "Black";
+        		context.font = '30px sans-serif';
+        		context.textBaseline = "top";
+        		context.fillText("Sector "+ (numCat+1)
+        				,(gap+preX)*scale*(Math.floor(numCat/2))+this._maxXY[category][0]/2*scale
+        				,(gap+preY)*scale*(numCat%2));
         		for(var data in this._lines[category]){
                 	if(this._lines[category].hasOwnProperty(data)){
             			var x = this._lines[category][data].x * scale + (gap+preX)*scale*(Math.floor(numCat/2));
             			var y = this._lines[category][data].y * scale + (gap+preY)*scale*(numCat%2);
             			var value = this._lines[category][data].value;
-            			var context = tmacanvas.getContext('2d');
             			// draw the TMA map dots            			
             			context.fillStyle = this._getColor(value);
             			context.strokeStyle = this._getColor(this._max);
@@ -209,8 +215,9 @@
         		}
         		preX = this._maxXY[category][0];
         		preY = this._maxXY[category][1];
+        		numCat ++;
         	}
-        	numCat ++;
+        	
         }
     
         
@@ -246,6 +253,12 @@
             grad.addColorStop(1, color4);
             ctx.fillStyle = grad;
             ctx.fillRect(x1, y1, x2, y2);
+        }
+        
+        if (this._xaxisLabel) {
+            $(['<p class="plot-label">', this._xaxisLabel, '</p>'].join(''))
+                .width(this._plot.width())
+                .appendTo(this._element);
         }
         
         this.clear();
