@@ -66,7 +66,7 @@
 
             var value1 = row[rowValue1],
         	value2 = row[rowValue2],
-        	valueX = row[rowX],
+        	valueX = parseFloat(row[rowX]),
             valueID = parseFloat(row[rowID]);
             var avg = (parseFloat(value1) + parseFloat(value2))/2;
             
