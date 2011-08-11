@@ -186,15 +186,25 @@
     	var numCat = 0;
     	var preX = 0;
     	var preY = 0;
+    	var shift = 15;
     	var context = tmacanvas.getContext('2d');
         for(var category in this._lines){
         	if(this._lines.hasOwnProperty(category)){
+        		//draw sector
         		context.fillStyle = "Black";
-        		context.font = '30px sans-serif';
+        		context.font = '18px Helvetica';
         		context.textBaseline = "top";
         		context.fillText("Sector "+ (numCat+1)
         				,(gap+preX)*scale*(Math.floor(numCat/2))+this._maxXY[category][0]/2*scale
         				,(gap+preY)*scale*(numCat%2));
+        		//draw cols and rows
+        		context.font = '10px Helvetica';
+        		for(var col =1;col <= this._maxXY[category][1];col++){
+        			context.fillText(col, shift + (gap+preX)*scale*(Math.floor(numCat/2)),col*scale+ (gap+preY)*scale*(numCat%2));
+        		}
+        		for(var row =1;row <= this._maxXY[category][0];row++){    				
+    				context.fillText(row,row*scale+ (gap+preX)*scale*(Math.floor(numCat/2)),shift+(gap+preY)*scale*(numCat%2));
+    			}
         		for(var data in this._lines[category]){
                 	if(this._lines[category].hasOwnProperty(data)){
             			var x = this._lines[category][data].x * scale + (gap+preX)*scale*(Math.floor(numCat/2));
