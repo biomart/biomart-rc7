@@ -729,7 +729,7 @@
 	    		if(this._lines[rawKey][xkey].Group[0] < this._miny)
 	    			this._miny = this._lines[rawKey][xkey].Group[0];
 	    		if(this._lines[rawKey][xkey].Group[size-1] > this._maxy)
-	    			this._maxy = this._lines[rawKey][xKey].Group[size-1];
+	    			this._maxy = this._lines[rawKey][xkey].Group[size-1];
 	    		
 	    		index ++;
 	    		if(size == 0){
