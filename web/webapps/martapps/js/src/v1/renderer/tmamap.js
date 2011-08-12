@@ -15,6 +15,7 @@
             max = this._max,
             mid = this._mid;
 
+        if(isNaN(val)) return 'rgb(0,0,0)';
         if (val > max) return 'rgb(255,255,255)';
         if (val < min) return 'rgb(255,255,255)';
 
@@ -225,7 +226,9 @@
             			context.fillStyle = "White";
             			context.font = '15px Helvetica';
             			context.textBaseline = "middle";
-            			context.fillText(value,x-radius/4,y);
+            			if(!isNaN(value)){
+            				context.fillText(value,x-radius/4,y);
+            			}
                 	}
         		}
         		preX = this._maxXY[category][0];
