@@ -1,6 +1,7 @@
 package org.biomart.processors;
 
 import com.google.common.io.Closeables;
+import org.apache.commons.lang.StringEscapeUtils;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -105,6 +106,20 @@ public class SPARQLXML extends ProcessorImpl {
             if (exception) return;
 
             b &= 0xff; // force argument to one byte
+
+            String escaped = StringEscapeUtils.escapeHtml(Character.toString((char)b));
+            if (escaped.length() > 1) {
+                for (int i = 0; i < escaped.length(); i++)
+                    writeASCII(escaped.charAt(i));
+
+                return;
+            }
+
+            writeASCII(b);
+        }
+
+        private void writeASCII(int b) throws IOException {
+            b &= 0xff;
 
             if (startOfLine) {
                 int nextColumn = 0;
