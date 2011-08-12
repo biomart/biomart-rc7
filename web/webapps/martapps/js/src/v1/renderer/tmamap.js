@@ -5,9 +5,9 @@
     results.tmamap = Object.create(results.chart);
     results.tmamap.tagName = 'div';
     results.tmamap._heatColumn = 4;
-    results.tmamap._max = 3;
+    results.tmamap._max = 6;
     results.tmamap._min = 0;
-    results.tmamap._mid = 1.5;
+    results.tmamap._mid = 3;
     results.tmamap._maxXY = [];
     results.tmamap._lines = [];
     results.tmamap._getColor = function(val) {
@@ -131,9 +131,9 @@
             opacity: .9
         });
         //make sure of max and min for tma map
-        results.tmamap._max = 3;
+        results.tmamap._max = 6;
         results.tmamap._min = 0;
-        results.tmamap._mid = 1.5;
+        results.tmamap._mid = 3;
         // Use canvas to draw the legend
         var legend,
         	tmamap,
@@ -213,14 +213,19 @@
             			// draw the TMA map dots            			
             			context.fillStyle = this._getColor(value);
             			context.strokeStyle = this._getColor(this._max);
-            			
+            			// draw circle
             			context.beginPath();
             			context.arc(x,y,radius, 0, Math.PI*2,true);
             			context.closePath();
-	            		
+            			
             			context.fill();
             			context.stroke();
 	            		
+            			// draw value
+            			context.fillStyle = "White";
+            			context.font = '15px Helvetica';
+            			context.textBaseline = "middle";
+            			context.fillText(value,x-radius/4,y);
                 	}
         		}
         		preX = this._maxXY[category][0];
