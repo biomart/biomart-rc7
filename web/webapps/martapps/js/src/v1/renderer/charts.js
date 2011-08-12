@@ -553,6 +553,8 @@
             	value2 = row[rowValue2],
             	valueX = row[rowX],
             	valueID = row[rowID];
+            if(value1 == "" || value2 == "" || valueX == "")
+            	continue;
             var avg = (parseFloat(value1) + parseFloat(value2))/2;
             
             if(rawKey in this._lines){
@@ -687,6 +689,8 @@
             var value1 = row[rowValue1],
         	value2 = row[rowValue2],
         	valueX = row[rowX];
+            if(value1 == "" || value2 == "" || valueX == "")
+            	continue;
             var avg = (parseFloat(value1) + parseFloat(value2))/2;
             
             if(rawKey in this._lines){
@@ -838,6 +842,8 @@
         	value2 = row[rowValue2],
         	valueX = row[rowX],
             valueID = row[rowID];
+            if(value1 == "" || value2 == "" || valueX == "")
+            	continue;
             var avg = (parseFloat(value1) + parseFloat(value2))/2;
             
             if(rawKey in this._lines){
@@ -998,6 +1004,8 @@
             	value2 = row[rowValue2],
             	valueX = row[rowX],
             	valueID = row[rowID];
+            if(value1 == "" || value2 == "" || valueX == "")
+            	continue;
             var avg = (parseFloat(value1) + parseFloat(value2))/2;
             
             if(rawKey in this._lines){
