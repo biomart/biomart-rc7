@@ -57,6 +57,7 @@
     	
     	// hard coded col value for now
     	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5, tmaName=6;
+    	var stageCol = 8, outcomeCol = 9;
     	this._xaxisLabel = this._header[tmaName] + " " + rows[0][tmaName];
     	
 		for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
@@ -68,8 +69,11 @@
             var value1 = row[rowValue1],
         	value2 = row[rowValue2],
         	valueX = parseFloat(row[rowX]),
-            valueID = parseFloat(row[rowID]);
-            var avg = (parseFloat(value1) + parseFloat(value2))/2;
+            valueID = parseFloat(row[rowID]),
+            tooltipID = row[rowGeneID],
+            stageID = row[stageCol],
+            outcomeID = row[outcomeCol],
+            avg = (parseFloat(value1) + parseFloat(value2))/2;
             
             if(rawKey in this._lines){
             }else{
@@ -89,7 +93,10 @@
             this._lines[rawKey].push({
             	x: valueX,
             	y: avg,
-            	value: valueID
+            	value: valueID,
+            	tooltip : tooltipID,
+            	stage : stageID,
+            	outcome : outcomeID
             });
             
 		}
@@ -107,11 +114,39 @@
     };
     results.tmamap.onMouseMove = function(event) {
     	
-    	var a = event.pageX;
-    	var b = event.pageY;
-    	var content = '('+a +','+b+')';
-    	//results.tmamap._showTooltip(a,b,content);
+    	var a = event.layerX;
+    	var b = event.layerY;
+    	var tooltipx = event.pageX;
+    	var tooltipy = event.pageY;
+    	var radius = 15;
+    	var gap = 1;
+    	var scale = 40;
+    	var numCat = 0;
+    	var preX = 0;
+    	var preY = 0;
+    	for(var category in results.tmamap._lines){
+        	if(results.tmamap._lines.hasOwnProperty(category)){
+        		for(var data in results.tmamap._lines[category]){
+                	if(results.tmamap._lines[category].hasOwnProperty(data)){
+                		var x = results.tmamap._lines[category][data].x * scale + (gap+preX)*scale*(Math.floor(numCat/2));
+            			var y = results.tmamap._lines[category][data].y * scale + (gap+preY)*scale*(numCat%2);
+                		if(a > x - radius && a < x + radius 
+                				&& b > y - radius && b < y + radius){
+                			var content = results.tmamap._lines[category][data].tooltip +"("
+                							+results.tmamap._lines[category][data].stage+","
+                							+results.tmamap._lines[category][data].outcome+")";
+                			results.tmamap._showTooltip(tooltipx,tooltipy,content);
+                			return;
+                		}
+                	}
+        		}
+        		preX = results.tmamap._maxXY[category][0];
+        		preY = results.tmamap._maxXY[category][1];
+        		numCat ++;
+        	}
+    	}
     	
+    	results.tmamap._tooltip.fadeOut(100);
     };
     results.tmamap.draw = function(writee) {
         if (this._hasError) return;
@@ -175,6 +210,7 @@
         tmacanvas.height = y2;
         this._element.css('width', x2 + 'px');
         this._element.css('height', y2 + 'px');
+        //this._tooltip.css('color',"red");
         
         if (typeof G_vmlCanvasManager != 'undefined')
         	tmacanvas = G_vmlCanvasManager.initElement(tmacanvas);
@@ -279,6 +315,6 @@
                 .appendTo(this._element);
         }
         
-        this.clear();
+        //this.clear();
     };
 })(jQuery);
