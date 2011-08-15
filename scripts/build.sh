@@ -33,7 +33,7 @@ echo "Starting testing please wait .... "
 #  exit 2
 #fi
 
-export ANT_OPTS="$ANT_OPTS -Xmx2048m -Xms2048m"
+export ANT_OPTS="$ANT_OPTS -Xmx1g -Xms1g"
 QUICK_TEST=${QUICK_TEST:=false}
 ant -Dtest.subset=${QUICK_TEST?} -buildfile build_test.xml $@
 
