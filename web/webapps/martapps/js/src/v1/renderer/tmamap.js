@@ -210,7 +210,8 @@
         tmacanvas.height = y2;
         this._element.css('width', x2 + 'px');
         this._element.css('height', y2 + 'px');
-        //this._tooltip.css('color',"red");
+        
+        this._tooltip.css('background-color',"white");
         
         if (typeof G_vmlCanvasManager != 'undefined')
         	tmacanvas = G_vmlCanvasManager.initElement(tmacanvas);
