@@ -810,6 +810,9 @@
                 .width(this._plot.width())
                 .appendTo(this._element);
         }
+        //reset min y and max y
+        results.boxplot._miny = 100;
+        results.boxplot._maxy = 0;
     };
     
     /* DOT PLOT */
