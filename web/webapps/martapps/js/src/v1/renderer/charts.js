@@ -723,28 +723,28 @@
 			if(!this._lines.hasOwnProperty(key)){
 				continue;
 			}
-			for( var xkey in this._lines[rawKey]){
-				if(!this._lines[rawKey].hasOwnProperty(xkey)){
+			for( var xkey in this._lines[key]){
+				if(!this._lines[key].hasOwnProperty(xkey)){
 					continue;
 				}
-				this._lines[rawKey][xkey].Group.sort(sortNumber);
-	    		var size = this._lines[rawKey][xkey].Group.length;
+				this._lines[key][xkey].Group.sort(sortNumber);
+	    		var size = this._lines[key][xkey].Group.length;
 	    		
-	    		if(this._lines[rawKey][xkey].Group[0] < this._miny)
-	    			this._miny = this._lines[rawKey][xkey].Group[0];
-	    		if(this._lines[rawKey][xkey].Group[size-1] > this._maxy)
-	    			this._maxy = this._lines[rawKey][xkey].Group[size-1];
+	    		if(this._lines[key][xkey].Group[0] < this._miny)
+	    			this._miny = this._lines[key][xkey].Group[0];
+	    		if(this._lines[key][xkey].Group[size-1] > this._maxy)
+	    			this._maxy = this._lines[key][xkey].Group[size-1];
 	    		
 	    		index ++;
 	    		if(size == 0){
-	    			this._lines[rawKey][xkey].boxValue = [index, 0, 0 , 0, 0, 0];
+	    			this._lines[key][xkey].boxValue = [index, 0, 0 , 0, 0, 0];
 	    		}else{
-	    			this._lines[rawKey][xkey].boxValue = [index,
-	    			                                   this._lines[rawKey][xkey].Group[0],
-	    			                                   this._lines[rawKey][xkey].Group[Math.floor(size/4)],
-	    			                                   this._lines[rawKey][xkey].Group[Math.floor(size/2)],
-	    			                                   this._lines[rawKey][xkey].Group[Math.floor(size*3/4)],
-	    			                                   this._lines[rawKey][xkey].Group[size-1]];
+	    			this._lines[key][xkey].boxValue = [index,
+	    			                                   this._lines[key][xkey].Group[0],
+	    			                                   this._lines[key][xkey].Group[Math.floor(size/4)],
+	    			                                   this._lines[key][xkey].Group[Math.floor(size/2)],
+	    			                                   this._lines[key][xkey].Group[Math.floor(size*3/4)],
+	    			                                   this._lines[key][xkey].Group[size-1]];
 	    		}
 	    		
 			}
