@@ -52,7 +52,7 @@
             self.element
                 .addClass(o.type)
                 .append(self._writee);
-            self._writee.data('results_cache', []);
+            self._writee._resultsCache = [];
         },
 
         _headers: false,
@@ -87,7 +87,7 @@
                     // headers
                     if (s) {
                         if (typeof s == 'string') s = s.split('\t');
-                        self._writee.data('headers_cache', s);
+                        self._writee._headerCache = s;
                         self._renderer.printHeader(s, self._writee);
                     }
                     self._headers = false;
@@ -100,7 +100,7 @@
                     }
                     if (s) {
                         if (typeof s == 'string') s = s.split('\t');
-                        self._writee.data('results_cache').push(s);
+                        self._writee._resultsCache.push(s);
                         self._total++;
 
                         if (self._skip <= self._total && self._end < self._limit) {
@@ -155,7 +155,7 @@
 
         paginate: function(skip, limit) {
             var self = this,
-                cache = self._writee.data('results_cache'),
+                cache = self._writee._resultsCache,
                 rows = [];
 
             self._end = skip + limit - 1;
@@ -191,6 +191,7 @@
         destroy: function() {
             $.Widget.prototype.destroy.apply(this, arguments);
             this._renderer.destroy();
+            delete this._writee._resultsCache;
         }
     });
 
@@ -210,18 +211,18 @@
         },
 
         success: function(s) {
-            this.element.trigger(this._signal + '.success', [s]);
+            this.element.triggerHandler(this._signal + '.success', [s]);
         },
 
         error: function(reason) {
-            this.element.trigger(this._signal + '.error', [reason]);
+            this.element.triggerHandler(this._signal + '.error', [reason]);
         },
 
         /*
          * This is always called AFTER success and error
          */
         complete: function() {
-            this.element.trigger(this._signal + '.complete');
+            this.element.triggerHandler(this._signal + '.complete');
         },
 
         exec: function() {
@@ -282,10 +283,14 @@
                 biomart.datasource.streamers[self._uuid] = self;
 
                 self._iframe.one('load', function() {
-                    if (!self.hasLoaded) {
-                        self.error('Failed to load');
-                    }
-                    self.complete();
+                    // Allow asynchronous callback call
+                    // Optimization
+                    setTimeout(function() {
+                        if (!self.hasLoaded) {
+                            self.error('Failed to load');
+                        }
+                        self.complete();
+                    }, 1);
                 });
 
                 data = $.extend({stream: true, iframe: true, uuid: self._uuid, scope: 'biomart.datasource'}, options.data);
@@ -336,10 +341,14 @@
          */
         exports.streamers = {};
         exports.write = function(uuid, s) {
-            exports.streamers[uuid].success(s);
+            // Allow asynchronous callback call
+            // Optimization
+            setTimeout(function() { exports.streamers[uuid].success(s); }, 1);
         };
         exports.done = function(uuid) {
-            exports.streamers[uuid].done();
+            // Allow asynchronous callback call
+            // Optimization
+            setTimeout(function() { exports.streamers[uuid].done(); }, 1);
         };
     });
 

@@ -3,6 +3,7 @@ package org.biomart.api.rest;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.biomart.common.constants.OutputConstants;
 
 /**
@@ -15,6 +16,7 @@ public class IframeOutputStream extends FilterOutputStream implements OutputCons
     public IframeOutputStream(String uuid, OutputStream out, String scope) throws IOException {
         super(out);
 
+		// Helper HTML code
         HTML = new byte[5][];
         HTML[0] = "<!doctype html><html><head><title></title></head><body>".getBytes();
         HTML[1] = ("<script>parent." + scope + ".write('" + uuid + "','").getBytes();
@@ -23,34 +25,39 @@ public class IframeOutputStream extends FilterOutputStream implements OutputCons
         HTML[4] = "<span></span>".getBytes();
 
         out.write(HTML[0]);
-        // Pad some junk HTML so WebKit will start streaming
-        for (int i=0; i<100; i++) {
-            out.write(HTML[4]);
-        }
         out.write(HTML[1]);
     }
 
-    @Override
-    public void write(int b) throws IOException {
-        if (b == NEWLINE) {
-            out.write(HTML[2]);
-        } else {
-            if (b == QUOTE) {
-                out.write(BACK_SLASH);
-            }
-            out.write(b);
-        }
-    }
+	// Buffer the results so we don't stream line by line to the iframe's 
+	// callback function
+	private static final int WRITE_LIMIT = 50;
+	private StringBuilder sb = new StringBuilder();
+	private int pos = 0;
 
+	/*
+	 * Only write to the callback function when we've reached WRITE_LIMIT.
+	 * This buffering will prevent performance degradation on the client-side
+	 * JavaScript engine.
+	 */
     @Override
     public void write(byte[] bytes) throws IOException {
-        for (byte b : bytes) {
-            this.write(b);
-        }
+		String line = StringEscapeUtils.escapeJavaScript(new String(bytes));
+
+		sb.append(line);
+
+		if (pos == WRITE_LIMIT-1) {
+			out.write(sb.toString().getBytes());
+			out.write(HTML[2]);
+			pos = 0;
+			sb = new StringBuilder();
+		} else {
+			pos++;
+		}
     }
 
     @Override
     public void close() throws IOException {
+		out.write(sb.toString().getBytes());
         out.write(HTML[3]);
         super.close();
     }

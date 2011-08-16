@@ -1048,10 +1048,10 @@ $.widget('ui.resultsPanel', {
     run: function(title, options) {
         var self = this;
         self._content.removeClass('hidden');
-        self._wrapper.addClass('wide', 100, function() {
+        self._wrapper.addClass('wide', 50, function() {
             self._content
                 .slideDown({
-                    duration: 100, 
+                    duration: 50, 
                     complete: function() {
                         self.element.trigger('show');
                         self.element.find('h3').html(title);
@@ -1062,7 +1062,7 @@ $.widget('ui.resultsPanel', {
                         self._martObj = options.martObj;
 
                         self._data.empty().queryResults($.extend({
-                            animationTime: 100,
+                            animationTime: 50,
                             header: true,
                             footer: true,
                             iframe: self.element.find('iframe.streaming')
@@ -1076,9 +1076,9 @@ $.widget('ui.resultsPanel', {
         var self = this;
         self._content.addClass('hidden');
         self._data.queryResults('destroy').empty();
-        self._wrapper.removeClass('wide', 100, function() {
+        self._wrapper.removeClass('wide', 50, function() {
             self._content.slideUp({
-                duration: 100,
+                duration: 50,
                 complete: function() {
                     self.element.trigger('hide');
                 }

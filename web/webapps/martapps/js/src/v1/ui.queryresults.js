@@ -106,6 +106,8 @@ var QueryResults = {
             .unbind('datasource.complete')
             .attr('className', this._originalClassNames);
 
+        delete this.element.datacontroller('writee')._originalCache;
+
         if (this.options.sorting) this.element.undelegate('td.sort', 'click.queryResults');
 
         this.element.removeClass('ui-queryResults');
@@ -115,22 +117,21 @@ var QueryResults = {
         var self = this,
             $element = self.element.datacontroller('writee'),
             $td = $element.find('td.sort').removeClass('sorted desc asc').eq(index),
-            cache = $element.data('results_cache'),
-            original_cache = cache.slice();
+            cache = $element._resultsCache,
+            originalCache = cache.slice();
 
         $td.addClass(['sorted ', asc ? 'asc' : 'desc'].join(''));
 
         self.element.datacontroller('highlight', index);
         
-        $element
-            .data('original_cache', original_cache)
-            .data('results_cache').sort(function(left, right) {
-                var a = left[index].replace(self._htmlRegex, '').toUpperCase(),
-                    b = right[index].replace(self._htmlRegex, '').toUpperCase();
-                if (a > b) return asc ? 1 : -1;
-                else if (a < b) return asc ? -1 : 1;
-                return 0;
-            });
+        $element._originalCache = originalCache;
+        $element._resultsCache.sort(function(left, right) {
+            var a = left[index].replace(self._htmlRegex, '').toUpperCase(),
+                b = right[index].replace(self._htmlRegex, '').toUpperCase();
+            if (a > b) return asc ? 1 : -1;
+            else if (a < b) return asc ? -1 : 1;
+            return 0;
+        });
 
         if (self._isPaginated) {
             self.element.paginate('page', 1, true);
@@ -146,9 +147,10 @@ var QueryResults = {
     removeSort: function() {
         var self = this,
             $element = self.element.datacontroller('writee'),
-            original_cache = $element.data('original_cache');
+            originalCache = $element._originalCache;
         $td = $element.find('td.sorted').removeClass('sorted desc asc');
-        $element.data('results_cache', original_cache);
+        $element._resultsCache = originalCache;
+        delete $element._originalCache;
         this.element.datacontroller('highlight', null);
         if (self._isPaginated) self.element.paginate('page', 1, true);
         else self.element.datacontroller('paginate', 0, Infinity)
