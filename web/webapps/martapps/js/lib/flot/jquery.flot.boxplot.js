@@ -1,7 +1,7 @@
 /*
  * The MIT License
 
-Copyright (c) 2010 by Juergen Marsch
+Copyright (c) 2010 by Long Yao
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -112,11 +112,11 @@ data: [
         function drawData(ctx,series,data,color,isHighlight)
         {	
         	var min,q1,mid,q2,max;
-        	min = axes.yaxis.p2c(data[1]);
-        	q1 = axes.yaxis.p2c(data[2]);
-        	mid = axes.yaxis.p2c(data[3]);
-        	q2 = axes.yaxis.p2c(data[4]);
-        	max = axes.yaxis.p2c(data[5]);
+        	min = offset.top + axes.yaxis.p2c(data[1]);
+        	q1 = offset.top + axes.yaxis.p2c(data[2]);
+        	mid = offset.top + axes.yaxis.p2c(data[3]);
+        	q2 = offset.top + axes.yaxis.p2c(data[4]);
+        	max = offset.top + axes.yaxis.p2c(data[5]);
         	
             x = offset.left + axes.xaxis.p2c(data[0]);
 			
