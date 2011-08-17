@@ -207,8 +207,10 @@ public class UserResource {
                             .getExtension(AxMessage.OPENID_NS_AX);
 
                     List emails = fetchResp.getAttributeValues("email");
-                    email = (String) emails.get(0);
-                    userData.put("email", email);
+					if (!emails.isEmpty()) {
+						email = (String)emails.get(0);
+						userData.put("email", email);
+					}
 
                 } else if(authSuccess.hasExtension(SRegMessage.OPENID_NS_SREG)) {
                     MessageExtension ext = authSuccess.getExtension(SRegMessage.OPENID_NS_SREG);
