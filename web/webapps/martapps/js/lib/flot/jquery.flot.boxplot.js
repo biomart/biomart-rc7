@@ -41,6 +41,7 @@ data: [
         series: {
                         boxplot: {active: false
                                 , show: false
+                                , showOutliers: true
                                 , lineWidth: 2
 								, connectSteps: { show: false, lineWidth:2, color:"rgb(0,0,0)" }
                                 , barHeight: 30
@@ -101,6 +102,9 @@ data: [
 				{	for (var j = 0; j < series.data.length; j++)
 					{
 						drawData(ctx,series, series.data[j], series.color,false);
+						if(series.boxplot.showOutliers){
+							drawOutliers(ctx,series,series.data[j], series.outliers[j], series.color,false);
+						}
 					}
 					if(series.boxplot.connectSteps.show)
 					{	
@@ -121,6 +125,22 @@ data: [
             x = offset.left + axes.xaxis.p2c(data[0]);
 			
 			series.boxplot.drawstep(ctx,series,data,x,min,q1,mid,q2,max,color,isHighlight);
+        }
+        function drawOutliers(ctx,series,data,outliers,color,isHighlight)
+        {
+        	var radius = series.points.radius;
+        	var x = offset.left + axes.xaxis.p2c(data[0]);
+        	for(var i = 0; i <outliers.length; i++){
+        		var y = offset.top + axes.yaxis.p2c(outliers[i]);
+        		
+        		ctx.beginPath();
+        		ctx.strokeStyle = color;
+                ctx.lineWidth = series.boxplot.lineWidth;
+        		ctx.arc(x,y,radius, 0, Math.PI*2,true);
+        		ctx.closePath();
+        		
+        		ctx.stroke();
+        	}
         }
 		function drawConnections(ctx,series)
 		{	for(var i = 0; i < series.length; i++)

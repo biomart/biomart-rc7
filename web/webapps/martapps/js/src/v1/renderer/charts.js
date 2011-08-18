@@ -699,14 +699,16 @@
             	}else{
             		this._lines[rawKey][valueX] = {
                 			Group : [],
-                			boxValue : []
+                			boxValue : [],
+                			outliers : []
                 	};
             	}
             }else{
             	this._lines[rawKey] = new Array();
             	this._lines[rawKey][valueX] = {
             			Group : [],
-            			boxValue : []
+            			boxValue : [],
+            			outliers : []
             	};
             }
 
@@ -736,21 +738,44 @@
 	    			this._maxy = this._lines[key][xkey].Group[size-1];
 	    		
 	    		index ++;
+	    		//calculate outliers
+	    		var Q1 = this._lines[key][xkey].Group[Math.floor(size/4)];
+	    		var Q3 = this._lines[key][xkey].Group[Math.floor(size*3/4)];
+	    		var IQR = Q3 - Q1;
+	    		var lowerBound = 0;
+	    		var upperBound = size - 1;
+	    		for(var i =0; i< size; i++){
+	    			if(this._lines[key][xkey].Group[i] < Q1 - 1.5 * IQR){
+	    				this._lines[key][xkey].outliers.push(this._lines[key][xkey].Group[i]);
+	    				lowerBound ++ ;
+	    			}else{
+	    				break;
+	    			}	    				
+	    		}
+	    		for(var i = size - 1; i>=0; i--){
+	    			if(this._lines[key][xkey].Group[i] > Q3 + 1.5 * IQR){
+	    				this._lines[key][xkey].outliers.push(this._lines[key][xkey].Group[i]);
+	    				upperBound -- ;
+	    			}else{
+	    				break;
+	    			}
+	    		}
+	    		//calculate box values
 	    		if(size == 0){
 	    			this._lines[key][xkey].boxValue = [index, 0, 0 , 0, 0, 0];
 	    		}else{
 	    			this._lines[key][xkey].boxValue = [index,
-	    			                                   this._lines[key][xkey].Group[0],
+	    			                                   this._lines[key][xkey].Group[lowerBound],
 	    			                                   this._lines[key][xkey].Group[Math.floor(size/4)],
 	    			                                   this._lines[key][xkey].Group[Math.floor(size/2)],
 	    			                                   this._lines[key][xkey].Group[Math.floor(size*3/4)],
-	    			                                   this._lines[key][xkey].Group[size-1]];
+	    			                                   this._lines[key][xkey].Group[upperBound]];
 	    		}
 	    		
 			}
     		
 		}
-	
+		
     };
    
     results.boxplot.draw = function() {
@@ -772,11 +797,13 @@
 			if(this._lines.hasOwnProperty(key)){
 				var chartLine = {
 		        		data : [],
-		        		label : key
+		        		label : key,
+		        		outliers : []
 		        };
 				for(var xkey in this._lines[key]){
 					if(this._lines[key].hasOwnProperty(xkey)){
 						chartLine.data.push(this._lines[key][xkey].boxValue);
+						chartLine.outliers.push(this._lines[key][xkey].outliers);
 						index ++;
 						xTicks.push([index,xkey]);
 					}
