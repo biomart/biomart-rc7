@@ -610,6 +610,15 @@ $.namespace('biomart.martform', function(self) {
         _elements.configure.slideUp({
             duration: ANIMATION_TIME,
             complete: function() {
+            	// Load settings from metainfo if not loaded already
+                if (!config) {
+                    var meta = new biomart.utils.MetaInfo(mart);
+                    config = configs[mart.name] = meta._globalConfig;
+                }
+                if (config.limit == "none") {
+                	QUERY_LIMIT = -1;
+                }
+                
                 var options = {
                         queries: prepareXML('TSVX', QUERY_LIMIT, true, queryClient, independent),
                         downloadXml: prepareXML('TSV', -1, true, queryClient),
@@ -627,12 +636,7 @@ $.namespace('biomart.martform', function(self) {
                     config = configs[mart.name],
                     datasets = [];
                     
-                // Load settings from metainfo if not loaded already
-                if (!config) {
-                    var meta = new biomart.utils.MetaInfo(mart);
-                    config = configs[mart.name] = meta._globalConfig;
-                }
-
+                
                 options.displayType = config.rendering;
                 options.dataAggregation = config.aggregation;
                 options.displayOptions = config.options;
