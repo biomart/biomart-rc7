@@ -41,7 +41,7 @@
 		<sourcexml>source_db2.xml</sourcexml>
 	</testcase>
 	
-	<testcase name="createsavexml_source_oracle" category="TestAddingSource" ignore="false" subset="false">
+	<testcase name="createsavexml_source_oracle" category="TestAddingSource" ignore="true" subset="false">
 		<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
 			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//biomartdb-dev.res.oicr.on.ca:1521/" username="martadmin" password="Bi0M4rt" 
@@ -79,7 +79,7 @@
 		<sourcexml>mart_naive_db2.xml</sourcexml>
 	</testcase>
 	
-	<testcase name="createsavexml_mart_naive_oracle" category="TestAddingSource" ignore="false" subset="true">
+	<testcase name="createsavexml_mart_naive_oracle" category="TestAddingSource" ignore="true" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Relational Mart">
 			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//biomartdb-dev.res.oicr.on.ca:1521/" username="martadmin" password="Bi0M4rt" 
@@ -185,7 +185,7 @@
 		<sourcesql>mart_materialize_db2.sql</sourcesql>
 	</testcase>
 	
-	<testcase name="mart_materialize_oracle" category="TestMartMaterialize" ignore="false" subset="true">
+	<testcase name="mart_materialize_oracle" category="TestMartMaterialize" ignore="true" subset="true">
 	<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
 			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//biomartdb-dev.res.oicr.on.ca:1521/" username="martadmin" password="Bi0M4rt" 
@@ -263,7 +263,7 @@
 		<Query client="biomartclient" processor="TSV" limit="-1" header="1"><Dataset name="vega58hs_sub_test" config="gene_config"><Filter name="gene__gene_id_1021_101" value="10"/><Attribute name="gene__gene_id_1021_101"/></Dataset></Query>
 	</testcase>
 	
-	<testcase name="full_materialize_oracle" category="TestFullMaterialize" ignore="false" subset="false">
+	<testcase name="full_materialize_oracle" category="TestFullMaterialize" ignore="true" subset="false">
 	<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
 			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//biomartdb-dev.res.oicr.on.ca:1521/" username="martadmin" password="Bi0M4rt" 
@@ -325,7 +325,7 @@
 		<Query client="biomartclient" processor="TSV" limit="-1" header="1"><Dataset name="MARTADM" config="GENE_config"><Filter name="GENE__GENE_ID_1021" value="34336"/><Attribute name="GENE__GENE_ID_1021"/></Dataset></Query>
 	</testcase>
 	
-	<testcase name="query_oracle"  category="TestQuery" ignore="false" subset="false">
+	<testcase name="query_oracle"  category="TestQuery" ignore="true" subset="false">
 		<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
 			<db type="oracle" jdbcurl="jdbc:oracle:thin:@//biomartdb-dev.res.oicr.on.ca:1521/" username="martadmin" password="Bi0M4rt" 
