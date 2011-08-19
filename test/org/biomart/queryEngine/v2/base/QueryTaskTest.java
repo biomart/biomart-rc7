@@ -52,7 +52,7 @@ public class QueryTaskTest {
             }
         }
 
-        assertEquals(2, count);
+        assertEquals(1, count);
 
         rs.close();
         master.shutdown();
