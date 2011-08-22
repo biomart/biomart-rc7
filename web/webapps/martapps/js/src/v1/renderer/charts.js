@@ -715,7 +715,16 @@
             this._lines[rawKey][valueX].Group.push(avg);
             
 		}
-		//calculate all values for box plot
+		
+    };
+   
+    results.boxplot.draw = function() {
+    	if (this._hasError) return;
+        this.initExport('plot');
+
+        // sort by total
+        //this._sort(false);
+      //calculate all values for box plot
 		function sortNumber(a,b)
 		{
 			return a - b;
@@ -744,18 +753,22 @@
 	    		var IQR = Q3 - Q1;
 	    		var lowerBound = 0;
 	    		var upperBound = size - 1;
-	    		for(var i =0; i< size; i++){
+	    		for(var i =0; i< size/4; i++){
 	    			if(this._lines[key][xkey].Group[i] < Q1 - 1.5 * IQR){
-	    				this._lines[key][xkey].outliers.push(this._lines[key][xkey].Group[i]);
-	    				lowerBound ++ ;
+	    				if(this._lines[key][xkey].outliers.indexOf(this._lines[key][xkey].Group[i]) == -1){
+	    					this._lines[key][xkey].outliers.push(this._lines[key][xkey].Group[i]);
+	    				}
+	    				lowerBound = i ;
 	    			}else{
 	    				break;
 	    			}	    				
 	    		}
-	    		for(var i = size - 1; i>=0; i--){
+	    		for(var i = size - 1; i> size*3/4; i--){
 	    			if(this._lines[key][xkey].Group[i] > Q3 + 1.5 * IQR){
-	    				this._lines[key][xkey].outliers.push(this._lines[key][xkey].Group[i]);
-	    				upperBound -- ;
+	    				if(this._lines[key][xkey].outliers.indexOf(this._lines[key][xkey].Group[i]) == -1){
+		    				this._lines[key][xkey].outliers.push(this._lines[key][xkey].Group[i]);
+	    				}
+	    				upperBound = i - 1;
 	    			}else{
 	    				break;
 	    			}
@@ -766,25 +779,15 @@
 	    		}else{
 	    			this._lines[key][xkey].boxValue = [index,
 	    			                                   this._lines[key][xkey].Group[lowerBound],
-	    			                                   this._lines[key][xkey].Group[Math.floor(size/4)],
-	    			                                   this._lines[key][xkey].Group[Math.floor(size/2)],
-	    			                                   this._lines[key][xkey].Group[Math.floor(size*3/4)],
+	    			                                   this._lines[key][xkey].Group[lowerBound + Math.round(size/4 + 0.5)],
+	    			                                   this._lines[key][xkey].Group[lowerBound + Math.round(size/2 + 0.5)],
+	    			                                   this._lines[key][xkey].Group[lowerBound + Math.round(size*3/4 + 0.5)],
 	    			                                   this._lines[key][xkey].Group[upperBound]];
 	    		}
 	    		
 			}
     		
 		}
-		
-    };
-   
-    results.boxplot.draw = function() {
-    	if (this._hasError) return;
-        this.initExport('plot');
-
-        // sort by total
-        //this._sort(false);
-
         //var topRows = this._lines.slice(0, this._max);
         var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
     	
@@ -1145,5 +1148,108 @@
         this._labels = [];
         this._donorIds = [];
         this._keyMap = {};
+    };
+    
+    /* BIOHEATMAP */
+    results.bioheatmap = Object.create(results.chart);
+    results.bioheatmap.tagName = 'div';
+    results.bioheatmap._keyMap = {};
+    results.bioheatmap._lines = [];
+    results.bioheatmap._lineIndices = [1];
+    results.bioheatmap._labels = [];
+    results.bioheatmap._max = 20;
+    results.bioheatmap._header = null;
+    results.bioheatmap.initExport = function(url) {};
+    results.bioheatmap._doExport = function(form) {};
+    results.bioheatmap.printHeader = function(header, writee) {
+        this._header = header;
+    };
+    results.bioheatmap.parse = function(rows, writee) {
+    	if (!rows.length) return;
+    	
+    	// hard coded col value for now
+    	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
+    	this._xaxisLabel = this._header[rowGeneID] + " " + rows[0][rowGeneID];
+        for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
+            row = rows[i];
+            rawKey = row[rowCancerType],
+            cleanedKey = typeof rawKey == 'string' ? biomart.stripHtml(rawKey) : rawKey;
+            
+            
+            
+            index = this._lines.length - 1;
+           
+            var value1 = row[rowValue1],
+            	value2 = row[rowValue2],
+            	valueX = row[rowX],
+            	valueID = row[rowID];
+            if(value1 == "" || value2 == "" || valueX == "")
+            	continue;
+            var avg = (parseFloat(value1) + parseFloat(value2))/2;
+            
+            if(rawKey in this._lines){
+            	
+            }else{
+            	this._lines[rawKey] = [];
+            }
+            this._lines[rawKey].push( [parseInt(valueX) , avg , valueID] );
+        }
+	
+    };
+   
+    results.bioheatmap.draw = function() {
+    	if (this._hasError) return;
+        this.initExport('plot');
+
+        // sort by total
+        //this._sort(false);
+
+        //var topRows = this._lines.slice(0, this._max);
+        var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
+    	
+		this._attachEvents();
+		//set height for scatter plot render
+		this._element.css('height', ( 200 + 155) + 'px');
+		
+        var chartLines = [];
+        for (var key in this._lines) {
+        	if(this._lines.hasOwnProperty(key)){
+	        	chartLines.push({
+	        		data : this._lines[key],
+	        		label : key
+	        	});
+        	}
+            //if (!chartLines[j]) chartLines[j] = { data: [] , label:''};
+            //chartLines[0].data[j] = line.values;
+            //chartLines[0].label = line.rawKey;
+        }
+        
+        this._plot = $.plot(this._element, chartLines, {
+            series: {
+            	stack: true,
+                bars: { show: true }
+            },
+            xaxis: {},
+            yaxis: {},
+            grid: {
+                clickable: true,
+                hoverable: true,
+                autoHighlight: true
+            },
+            legend: {
+                margin: [5, 5],
+                backgroundOpacity: .6,
+                  show: true,
+                position: 'ne'
+            }
+        });
+        
+        //var series = this._plot.getData();
+        
+        if (this._xaxisLabel) {
+            $(['<p class="plot-label">', this._xaxisLabel, '</p>'].join(''))
+                .width(this._plot.width())
+                .appendTo(this._element);
+        }
     };
 })(jQuery);
