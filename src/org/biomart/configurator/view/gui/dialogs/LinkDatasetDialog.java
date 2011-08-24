@@ -407,8 +407,11 @@ public class LinkDatasetDialog extends JDialog implements  ActionListener, Mouse
 				List<Dataset> sourceDataset = this.sourceConfig.getMart().getDatasetList();
 				List<Dataset> targetDataset = this.targetConfig.getMart().getDatasetList();
 				//if(sourceDataset.size() >1 && targetDataset.size() >1) {
+				//set visible false for the drag and drop in matchdatasetdialog
+				this.setVisible(false);
 				MatchDatasetDialog mdd = new MatchDatasetDialog(this, this.sourceConfig, this.targetConfig);
-				this.repaint();
+				//this.setVisible(true);
+				//this.repaint();
 				if(!mdd.isOk())
 					return;
 				//create link based on attribute list

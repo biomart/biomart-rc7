@@ -11,6 +11,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
@@ -37,7 +39,7 @@ import org.biomart.objects.objects.PartitionTable;
  * @author lyao
  *
  */
-public class MatchDatasetDialog extends JDialog implements ActionListener{
+public class MatchDatasetDialog extends JDialog implements ActionListener, MouseListener{
 	/**
 	 * 
 	 */
@@ -62,8 +64,8 @@ public class MatchDatasetDialog extends JDialog implements ActionListener{
 	
 	private DatasetListTransferHandler transferHandler;
 	
-	public MatchDatasetDialog(JDialog parent, Config sourceConfig, Config targetConfig){
-		super(parent);
+	public MatchDatasetDialog(JDialog parent, Config sourceConfig, Config targetConfig) {
+		//super(parent);
 		this.sourceConfig = sourceConfig;
 		this.targetConfig = targetConfig;
 		this.sourceDataset = this.sourceConfig.getMart().getDatasetList();
@@ -314,18 +316,19 @@ public class MatchDatasetDialog extends JDialog implements ActionListener{
 			for(int i=0;i<sourceModel.getSize();i++){		
 				Point p1 = this.sourcesp.getLocationOnScreen();
 				p1.translate(this.sourcesp.getWidth(), 0);
-				Point p2 = this.targetsp.getLocationOnScreen();
 				//shift drawing lines to the middle of the list row
 				p1.translate(0, cellRect.height/2 + i * cellRect.height);
 				Dataset sourceDs = this.sourceDataset.get(i);
 				if(!this.sourceDatasetMapping.containsKey(sourceDs))
 					continue;
+				int x1=p1.x;
+				int y1 = p1.y;
 				for(Dataset targetDs : this.sourceDatasetMapping.get(sourceDs)){
 					int targetIndex = this.targetDataset.indexOf(targetDs);
-					p2.translate(0, cellRect.height/2 + targetIndex * cellRect.height);
-					
-					p1.x = p1.x - p.x;
-					p1.y = p1.y - p.y;
+					Point p2 = this.targetsp.getLocationOnScreen();					
+					p2.translate(0, cellRect.height/2 + targetIndex * cellRect.height);					
+					p1.x = x1 - p.x;
+					p1.y = y1 - p.y;
 					p2.x = p2.x - p.x;
 					p2.y = p2.y - p.y;
 					g.setColor(Color.red);
@@ -376,5 +379,35 @@ public class MatchDatasetDialog extends JDialog implements ActionListener{
 	 */
 	public void setOk(boolean isOk) {
 		this.isOk = isOk;
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 }

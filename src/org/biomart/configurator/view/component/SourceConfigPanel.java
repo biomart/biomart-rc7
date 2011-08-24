@@ -17,6 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SpringLayout;
+import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
@@ -47,7 +48,7 @@ public class SourceConfigPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private Config targetConfig;
 	private boolean enableProperty;
-	private JComboBox configCB;
+	//private JComboBox configCB;
 	private JLabel sourceLabel;
 	private JComboBox sourceCB;
 	private JComboBox datasetCB;
@@ -113,19 +114,28 @@ public class SourceConfigPanel extends JPanel {
 		configPanel.add(sourceLabel,BorderLayout.WEST);
 		configPanel.add(sourceCB,BorderLayout.CENTER);
 		
-		this.configCB = new JComboBox();
+/*		this.configCB = new JComboBox();
 		this.configCB.setVisible(false);
 		this.configCB.setRenderer(new ConfigComboBoxRenderer());
 		this.configCB.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
 				if(e.getStateChange() == ItemEvent.SELECTED) {
-					Config config = (Config)SourceConfigPanel.this.configCB.getSelectedItem();
-					selectConfig(config);
-					PartitionReferenceController prc = new PartitionReferenceController();
-					prc.addPtReferences(config);
+					SwingUtilities.invokeLater(new Runnable() {
+
+						@Override
+						public void run() {
+							Config config = (Config)SourceConfigPanel.this.configCB.getSelectedItem();
+							selectConfig(config);
+							PartitionReferenceController prc = new PartitionReferenceController();
+							prc.addPtReferences(config);
+							
+							
+						}
+						
+					});
 				}
 			}  			
-  		});
+  		});*/
 		
 		JLabel dsLabel = new JLabel("Dataset:");
 		this.datasetCB = new JComboBox();
@@ -144,9 +154,9 @@ public class SourceConfigPanel extends JPanel {
 		MartRegistry registry = this.targetConfig.getMart().getMartRegistry();
 		for(Mart mart: registry.getMartList()) {
 			this.sourceCB.addItem(mart);
-			Config config = mart.getMasterConfig();
-			if(config!=null)
-				configCB.addItem(config);
+//			Config config = mart.getMasterConfig();
+//			if(config!=null)
+//				configCB.addItem(config);
 /*			for(Config config: mart.getConfigList()) {
 				if(!config.equals(targetConfig))
 					configCB.addItem(config);
