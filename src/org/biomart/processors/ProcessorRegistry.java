@@ -49,6 +49,7 @@ public class ProcessorRegistry {
 
         register("TSV", TSV.class);
         register("TSVX", TSVX.class);
+        register("RDFN3", RDFN3.class);
         register("SPARQLXML", SPARQLXML.class);
         register("CSV", CSV.class);
         register("JSON", JSON.class);

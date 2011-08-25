@@ -67,6 +67,10 @@ public class QueryMetaData {
             property.put(variable, ontology.abbreviateURI(property.get(variable)));
     }
 
+    public Ontology getOntology() {
+        return ontology;
+    }
+    
     public void setGraph(String graph) {
         this.graph = graph;
     }
@@ -143,13 +147,9 @@ public class QueryMetaData {
             variableType = new HashSet<String>();
 
             for (RDFClass rdfClass : ontology.getRDFClasses())
-                for (RDFProperty rdfProperty : rdfClass.getProperties()) {
-                    if (rdfProperty.getName().equals("attribute:ensembl_gene_id")) {
-                        int x = 4;
-                    }
+                for (RDFProperty rdfProperty : rdfClass.getProperties())
                     if (rdfProperty.getName().equals(property.get(variable)))
                         variableType.add(rdfClass.getName());
-                }
         }
 
         return variableType;

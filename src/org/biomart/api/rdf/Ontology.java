@@ -33,6 +33,10 @@ public class Ontology {
     public void addNamespace(String prefix, String namespace) {
         namespaces.put(prefix, namespace);
     }
+    
+    public Map<String, String> getNamespaces() {
+        return namespaces; // TODO Make this an immutable map...
+    }
 
     public void addClass(String className, String parentClass, String[] uriAttributes) {
         className = abbreviateURI(sanitizeURI(className));

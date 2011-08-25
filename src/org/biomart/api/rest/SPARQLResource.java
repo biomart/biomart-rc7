@@ -3,7 +3,6 @@ package org.biomart.api.rest;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.DataSource;
 import com.hp.hpl.jena.query.DatasetFactory;
 import javax.servlet.http.HttpServletRequest;
@@ -30,6 +29,7 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -239,6 +239,9 @@ public class SPARQLResource {
         Map<String, String> variable2Filter = new HashMap<String, String>();
         Map<String, String> variable2Attribute = new HashMap<String, String>();
         StringBuilder variables = new StringBuilder();
+        StringBuilder variableProperties = new StringBuilder();
+        StringBuilder nodeAttributes = new StringBuilder();
+        List<String> nodeMartAttributes = new LinkedList<String>();
         for (String variable : metadata.getVariables())
             for (RDFClass rdfClass : ontology.getRDFClasses()) {
 
@@ -261,24 +264,90 @@ public class SPARQLResource {
 
                                     variables.append(variable);
                                     variables.append(" ");
+                                    
+                                    variableProperties.append(metadata.getProperty(variable));
+                                    variableProperties.append(" ");
                                 } else {
                                     variable2Filter.put(variable, property.getFilter());
                                 }
                             }
                     // TODO If no attribute was found -> error
-
                 }
-
             }
 
+        for (String variable : metadata.getVariables())
+            for (RDFClass rdfClass : ontology.getRDFClasses()) {
+
+                // Is this class involved?
+                if (metadata.getType(variable).contains(rdfClass.getName())) {
+                    
+                    // Is this an inquiry about a property that we can return?
+                    if (metadata.getProperty(variable) != null)
+                        
+                        // Yes, so lets figure out the attribute that can be used to
+                        // form the URI for its subjects:
+                        for (RDFProperty property : rdfClass.getProperties())
+                            if (metadata.getProperty(variable).equals(property.getName())) {
+                                String value = metadata.getValue(variable);
+
+                                // Only proceed if this is not a filter:
+                                if (value == null) {
+                                    nodeAttributes.append(variable);
+                                    nodeAttributes.append(":");
+                                    nodeAttributes.append(StringUtils.join(rdfClass.getURIAttributes(), ","));
+                                    nodeAttributes.append(" ");
+                                    
+                                    // TODO For now the URI attributes have to be a singleton set:
+                                    String nodeURI = StringUtils.join(rdfClass.getURIAttributes(), ",");
+                                    if (nodeMartAttributes.contains(nodeURI) || variable2Attribute.containsValue(nodeURI))
+                                        nodeURI = "?" + nodeURI;
+                                    nodeMartAttributes.add(nodeURI);
+                                }
+                            }
+                }
+            }
+        
         queryExecution.close();
         
         final StringBuffer xmlQuery = new StringBuffer("<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE Query>");
 
+        if (!format.equals("SPARQLXML"))
+            for (String v : nodeMartAttributes) {
+                if (v.startsWith("?"))
+                    continue;
+                variables.append("?");
+                variables.append(v);
+                variables.append(" ");
+            }
+
         xmlQuery.append("<!-- VARIABLES:");
         xmlQuery.append(variables);
-        xmlQuery.append("-->");
+        xmlQuery.append("-->\n");
 
+        xmlQuery.append("<!-- VARIABLETYPES:");
+        for (String attribute : nodeMartAttributes) {
+            xmlQuery.append(attribute.replaceFirst("\\?", ""));
+            xmlQuery.append(" ");
+        }
+        xmlQuery.append("-->\n");
+        
+        xmlQuery.append("<!-- VARIABLEPROPERTIES:");
+        xmlQuery.append(variableProperties);
+        xmlQuery.append("-->\n");
+
+        xmlQuery.append("<!-- NODEATTRIBUTES:");
+        xmlQuery.append(nodeAttributes);
+        xmlQuery.append("-->\n");
+
+        Map<String, String> namespaces = metadata.getOntology().getNamespaces();
+        for (String prefix : namespaces.keySet()) {
+            xmlQuery.append("<!-- NAMESPACE:");
+            xmlQuery.append(prefix);
+            xmlQuery.append(" ");
+            xmlQuery.append(namespaces.get(prefix));
+            xmlQuery.append("-->\n");
+        }
+        
         long queryLimit = metadata.getLimit();
 
         StringBuffer martXMLQuery = new StringBuffer();
@@ -310,6 +379,22 @@ public class SPARQLResource {
             martXMLQuery.append("\t\t<Attribute name=\"" + variable2Attribute.get(v) + "\"/>\n");
         }
 
+        // URL list for generating URIs for blank nodes:
+        for (int i = 0; i < nodeMartAttributes.size() - 1; i++)
+            for (int j = i + 1; j < nodeMartAttributes.size(); j++)
+                if (nodeMartAttributes.get(i).equals(nodeMartAttributes.get(j))) {
+                    nodeMartAttributes.remove(j);
+                    i = 0;
+                    j = nodeMartAttributes.size();
+                }
+        
+        if (!format.equals("SPARQLXML"))
+            for (String v : nodeMartAttributes) {
+                if (v.startsWith("?"))
+                    continue;
+                martXMLQuery.append("\t\t<Attribute name=\"" + v + "\"/>\n");
+            }
+        
         martXMLQuery.append("\t</Dataset>\n</Query>\n");
 
         xmlQuery.append("<!-- BioMart XML-Query:\n");
@@ -322,7 +407,7 @@ public class SPARQLResource {
                 false,
                 null,
                 null,
-                new String[] { "application/sparql-results+xml" });
+                new String[] { "application/sparql-results+xml", "text/n3" });
 
         return Response.ok(stream, stream.getContentType()).build();
     }

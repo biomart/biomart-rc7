@@ -12,11 +12,12 @@ import org.jdom.Comment;
  * @author Joachim Baran
  *
  */
-@ContentType("application/sparql-results+xml")
-public class SPARQLXML extends ProcessorImpl {
+@ContentType("text/n3")
+public class RDFN3 extends ProcessorImpl {
     @Override
     public void setOutputStream(OutputStream out) {
         String prelude = null;
+        Map<String, String> namespaces = new HashMap<String, String>();
         String[] variableNames = new String[0];
         String[] variableProperties = new String[0];
         String[] variableTypes = new String[0];
@@ -35,6 +36,9 @@ public class SPARQLXML extends ProcessorImpl {
                     variableProperties = comment.getText().substring(20).trim().split(" ");
                 } else if (comment.getText().startsWith(" VARIABLETYPES:")) {
                     variableTypes = comment.getText().substring(15).trim().split(" ");
+                } else if (comment.getText().startsWith(" NAMESPACE:")) {
+                    String[] prefix2URI = comment.getText().substring(11).trim().split(" ");
+                    namespaces.put(prefix2URI[0], prefix2URI[1]);
                 } else if (comment.getText().startsWith(" NODEATTRIBUTES:")) {
                     String[] nodeAttributes = comment.getText().substring(16).trim().split(" ");
                     // TODO For now: only one URI attribute supported
@@ -50,13 +54,15 @@ public class SPARQLXML extends ProcessorImpl {
             }
         }
 
-        this.out = new org.biomart.processors.formatters.SPARQLXML(out,
+        this.out = new org.biomart.processors.formatters.RDF(out,
                 variableNames,
                 variableProperties,
                 variableTypes,
                 variable2URIAttributes,
+                namespaces,
                 prelude,
-                exception);
+                exception,
+                org.biomart.processors.formatters.RDF.FORMAT.N3);
     }
     
     @Override
