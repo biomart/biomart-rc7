@@ -288,6 +288,19 @@
         	}
         	
         }
+        //draw legend text
+        var x =  x2 - 210;
+		var y =  y2 - 180;
+		context.fillStyle = "Grey";
+        context.fillText("no tumor/missing core   = black", x,y+shift);
+        context.fillText("negative      = 0 (white)", x,y+shift*2);
+        context.fillText("focal/vf/vvf  = 1", x,y+shift*3);
+        context.fillText("<5%           = 2", x,y+shift*4);
+        context.fillText("<10%          = 3", x,y+shift*5);
+        context.fillText("10-25%        = 4", x,y+shift*6);
+        context.fillText("25-50%        = 5", x,y+shift*7);
+        context.fillText(">50           = 6", x,y+shift*8);
+        context.fillText("empty/blank   = no circle",x,y+shift*9);
     
         
         legend = $('<div class="heat-legend"/>')
@@ -298,6 +311,8 @@
             .append(['<p>', heading, '</p>'].join(''))
             .disableSelection();
 
+      
+        
         $('<div class="heat-legend-wrap"/>')
             .insertAfter(writee)
             .append(legend);        
@@ -311,7 +326,6 @@
         if (typeof G_vmlCanvasManager != 'undefined')
             canvas = G_vmlCanvasManager.initElement(canvas);
 
-        
         if (canvas.getContext('2d')) {
             ctx = canvas.getContext('2d');
             //create gradient color bar
@@ -323,6 +337,7 @@
             ctx.fillStyle = grad;
             ctx.fillRect(x1, y1, x2, y2);
         }
+        
         
         if (this._xaxisLabel) {
             $(['<p class="plot-label">', this._xaxisLabel, '</p>'].join(''))
