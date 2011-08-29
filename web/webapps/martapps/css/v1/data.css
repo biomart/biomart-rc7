@@ -710,7 +710,8 @@ iframe.streaming {
 #biomart-results .dotplot,
 #biomart-results .barchart,
 #biomart-results .plot,
-#biomart-results .tmamap {
+#biomart-results .tmamap,
+#biomart-results .bioheatmap {
     overflow: visible;
 }
 #biomart-results .actions {

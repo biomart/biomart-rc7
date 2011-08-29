@@ -1153,98 +1153,253 @@
     /* BIOHEATMAP */
     results.bioheatmap = Object.create(results.chart);
     results.bioheatmap.tagName = 'div';
+    results.bioheatmap._max = 3;
+    results.bioheatmap._min = 0;
     results.bioheatmap._keyMap = {};
+    results.bioheatmap._maxXY = [];
     results.bioheatmap._lines = [];
-    results.bioheatmap._lineIndices = [1];
-    results.bioheatmap._labels = [];
-    results.bioheatmap._max = 20;
+    results.bioheatmap._xlabels = [];
+    results.bioheatmap._ylabels = [];
     results.bioheatmap._header = null;
     results.bioheatmap.initExport = function(url) {};
     results.bioheatmap._doExport = function(form) {};
     results.bioheatmap.printHeader = function(header, writee) {
         this._header = header;
     };
+    results.bioheatmap._getColor = function(val) {
+        var min = this._min,
+            max = this._max,
+            mid = (max + min) / 2;
+
+        if (val > max) return 'rgb(255,0,0)';
+        if (val < min) return 'rgb(0,0,255)';
+
+        var r = this._getRed(val, min, mid, max),
+            b = this._getBlue(val, min, mid, max),
+            g = this._getGreen(val, min, mid, max);
+
+        return ['rgb(', r, ',', g, ',', b, ')'].join('')
+    };
+    results.bioheatmap._getBlue = function(val, min, mid, max) {
+        if (val >= 0) return 0;
+        var range = Math.abs(min - mid);
+        val = Math.abs(val - mid);
+        return parseInt(val / range * 255);
+    };
+    results.bioheatmap._getGreen = function(val, min, mid, max) {
+        if (val <= 0) return 0;
+        var mid2 = (max + mid) / 2,
+        val2 = Math.abs(mid2 - val);
+        return 180 - parseInt(val2 / mid2 * 180);
+    };
+    results.bioheatmap._getRed = function(val, min, mid, max) {
+        if (val <= 0) return 0;
+        var mid2 = (max + mid) / 2;
+        if (val >= mid2) return 255;
+        return parseInt(val / mid2 * 255);
+    };
+    results.bioheatmap.clear = function() {
+        this._lines = [];
+        this._xlabels = [];
+        this._ylabels = [];
+        this._keyMap = {};
+        this._maxXY = [];
+    };
     results.bioheatmap.parse = function(rows, writee) {
-    	if (!rows.length) return;
-    	
-    	// hard coded col value for now
-    	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
-    	this._xaxisLabel = this._header[rowGeneID] + " " + rows[0][rowGeneID];
-        for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
-            row = rows[i];
-            rawKey = row[rowCancerType],
-            cleanedKey = typeof rawKey == 'string' ? biomart.stripHtml(rawKey) : rawKey;
-            
-            
-            
-            index = this._lines.length - 1;
-           
-            var value1 = row[rowValue1],
-            	value2 = row[rowValue2],
-            	valueX = row[rowX],
-            	valueID = row[rowID];
-            if(value1 == "" || value2 == "" || valueX == "")
-            	continue;
-            var avg = (parseFloat(value1) + parseFloat(value2))/2;
-            
-            if(rawKey in this._lines){
-            	
-            }else{
-            	this._lines[rawKey] = [];
-            }
-            this._lines[rawKey].push( [parseInt(valueX) , avg , valueID] );
-        }
+	    var n = rows.length,
+	        arr = [],
+	        currVal;
+	    if (!rows.length) return;
+		
+		// hard coded col value for now
+		var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5, tmaName=6;
+		var stageCol = 8, outcomeCol = 9;
+		this._xaxisLabel = this._header[tmaName] + " " + rows[0][tmaName];
+		
+		for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
+			row = rows[i];
+			rawKey = row[rowCancerType];
+			
+			index = i;
+	
+	        var value1 = row[rowValue1],
+	    	value2 = row[rowValue2],
+	    	valueX = parseFloat(row[rowX]),
+	        valueID = parseFloat(row[rowID]),
+	        tooltipID = row[rowGeneID],
+	        stageID = row[stageCol],
+	        outcomeID = row[outcomeCol],
+	        avg = (parseFloat(value1) + parseFloat(value2))/2;
+	        
+	        if(rawKey in this._lines){
+	        }else{
+	        	this._lines[rawKey] = new Array();
+	        }
+	        if(rawKey in this._maxXY){
+	        	if(valueX > this._maxXY[rawKey][0]){
+	        		this._maxXY[rawKey][0] = valueX;
+	            }
+	            if(avg > this._maxXY[rawKey][1]){
+	            	this._maxXY[rawKey][1] = avg;
+	            }
+	        }else{
+	        	this._maxXY[rawKey] = [valueX, avg];
+	        }
+	        
+	        if(valueID > this._max)
+	        	this._max = valueID;
+	        if(valueID < this._min)
+	        	this._min = valueID;
+	
+	        this._lines[rawKey].push({
+	        	x: valueX,
+	        	y: avg,
+	        	value: valueID,
+	        	tooltip : tooltipID,
+	        	stage : stageID,
+	        	outcome : outcomeID
+	        });
+	        this._xlabels[valueX] = tooltipID;
+	        this._ylabels[avg] = stageID;
+		}
 	
     };
    
-    results.bioheatmap.draw = function() {
+    results.bioheatmap.draw = function(writee) {
     	if (this._hasError) return;
-        this.initExport('plot');
 
-        // sort by total
-        //this._sort(false);
-
-        //var topRows = this._lines.slice(0, this._max);
-        var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5;
-    	
-		this._attachEvents();
-		//set height for scatter plot render
-		this._element.css('height', ( 200 + 155) + 'px');
-		
-        var chartLines = [];
-        for (var key in this._lines) {
-        	if(this._lines.hasOwnProperty(key)){
-	        	chartLines.push({
-	        		data : this._lines[key],
-	        		label : key
-	        	});
-        	}
-            //if (!chartLines[j]) chartLines[j] = { data: [] , label:''};
-            //chartLines[0].data[j] = line.values;
-            //chartLines[0].label = line.rawKey;
+        if (!this._lines || !this._lines.length) {
+            writee.html(['<p class="empty">', _('no_results'), '</p>'].join(''));
+            return;
         }
-        
-        this._plot = $.plot(this._element, chartLines, {
-            series: {
-            	stack: true,
-                bars: { show: true }
-            },
-            xaxis: {},
-            yaxis: {},
-            grid: {
-                clickable: true,
-                hoverable: true,
-                autoHighlight: true
-            },
-            legend: {
-                margin: [5, 5],
-                backgroundOpacity: .6,
-                  show: true,
-                position: 'ne'
-            }
+
+        if (!this._lines.length) {
+            writee.parent().parent().html(['<p class="empty">', _('no_results'), '</p>'].join(''));
+            return;
+        }
+
+        writee.find('div.heat-box').tipsy({
+            fade: true,
+            gravity: 'w',
+            opacity: .9
         });
+        // Use canvas to draw the legend
+        var legend,
+        	tmamap,
+        	tmacanvas = $('<canvas id="tmacanvas"/>'),
+            canvas = $('<canvas id="legend"/>'),
+            ctx,
+            grad,
+            x1,
+            y1,
+            x2,
+            x2,
+            color1 = this._getColor(this._min/this._max),
+            color2 = this._getColor(0.5 * (this._min+this._max)/this._max),
+            color3 = this._getColor(0.75 * (this._min+this._max)/this._max),
+            color4 = this._getColor(this._max/this._max),
+            grad,
+            heading = this._header[this._heatColumn];
+
+        writee
+            .parent().addClass('clearfix')
+            .find('div.heat-box') 
+            .hover(function() {
+                $(this).children('span.value').fadeIn(300);
+            }, function() {
+                $(this).children('span.value').fadeOut(300);
+            });
+
+        tmamap = $('<div class="tmamap"/>')
+        	.append(tmacanvas)
+        	.disableSelection()
+        	.appendTo(writee);
         
-        //var series = this._plot.getData();
+        
+        this._plot = tmamap;
+        tmacanvas = tmacanvas.get(0);
+        x1=0; y1=0; x2=300 * this._lines.length; y2=300;
+        tmacanvas.width = x2;
+        tmacanvas.height = y2;
+        this._element.css('width', x2 + 'px');
+        this._element.css('height', y2 + 'px');
+        
+        this._tooltip.css('background-color',"white");
+        
+        if (typeof G_vmlCanvasManager != 'undefined')
+        	tmacanvas = G_vmlCanvasManager.initElement(tmacanvas);
+ 
+        tmacanvas.onmousemove = this.onMouseMove;
+    	//draw TMA map
+    	var rectH = 5;
+    	var rectW = 30;
+    	var gap = 1;
+    	var scale = 40;
+    	var numCat = 0;
+    	var preX = 0;
+    	var preY = 0;
+    	var shift = 15;
+    	var context = tmacanvas.getContext('2d');
+        for(var category in this._lines){
+        	if(this._lines.hasOwnProperty(category)){
+        		for(var data in this._lines[category]){
+                	if(this._lines[category].hasOwnProperty(data)){
+            			var x = this._lines[category][data].x * (rectW+gap) + (preX+gap)*rectW*numCat;
+            			var y = this._lines[category][data].y * (rectH+gap) ;
+            			var value = this._lines[category][data].value;
+            			// draw the heatmap rect            			
+            			context.fillStyle = this._getColor(value/this._max);
+            			context.fillRect(x,y,rectW,rectH);
+            			context.fill();
+            			
+            			context.strokeStyle = this._getColor(this._max);
+            			context.fillText();
+            			context.stroke();
+	            		
+                	}
+        		}
+        		preX = this._maxXY[category][0];
+        		preY = this._maxXY[category][1];
+        		numCat ++;
+        	}
+        }
+    
+        //draw x and y labels
+        
+        
+        legend = $('<div class="heat-legend"/>')
+            .append(canvas)
+            .append(['<div class="max">', this._max, '</div>'].join(''))
+            .append(['<div class="mid">', this._mid, '</div>'].join(''))
+            .append(['<div class="min">', this._min, '</div>'].join(''))
+            .append(['<p>', heading, '</p>'].join(''))
+            .disableSelection();
+
+        $('<div class="heat-legend-wrap"/>')
+            .insertAfter(writee)
+            .append(legend);        
+        
+
+        canvas = canvas.get(0);
+        x1 = 0; y1 = 0; x2 = 200; y2 = 20;
+        canvas.width = x2;
+        canvas.height = y2;
+
+        if (typeof G_vmlCanvasManager != 'undefined')
+            canvas = G_vmlCanvasManager.initElement(canvas);
+
+        
+        if (canvas.getContext('2d')) {
+            ctx = canvas.getContext('2d');
+            //create gradient color bar
+            grad = ctx.createLinearGradient(x1, y1, x2, y1);
+            grad.addColorStop(0, color1);
+            grad.addColorStop(.5, color2);
+            grad.addColorStop(.75, color3);
+            grad.addColorStop(1, color4);
+            ctx.fillStyle = grad;
+            ctx.fillRect(x1, y1, x2, y2);
+        }
         
         if (this._xaxisLabel) {
             $(['<p class="plot-label">', this._xaxisLabel, '</p>'].join(''))

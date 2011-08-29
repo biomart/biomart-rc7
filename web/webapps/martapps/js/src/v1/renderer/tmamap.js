@@ -148,6 +148,20 @@
     	
     	results.tmamap._tooltip.fadeOut(100);
     };
+    results.tmamap._showTooltip = function(x, y, contents) {
+        var left = x - 5,
+            w = this._element.width(),
+            pw = this._plot.width();
+            diff = w - pw + this._element.offset().left;
+
+        this._tooltip
+            .html(contents)
+            .css({
+                'top': y - 6,
+                left: diff < left ? left : x + 5
+            })
+            .fadeIn(100);
+    };
     results.tmamap.draw = function(writee) {
         if (this._hasError) return;
 
