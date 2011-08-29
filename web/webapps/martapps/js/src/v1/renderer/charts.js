@@ -819,7 +819,7 @@
 						chartLine.outliers.push(this._lines[key][xkey].outliers);
 						chartLine.means.push(this._lines[key][xkey].means);
 						index ++;
-						xTicks.push([index,xkey]);
+						xTicks.push([index,xkey + '(' + this._lines[key][xkey].Group.length + ')']);
 					}
 				}
     			chartLines.push(chartLine);
