@@ -148,7 +148,7 @@ data: [
         }
         function drawMeans(ctx,series,data,means,color,isHighlight)
         {
-        	var radius = series.points.radius;
+        	var radius = series.points.radius*2;
         	var x = offset.left + axes.xaxis.p2c(data[0]);
         	for(var i=0; i<means.length; i++){
         		var y = offset.top + axes.yaxis.p2c(means[i]);
