@@ -239,6 +239,7 @@
     	var preX = 0;
     	var preY = 0;
     	var shift = 15;
+    	var lastX = 0;
     	var context = tmacanvas.getContext('2d');
         for(var category in this._lines){
         	if(this._lines.hasOwnProperty(category)){
@@ -261,6 +262,8 @@
                 	if(this._lines[category].hasOwnProperty(data)){
             			var x = this._lines[category][data].x * scale + (gap+preX)*scale*(Math.floor(numCat/2));
             			var y = this._lines[category][data].y * scale + (gap+preY)*scale*(numCat%2);
+            			if(x > lastX)
+            				lastX = x;
             			var value = this._lines[category][data].value;
             			// draw the TMA map dots            			
             			context.fillStyle = this._getColor(value);
@@ -289,8 +292,8 @@
         	
         }
         //draw legend text
-        var x =  x2 - 210;
-		var y =  y2 - 180;
+        var x =  lastX + radius + gap*scale;
+		var y =  y2 - 200;
 		context.fillStyle = "Grey";
         context.fillText("no tumor/missing core   = black", x,y+shift);
         context.fillText("negative      = 0 (white)", x,y+shift*2);
