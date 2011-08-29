@@ -1164,7 +1164,7 @@
     /* BIOHEATMAP */
     results.bioheatmap = Object.create(results.chart);
     results.bioheatmap.tagName = 'div';
-    results.bioheatmap._max = 3;
+    results.bioheatmap._max = 6;
     results.bioheatmap._min = 0;
     results.bioheatmap._keyMap = {};
     results.bioheatmap._maxXY = [];
@@ -1275,7 +1275,19 @@
 		}
 	
     };
-   
+    results.bioheatmap.drawVerticalColumnText = function(columnText, ctx, x, y, font, fontSize, fontColor) {
+        var ang = 270;
+        if (!fontColor) {
+            fontColor = 'black';
+        }
+        ctx.save();
+        // relocate to draw spot
+        ctx.translate(x, y);
+        ctx.rotate(ang * 2 * Math.PI / 360); // rotate to vertical
+        ctx.strokeStyle = fontColor;
+        ctx.drawText(font, fontSize, 0, 0, columnText);
+        ctx.restore();
+    }
     results.bioheatmap.draw = function(writee) {
     	if (this._hasError) return;
 
@@ -1305,10 +1317,10 @@
             y1,
             x2,
             x2,
-            color1 = this._getColor(this._min/this._max),
-            color2 = this._getColor(0.5 * (this._min+this._max)/this._max),
-            color3 = this._getColor(0.75 * (this._min+this._max)/this._max),
-            color4 = this._getColor(this._max/this._max),
+            color1 = this._getColor(this._min),
+            color2 = this._getColor(0.5 * (this._min+this._max)),
+            color3 = this._getColor(0.75 * (this._min+this._max)),
+            color4 = this._getColor(this._max),
             grad,
             heading = this._header[this._heatColumn];
 
@@ -1359,12 +1371,12 @@
             			var y = this._lines[category][data].y * (rectH+gap) ;
             			var value = this._lines[category][data].value;
             			// draw the heatmap rect            			
-            			context.fillStyle = this._getColor(value/this._max);
+            			context.fillStyle = this._getColor(value);
             			context.fillRect(x,y,rectW,rectH);
             			context.fill();
             			
             			context.strokeStyle = this._getColor(this._max);
-            			context.fillText();
+            			//context.fillText();
             			context.stroke();
 	            		
                 	}

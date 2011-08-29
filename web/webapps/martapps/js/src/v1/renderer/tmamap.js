@@ -57,7 +57,7 @@
     	
     	// hard coded col value for now
     	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5, tmaName=6;
-    	var stageCol = 8, outcomeCol = 9;
+    	var stageCol = 8, outcomeCol = 9, tissueCol = 10;
     	this._xaxisLabel = this._header[tmaName] + " " + rows[0][tmaName];
     	
 		for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
@@ -73,6 +73,7 @@
             tooltipID = row[rowGeneID],
             stageID = row[stageCol],
             outcomeID = row[outcomeCol],
+            tissueID = row[tissueCol]
             avg = (parseFloat(value1) + parseFloat(value2))/2;
             
             if(rawKey in this._lines){
@@ -96,7 +97,8 @@
             	value: valueID,
             	tooltip : tooltipID,
             	stage : stageID,
-            	outcome : outcomeID
+            	outcome : outcomeID,
+            	tissueType : tissueID
             });
             
 		}
@@ -134,7 +136,8 @@
                 				&& b > y - radius && b < y + radius){
                 			var content = results.tmamap._lines[category][data].tooltip +"("
                 							+results.tmamap._lines[category][data].stage+","
-                							+results.tmamap._lines[category][data].outcome+")";
+                							+results.tmamap._lines[category][data].outcome+","
+                							+results.tmamap._lines[category][data].tissueType+")";
                 			results.tmamap._showTooltip(tooltipx,tooltipy,content);
                 			return;
                 		}
