@@ -43,6 +43,7 @@ data: [
                                 , show: false
                                 , showOutliers: true
                                 , lineWidth: 2
+                                , showMean: false
 								, connectSteps: { show: false, lineWidth:2, color:"rgb(0,0,0)" }
                                 , barHeight: 30
 								, highlight: { opacity: 0.5 }
@@ -105,6 +106,9 @@ data: [
 						if(series.boxplot.showOutliers){
 							drawOutliers(ctx,series,series.data[j], series.outliers[j], series.color,false);
 						}
+						if(series.boxplot.showMean) {
+							drawMeans(ctx,series,series.data[j],series.means[j],series.color,false);
+						}
 					}
 					if(series.boxplot.connectSteps.show)
 					{	
@@ -137,6 +141,24 @@ data: [
         		ctx.strokeStyle = color;
                 ctx.lineWidth = series.boxplot.lineWidth;
         		ctx.arc(x,y,radius, 0, Math.PI*2,true);
+        		ctx.closePath();
+        		
+        		ctx.stroke();
+        	}
+        }
+        function drawMeans(ctx,series,data,means,color,isHighlight)
+        {
+        	var radius = series.points.radius;
+        	var x = offset.left + axes.xaxis.p2c(data[0]);
+        	for(var i=0; i<means.length; i++){
+        		var y = offset.top + axes.yaxis.p2c(means[i]);
+        		
+        		ctx.beginPath();
+        		ctx.strokeStyle = color;
+        		ctx.moveTo(x - radius, y - radius);
+        		ctx.lineTo(x + radius, y + radius);
+        		ctx.moveTo(x - radius, y + radius);
+        		ctx.lineTo(x + radius, y - radius);
         		ctx.closePath();
         		
         		ctx.stroke();

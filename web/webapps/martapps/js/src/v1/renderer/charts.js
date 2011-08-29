@@ -700,7 +700,8 @@
             		this._lines[rawKey][valueX] = {
                 			Group : [],
                 			boxValue : [],
-                			outliers : []
+                			outliers : [],
+                			means: []
                 	};
             	}
             }else{
@@ -708,7 +709,8 @@
             	this._lines[rawKey][valueX] = {
             			Group : [],
             			boxValue : [],
-            			outliers : []
+            			outliers : [],
+            			means : []
             	};
             }
 
@@ -747,6 +749,13 @@
 	    			this._maxy = this._lines[key][xkey].Group[size-1];
 	    		
 	    		index ++;
+	    		//calculate means
+	    		var mean = 0;
+	    		for(var i=0;i<size;i++){
+	    			mean += this._lines[key][xkey].Group[i];
+	    		}
+	    		mean = mean / size;
+	    		this._lines[key][xkey].means.push(mean);
 	    		//calculate outliers
 	    		var Q1 = this._lines[key][xkey].Group[Math.floor(size/4)];
 	    		var Q3 = this._lines[key][xkey].Group[Math.floor(size*3/4)];
@@ -801,12 +810,14 @@
 				var chartLine = {
 		        		data : [],
 		        		label : key,
-		        		outliers : []
+		        		outliers : [],
+		        		means : []
 		        };
 				for(var xkey in this._lines[key]){
 					if(this._lines[key].hasOwnProperty(xkey)){
 						chartLine.data.push(this._lines[key][xkey].boxValue);
 						chartLine.outliers.push(this._lines[key][xkey].outliers);
+						chartLine.means.push(this._lines[key][xkey].means);
 						index ++;
 						xTicks.push([index,xkey]);
 					}
@@ -817,7 +828,7 @@
 
         this._plot = $.plot(this._element, chartLines, {
         	series : {
-        		boxplot: {active : true, show : true}
+        		boxplot: {active : true, show : true, showOutliers : true, showMean : true}
         	},
             xaxis: {min: 0, max: index+1 , ticks: xTicks},
             yaxis: {min: this._miny - 1, max: this._maxy + 1, ticks : 20},
