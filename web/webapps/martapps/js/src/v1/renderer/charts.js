@@ -1275,19 +1275,7 @@
 		}
 	
     };
-    results.bioheatmap.drawVerticalColumnText = function(columnText, ctx, x, y, font, fontSize, fontColor) {
-        var ang = 270;
-        if (!fontColor) {
-            fontColor = 'black';
-        }
-        ctx.save();
-        // relocate to draw spot
-        ctx.translate(x, y);
-        ctx.rotate(ang * 2 * Math.PI / 360); // rotate to vertical
-        ctx.strokeStyle = fontColor;
-        ctx.drawText(font, fontSize, 0, 0, columnText);
-        ctx.restore();
-    }
+   
     results.bioheatmap.draw = function(writee) {
     	if (this._hasError) return;
 
@@ -1362,6 +1350,8 @@
     	var preX = 0;
     	var preY = 0;
     	var shift = 15;
+    	var labelX = [];
+    	var labelY = [];
     	var context = tmacanvas.getContext('2d');
         for(var category in this._lines){
         	if(this._lines.hasOwnProperty(category)){
@@ -1369,25 +1359,34 @@
                 	if(this._lines[category].hasOwnProperty(data)){
             			var x = this._lines[category][data].x * (rectW+gap) + (preX+gap)*rectW*numCat;
             			var y = this._lines[category][data].y * (rectH+gap) ;
+            			labelX[this._lines[category][data].x] = this._lines[category][data].tooltip;
+            			labelY[this._lines[category][data].y] = this._lines[category][data].outcome;
             			var value = this._lines[category][data].value;
             			// draw the heatmap rect            			
             			context.fillStyle = this._getColor(value);
             			context.fillRect(x,y,rectW,rectH);
             			context.fill();
             			
-            			context.strokeStyle = this._getColor(this._max);
-            			//context.fillText();
-            			context.stroke();
-	            		
                 	}
         		}
         		preX = this._maxXY[category][0];
         		preY = this._maxXY[category][1];
         		numCat ++;
+        		break;
         	}
         }
     
         //draw x and y labels
+        for(var i=1;i <= preY; i++){
+        	context.fillText(labelY[i], (preX+1)*(rectW+gap) , (i+1)*(rectH+gap));
+        }
+        for(var i=1;i <= preX; i++){
+        	context.save();
+        	context.translate(i*(rectW+gap)+ rectW/2, (preY+1)*(rectH+gap));
+            context.rotate(Math.PI/2);
+        	context.fillText(labelX[i], 0, 0);
+        	context.restore();
+        }
         
         
         legend = $('<div class="heat-legend"/>')
