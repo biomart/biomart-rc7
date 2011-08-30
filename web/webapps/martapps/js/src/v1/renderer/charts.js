@@ -1288,6 +1288,9 @@
             writee.parent().parent().html(['<p class="empty">', _('no_results'), '</p>'].join(''));
             return;
         }
+        
+        results.bioheatmap._max = 6;
+        results.bioheatmap._min = 0;
 
         writee.find('div.heat-box').tipsy({
             fade: true,
