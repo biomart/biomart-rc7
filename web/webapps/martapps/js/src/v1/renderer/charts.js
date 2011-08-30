@@ -1329,10 +1329,22 @@
         	.disableSelection()
         	.appendTo(writee);
         
+        //draw heat map
+        var preX = 0;
+    	var preY = 0;
+    	var rectH = 10;
+    	var rectW = 30;
+    	for(var category in this._lines){
+        	if(this._lines.hasOwnProperty(category)){
+		        preX = this._maxXY[category][0];
+				preY = this._maxXY[category][1];
+				break;
+        	}
+    	}
         
         this._plot = tmamap;
         tmacanvas = tmacanvas.get(0);
-        x1=0; y1=0; x2=300 * this._lines.length; y2=300;
+        x1=0; y1=0; x2=300 * this._lines.length; y2=600;
         tmacanvas.width = x2;
         tmacanvas.height = y2;
         this._element.css('width', x2 + 'px');
@@ -1344,14 +1356,11 @@
         	tmacanvas = G_vmlCanvasManager.initElement(tmacanvas);
  
         tmacanvas.onmousemove = this.onMouseMove;
-    	//draw TMA map
-    	var rectH = 5;
-    	var rectW = 30;
+    	
+    	
     	var gap = 1;
     	var scale = 40;
     	var numCat = 0;
-    	var preX = 0;
-    	var preY = 0;
     	var shift = 15;
     	var labelX = [];
     	var labelY = [];
@@ -1369,19 +1378,19 @@
             			context.fillStyle = this._getColor(value);
             			context.fillRect(x,y,rectW,rectH);
             			context.fill();
-            			
                 	}
         		}
-        		preX = this._maxXY[category][0];
-        		preY = this._maxXY[category][1];
         		numCat ++;
         		break;
         	}
         }
     
         //draw x and y labels
+        context.font = "10px sans-serif";
+        context.textBaseline = "top";
+        context.fillStyle = this._getColor((this._max+this.min)/2);
         for(var i=1;i <= preY; i++){
-        	context.fillText(labelY[i], (preX+1)*(rectW+gap) , (i+1)*(rectH+gap));
+        	context.fillText(labelY[i], (preX+1)*(rectW+gap) , i*(rectH+gap));
         }
         for(var i=1;i <= preX; i++){
         	context.save();
