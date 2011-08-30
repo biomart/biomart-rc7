@@ -10,6 +10,7 @@
     results.tmamap._mid = 3;
     results.tmamap._maxXY = [];
     results.tmamap._lines = [];
+    results.tmamap._legendText = '';
     results.tmamap._getColor = function(val) {
         var min = this._min,
             max = this._max,
@@ -57,8 +58,9 @@
     	
     	// hard coded col value for now
     	var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5, tmaName=6;
-    	var stageCol = 8, outcomeCol = 9, tissueCol = 10;
+    	var stageCol = 8, outcomeCol = 9, tissueCol = 10, legendCol = 11;
     	this._xaxisLabel = this._header[tmaName] + " " + rows[0][tmaName];
+    	this._legendText = rows[0][legendCol];
     	
 		for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
 			row = rows[i];
@@ -298,6 +300,7 @@
         var x =  lastX + radius + gap*scale;
 		var y =  y2 - 200;
 		context.fillStyle = "Grey";
+		/*
         context.fillText("no tumor/missing core   = black", x,y+shift);
         context.fillText("negative      = 0 (white)", x,y+shift*2);
         context.fillText("focal/vf/vvf  = 1", x,y+shift*3);
@@ -307,7 +310,12 @@
         context.fillText("25-50%        = 5", x,y+shift*7);
         context.fillText(">50           = 6", x,y+shift*8);
         context.fillText("empty/blank   = no circle",x,y+shift*9);
-    
+		 */
+		var texts = this._legendText.split(',');
+		for(var i =0; i< texts.length; i++){
+			context.fillText(texts[i], x, y+shift*(i+1));
+		}
+		
         
         legend = $('<div class="heat-legend"/>')
             .append(canvas)
