@@ -788,9 +788,9 @@
 	    		}else{
 	    			this._lines[key][xkey].boxValue = [index,
 	    			                                   this._lines[key][xkey].Group[lowerBound],
-	    			                                   this._lines[key][xkey].Group[lowerBound + Math.round(size/4 + 0.5)],
-	    			                                   this._lines[key][xkey].Group[lowerBound + Math.round(size/2 + 0.5)],
-	    			                                   this._lines[key][xkey].Group[lowerBound + Math.round(size*3/4 + 0.5)],
+	    			                                   this._lines[key][xkey].Group[Math.floor(size/4)],
+	    			                                   this._lines[key][xkey].Group[Math.floor(size/2)],
+	    			                                   this._lines[key][xkey].Group[Math.floor(size*3/4)],
 	    			                                   this._lines[key][xkey].Group[upperBound]];
 	    		}
 	    		
