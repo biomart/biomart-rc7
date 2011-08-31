@@ -767,7 +767,7 @@
 	    				if(this._lines[key][xkey].outliers.indexOf(this._lines[key][xkey].Group[i]) == -1){
 	    					this._lines[key][xkey].outliers.push(this._lines[key][xkey].Group[i]);
 	    				}
-	    				lowerBound = i ;
+	    				lowerBound = i + 1;
 	    			}else{
 	    				break;
 	    			}	    				
