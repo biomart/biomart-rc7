@@ -308,7 +308,7 @@
             diff = w - pw + this._element.offset().left;
 
         this._tooltip
-            .text(contents)
+            .html(contents)
             .css({
                 'top': y - 6,
                 left: diff < left ? left : x + 5
