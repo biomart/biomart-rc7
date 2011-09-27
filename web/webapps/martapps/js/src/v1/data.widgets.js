@@ -293,6 +293,11 @@
                     }, 1);
                 });
 
+                // On window unload, clear out iframe and stop loading
+                $(window).bind('unload', function() {
+                    self._iframe.stopIframeLoading().attr('src', 'about:blank');
+                });
+
                 data = $.extend({stream: true, iframe: true, uuid: self._uuid, scope: 'biomart.datasource'}, options.data);
 
                 self._form = $(['<form class="streaming" method="POST" action="', url, '" target="', self._uuid, '"/>'].join('')).appendTo(document.body);
