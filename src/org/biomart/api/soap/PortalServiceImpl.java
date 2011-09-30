@@ -97,7 +97,7 @@ public class PortalServiceImpl implements PortalService {
     @WebResult(name="result")
     public String getResults(@WebParam(name="query") String xml) {
         OutputStream out = new ByteArrayOutputStream();
-        getPortal().executeQuery(xml, out);
+        getPortal().executeQuery(xml, out, false);
         return out.toString();
     }
 

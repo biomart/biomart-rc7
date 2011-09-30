@@ -431,4 +431,9 @@ public class DatasetTable extends Table {
 		}else 
 			return super.getName();
 	}
+
+	public boolean isMain() {
+		return getType().equals(DatasetTableType.MAIN) || getType().equals(DatasetTableType.MAIN_SUBCLASS) || 
+			getName().endsWith("main") || getName().endsWith("main||");
+	}
 }

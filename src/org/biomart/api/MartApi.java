@@ -26,17 +26,14 @@ public class MartApi {
         MartConfigurator.initForWeb();
         this.martRegistry = new MartRegistry(root, keyFile);
     }
-
 	
 	
 	public org.biomart.api.lite.MartRegistry getRegistry(String userName, String password) throws FunctionalException {
 		return new org.biomart.api.lite.MartRegistry(this.martRegistry, userName, password);
 	}
-
-
 	
 	public QueryController prepareQuery(String xmlString, String username)
             throws ClassNotFoundException, SQLException, TechnicalException, FunctionalException {
-        return new QueryController(xmlString, this.martRegistry, username);
+        return new QueryController(xmlString, this.martRegistry, username, false);
 	}
 }

@@ -29,6 +29,7 @@ public final class QuerySplitter {
     private List<QueryElement> queryElementList;
     private Query query;
     private final MartRegistry registryObj;
+	private final boolean isCountQuery;
 
     /**
      *
@@ -43,9 +44,10 @@ public final class QuerySplitter {
      * @param qv
      * @param registryObj
      */
-    public QuerySplitter(QueryValidator qv, MartRegistry registryObj) {
+    public QuerySplitter(QueryValidator qv, MartRegistry registryObj, boolean isCountQuery) {
+		this.isCountQuery = isCountQuery;
         this.queryElementList = qv.getQueryElementList();
-        this.query = new Query(qv);
+        this.query = new Query(qv, isCountQuery);
         this.registryObj = registryObj;
     }
 
@@ -119,7 +121,7 @@ public final class QuerySplitter {
 
                     SubQuery specialSubQuery = query.getImportableOnlySubquery(pointedDataset);
                     if (specialSubQuery == null) {
-                        specialSubQuery = new SubQuery(newFilter);
+                        specialSubQuery = new SubQuery(newFilter, isCountQuery);
                         query.addImportableOnlySubquery(pointedDataset, specialSubQuery);
                     } else {
                         specialSubQuery.addFilter(newFilter);

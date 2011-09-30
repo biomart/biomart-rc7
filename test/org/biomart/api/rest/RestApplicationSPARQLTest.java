@@ -138,7 +138,7 @@ public class RestApplicationSPARQLTest extends JerseyTest {
 		 */
 		ByteArrayOutputStream outputstream = new ByteArrayOutputStream();
 		//query.getResults(outputstream);
-		portal.executeQuery(queryxml, outputstream);
+		portal.executeQuery(queryxml, outputstream, false);
 		
 		
 		Element sparqlElement = element.getChild("SPARQLQuery");

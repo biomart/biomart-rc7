@@ -154,29 +154,44 @@ public class QueryCompiler {
 				}*/
 			}
 
-		/*
-		 * Loop through the attributes, adding them to the
-		 * SELECT clause of the query
-		 */
-		for(Attribute attribute:selectedAttributes){
-			DatasetColumn column = attribute.getDataSetColumn();
-			//String tableName = column.getTable().getName();
-			String tableName = attribute.getDatasetTable().getSubPartitionCommaList(ds.getName());
-            DatasetTableType tableType = attribute.getDatasetTable().getType();
-			if(McUtils.hasPartitionBinding(tableName)) {
-				tableName = McUtils.getRealName(tableName, ds);
+		// For getting totals
+		String totalMainTableName = null;
+
+		for (DatasetTable table : allMainTables) {
+			if (table.getType().equals(DatasetTableType.MAIN)) {
+				totalMainTableName = table.getName(ds.getName());
 			}
-			if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
-                querySQL.append("main.");
-			} else {
-				querySQL.append(dbName + "." + quoteChar + tableName + quoteChar + ".");
-			}
-			querySQL.append(quoteChar + column.getName() + quoteChar);				
-			querySQL.append(", ");
 		}
-		// Clean up the final comma if necessary
-		if(selectedAttributes.size()>0){
-			querySQL.deleteCharAt(querySQL.length()-2); 
+
+		Log.info("Using main table: " + mainTableName);
+
+		if (isCountQuery) {
+			querySQL.append(" COUNT(*) AS count ");
+		} else {
+			/*
+			 * Loop through the attributes, adding them to the
+			 * SELECT clause of the query
+			 */
+			for(Attribute attribute:selectedAttributes){
+				DatasetColumn column = attribute.getDataSetColumn();
+				//String tableName = column.getTable().getName();
+				DatasetTable table = attribute.getDatasetTable();
+				String tableName = table.getSubPartitionCommaList(ds.getName());
+				if(McUtils.hasPartitionBinding(tableName)) {
+					tableName = McUtils.getRealName(tableName, ds);
+				}
+				if (table.isMain()) {
+					querySQL.append("main.");
+				} else {
+					querySQL.append(dbName + "." + quoteChar + tableName + quoteChar + ".");
+				}
+				querySQL.append(quoteChar + column.getName() + quoteChar);				
+				querySQL.append(", ");
+			} // for
+			// Clean up the final comma if necessary
+			if(selectedAttributes.size()>0){
+				querySQL.deleteCharAt(querySQL.length()-2); 
+			}
 		}
 
 		// Add all of the dm tables and the main table to the FROM clause
@@ -206,14 +221,20 @@ public class QueryCompiler {
 				}
 			}
 			querySQL.append(dbName + "." + quoteChar+ mainTableName + quoteChar+ " main ");
-		}
+		} // if
+	
+
 		/*
 		 * Loop through the filters, adding them to the WHERE clause
 		 */
 		if(selectedFilters.size()>0 || (!leftFlag && dmTables.size()>0)){
 			querySQL.append(" WHERE ");
 		}
+
+
 		for(Filter filter:selectedFilters.keySet()){
+			// If we're doing a count query then only add filters from main table
+
 			if(filter.isFilterList()){
 				querySQL.append("(");
 				for(String value : selectedFilters.get(filter).split("[,\\n\\r]")){
@@ -229,7 +250,8 @@ public class QueryCompiler {
 							Log.error("Invalid number of filterlist arguments! Filter " + filter.getName() + " is being ignored.");
 						}
 						Filter subFilter = filter.getFilterList(dss).get(i);
-                        DatasetTableType tableType = subFilter.getDatasetTable().getType();
+						DatasetTable table = subFilter.getDatasetTable();
+                        DatasetTableType tableType = table.getType();
 						String tableName = subFilter.getDatasetTable().getSubPartitionCommaList(ds.getName());
 						if(McUtils.hasPartitionBinding(tableName))
 							tableName = McUtils.getRealName(tableName, ds);
@@ -241,7 +263,7 @@ public class QueryCompiler {
 								values = new String[2];
 								values[0] = values[1] = selectedFilters.get(subFilter);
 							}
-							if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
+							if (table.isMain()) {
 								querySQL.append("main.");
 							} else {
 								querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
@@ -249,7 +271,7 @@ public class QueryCompiler {
 							querySQL.append(quoteChar + subFilter.getDatasetColumn().getName()+ quoteChar);
 							querySQL.append(" >= " + values[0] + " AND " );
 							
-							if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
+							if (table.isMain()) {
 								querySQL.append("main.");
 							} else {
 								querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
@@ -258,7 +280,7 @@ public class QueryCompiler {
 							querySQL.append(" <= " + values[1] + " " );
 							querySQL.append(") ");
 						} else if(subFilter.getQualifier()!=OperatorType.IS){
-							if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
+							if (table.isMain()) {
 								querySQL.append("main.");
 							} else {
 								querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
@@ -267,7 +289,7 @@ public class QueryCompiler {
 							querySQL.append(" " +  subFilter.getQualifier() + " ");
 							querySQL.append("'" + currentValue + "' ");
 						} else {
-							if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
+							if (table.isMain()) {
 								querySQL.append("main.");
 							} else {
 								querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
@@ -296,9 +318,10 @@ public class QueryCompiler {
 					tableName = McUtils.getRealName(tableName, ds);
 				querySQL.append("(");
 				String[] splitFilter = selectedFilters.get(filter).split("[,\\n\\r]");
-				DatasetTableType tableType = filter.getDatasetTable().getType();
+				DatasetTable table = filter.getDatasetTable();
+				DatasetTableType tableType = table.getType();
                 if(filter.getQualifier()==OperatorType.E && splitFilter.length > 1){
-					if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
+					if (table.isMain()) {
 						querySQL.append("main.");
 					} else {
 						querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
@@ -316,7 +339,7 @@ public class QueryCompiler {
 						values = new String[2];
 						values[0] = values[1] = selectedFilters.get(filter);
 					}
-					if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
+					if (table.isMain()) {
 						querySQL.append("main.");
 					} else {
 						querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
@@ -324,7 +347,7 @@ public class QueryCompiler {
 					querySQL.append(quoteChar+filter.getDatasetColumn().getName()+ quoteChar);
 					querySQL.append(" >= " + values[0] + " AND " );
 					
-					if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
+					if (table.isMain()) {
 						querySQL.append("main.");
 					} else {
 						querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
@@ -333,7 +356,7 @@ public class QueryCompiler {
 					querySQL.append(" <= " + values[1] + " " );
 				} else{
 					for(String value : splitFilter){
-						if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
+						if (table.isMain()) {
 							querySQL.append("main.");
 						} else {
 							querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
@@ -366,7 +389,8 @@ public class QueryCompiler {
 					String tableName = table.getSubPartitionCommaList(ds.getName());
 					if(McUtils.hasPartitionBinding(tableName))
 						tableName = McUtils.getRealName(tableName, ds);
-					querySQL.append(" main." + quoteChar+ keyName+ quoteChar + "=" + dbName + "." + quoteChar+ tableName + quoteChar+ "." + quoteChar+ keyName+ quoteChar + " AND");
+					querySQL.append(" main." + quoteChar+ keyName+ quoteChar + "=" + 
+						dbName + "." + quoteChar+ tableName + quoteChar+ "." + quoteChar+ keyName+ quoteChar + " AND");
 				}
 			}
 			if(dmTables.size()>0){
@@ -374,7 +398,18 @@ public class QueryCompiler {
 			}
 		}
 
-		return querySQL.toString();
+		if (!isCountQuery)
+			return querySQL.toString();
+
+		// Return entires + total counts
+		String theQuery = querySQL.toString();
+		theQuery = "SELECT entries.count, total.count FROM "
+			+ "( " + theQuery + " ) entries,"
+			+ "( SELECT COUNT(*) AS count FROM "
+			+ dbName + "." + quoteChar + 
+			(totalMainTableName != null ? totalMainTableName : mainTableName)
+			+ quoteChar+ " main ) total";
+		return theQuery;
 	}
 
 	private void findTableType(HashSet<Column> columnsToCheck,
@@ -457,7 +492,8 @@ public class QueryCompiler {
 		for (Attribute attribute:selectedAttributes){
 			DatasetColumn curColumn = attribute.getDataSetColumn();
 			DatasetTable curDataSetTable = curColumn.getDatasetTable();
-			if(curDataSetTable.getType().equals(DatasetTableType.MAIN) || curDataSetTable.getType().equals( DatasetTableType.MAIN_SUBCLASS))
+//			if(curDataSetTable.getType().equals(DatasetTableType.MAIN) || curDataSetTable.getType().equals( DatasetTableType.MAIN_SUBCLASS))
+			if (curDataSetTable.isMain()) 
 				curDataSetTable = mainTable;
 			Table curSourceTable = curColumn.getSourceColumn().getTable();
 
@@ -474,7 +510,8 @@ public class QueryCompiler {
 			for(Filter filter:selectedFilters.keySet()){
 				DatasetColumn curColumn = filter.getDatasetColumn();
 				DatasetTable curDataSetTable = curColumn.getDatasetTable();
-				if(curDataSetTable.getType().equals(DatasetTableType.MAIN) || curDataSetTable.getType().equals( DatasetTableType.MAIN_SUBCLASS))
+//				if(curDataSetTable.getType().equals(DatasetTableType.MAIN) || curDataSetTable.getType().equals( DatasetTableType.MAIN_SUBCLASS))
+				if (curDataSetTable.isMain())
 					curDataSetTable = mainTable;
 				Table curSourceTable = curColumn.getSourceColumn().getTable();
 
@@ -524,20 +561,24 @@ public class QueryCompiler {
 		 * SELECT clause of the query
 		 */
 		StringBuilder querySQL = new StringBuilder();
-		querySQL.append("SELECT ");
-		for(Attribute attribute:selectedAttributes){
-				querySQL.append(dbName);			
-				String tableName = attribute.getDataSetColumn().getSourceColumn().getTable().getName();
-				querySQL.append(quoteChar + tableName + quoteChar);
-				querySQL.append(".");
-				querySQL.append(quoteChar+attribute.getDataSetColumn().getSourceColumn().getName()+quoteChar);				
-				querySQL.append(", ");
-		}
-		// Clean up the final comma if necessary
-		if(selectedAttributes.size()>0){
-			querySQL.deleteCharAt(querySQL.length()-2); 
-		}
 
+		if (isCountQuery) {
+			querySQL.append("SELECT COUNT(*) FROM ").append(mainTable.getName());
+		} else {
+			querySQL.append("SELECT ");
+			for(Attribute attribute:selectedAttributes){
+					querySQL.append(dbName);			
+					String tableName = attribute.getDataSetColumn().getSourceColumn().getTable().getName();
+					querySQL.append(quoteChar + tableName + quoteChar);
+					querySQL.append(".");
+					querySQL.append(quoteChar+attribute.getDataSetColumn().getSourceColumn().getName()+quoteChar);				
+					querySQL.append(", ");
+			}
+			// Clean up the final comma if necessary
+			if(selectedAttributes.size()>0){
+				querySQL.deleteCharAt(querySQL.length()-2); 
+			}
+		}
 
 		querySQL.append("FROM ");
 		int insertParenthesisPoint = querySQL.length(); //Keep track of where to insert opening parentheses
@@ -608,8 +649,8 @@ public class QueryCompiler {
 			}
 			querySQL.delete(querySQL.length()-4, querySQL.length()); 
 		}
-		System.out.print("Source: ");
-		System.out.println(querySQL);
+//		System.out.print("Source: ");
+//		System.out.println(querySQL);
 		return querySQL.toString();
 	}
 
@@ -691,7 +732,9 @@ public class QueryCompiler {
     /**
      *
      */
-    public QueryCompiler() {
+	private final boolean isCountQuery;
+    public QueryCompiler(boolean isCountQuery) {
+		this.isCountQuery = isCountQuery;
 		this.selectedAttributes = new ArrayList<Attribute>();
 		this.selectedFilters = new HashMap<Filter, String>();
 	}

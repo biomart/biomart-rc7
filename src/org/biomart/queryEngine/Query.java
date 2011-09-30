@@ -47,7 +47,10 @@ public final class Query {
 
     public List<QueryElement> pseudoAttributes = new ArrayList<QueryElement>();
 
-    public Query(QueryValidator qv) {
+	private final boolean isCountQuery;
+
+    public Query(QueryValidator qv, boolean isCountQuery) {
+		this.isCountQuery = isCountQuery;
 		List<String> queryStartingPoints = qv.getQueryStartingPoints();
         numDatasets = queryStartingPoints.size();
 		this.queryPlanMap = new LinkedHashMap<String,List<SubQuery>>();
@@ -159,7 +162,7 @@ public final class Query {
 		List<SubQuery> firstList = this.queryPlanMap.get(queryElement.getDataset().getDisplayName());
 		Set<SubQuery> sqSet = new HashSet<SubQuery>();
 		if(firstList!=null){
-			SubQuery subquery = new SubQuery(queryElement);
+			SubQuery subquery = new SubQuery(queryElement, isCountQuery);
 			subquery.setProcessor(this.processor);
 			subquery.setLimit(this.limit);
 			//subquery.setLinkIndex(this.linkIndex);
@@ -170,7 +173,7 @@ public final class Query {
 		} else {
 			for(String key : this.queryPlanMap.keySet()){
 				List<SubQuery> subqueryList = this.queryPlanMap.get(key);
-				SubQuery subquery = new SubQuery(queryElement);
+				SubQuery subquery = new SubQuery(queryElement, isCountQuery);
 				subquery.setProcessor(this.processor);
 				subquery.setLimit(this.limit);
 //				subquery.setPosition(subqueryList.size());
@@ -222,23 +225,14 @@ public final class Query {
     @Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb
-            .append(MyUtils.EQUAL_LINE)
-            .append(MyUtils.LINE_SEPARATOR);
+		
 		for(String key : this.queryPlanMap.keySet()){
-			List<SubQuery> orderedList = this.queryPlanMap.get(key);
-			for (int j = 0; j < orderedList.size(); j++) {
-				sb 
-                    .append(orderedList.get(j))
-                    .append(MyUtils.LINE_SEPARATOR)
-                    .append(MyUtils.DASH_LINE)
-                    .append(MyUtils.LINE_SEPARATOR);
+			List<SubQuery> subQueries = this.queryPlanMap.get(key);
+			for (SubQuery subQuery : subQueries) {
+				sb.append(subQuery);
 			}
-			sb
-                .append(MyUtils.LINE_SEPARATOR)
-                .append(MyUtils.EQUAL_LINE)
-                .append(MyUtils.LINE_SEPARATOR);
 		}
+
 		return sb.toString();
 	}
 

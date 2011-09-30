@@ -182,7 +182,7 @@ public class QueryTest {
                 + "</Dataset></Query>";
 
         OutputStream out = new ByteArrayOutputStream();
-        _portal.executeQuery(xml, out);
+        _portal.executeQuery(xml, out, false);
 
         String results = out.toString();
 

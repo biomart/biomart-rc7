@@ -30,8 +30,14 @@ import org.biomart.queryEngine.SubQuery;
 public class LinkIndices {
 	private Map<String,Set<String>> indexMap;
     private final Proxy proxy;
+	private final boolean isExplainQuery;
 
 	public LinkIndices(){
+		this(false);
+	}
+
+	public LinkIndices(boolean isExplainQuery){
+		this.isExplainQuery = isExplainQuery;
         this.proxy = Proxy.NO_PROXY;
 		this.indexMap = new HashMap<String,Set<String>>();
 	}
@@ -77,7 +83,7 @@ public class LinkIndices {
 			return;
 		}
 		for(String dataset: datasets){
-			SubQuery subquery = new SubQuery();
+			SubQuery subquery = new SubQuery(isExplainQuery);
 			subquery.setLimit(-1);
 			for(Filter filter: otherLink.getFilterList()){
 				if(filter.getQualifier() == OperatorType.E){

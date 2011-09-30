@@ -66,10 +66,12 @@ public final class QueryController {
 	private final Document queryXMLobject;
 	private final QueryValidator queryValidator;
 	private final Query query;
+	private final boolean isCountQuery;
 
-    public QueryController(String xml, final MartRegistry registryObj, String user, String[] mimes) {
+    public QueryController(String xml, final MartRegistry registryObj, String user, String[] mimes, boolean isCountQuery) {
 		Log.info("Incoming XML query: " + xml);
 
+		this.isCountQuery = isCountQuery;
 		this.registryObj = registryObj;
         userGroup = McUtils.getUserGroup(registryObj, user, "").getName();
         
@@ -110,8 +112,8 @@ public final class QueryController {
 		}
 	}
 
-    public QueryController(String xml, final MartRegistry registryObj, String user) {
-        this(xml, registryObj, user, ArrayUtils.EMPTY_STRING_ARRAY);
+    public QueryController(String xml, final MartRegistry registryObj, String user, boolean isCountQuery) {
+        this(xml, registryObj, user, ArrayUtils.EMPTY_STRING_ARRAY, isCountQuery);
     }
 
     public void runQuery(OutputStream outputHandle) throws TechnicalException, IOException {
@@ -124,7 +126,7 @@ public final class QueryController {
         // 5. Call done (cleanup) on Processor
         try {
             QueryRunner queryRunnerObj = new QueryRunner(query,
-                    processorObj.getCallback(), processorObj.getErrorHandler());
+                    processorObj.getCallback(), processorObj.getErrorHandler(), isCountQuery);
 
             processorObj.setQuery(queryRunnerObj.query);
             processorObj.setOutputStream(outputHandle);
@@ -152,12 +154,13 @@ public final class QueryController {
     }
 
     private Query splitQuery() throws FunctionalException {
-		QuerySplitter querySplitterObj = new QuerySplitter(queryValidator, registryObj);
+		QuerySplitter querySplitterObj = new QuerySplitter(queryValidator, registryObj, isCountQuery);
 		querySplitterObj.disectQuery();
 		querySplitterObj.prepareLinks();
 		Query q = querySplitterObj.getQuery();
 		q.queryXMLobject = queryXMLobject;
 		q.setPseudoAttributes(queryValidator.getPseudoAttributes());
+		Log.info("Query = " + q.toString());
         return q;
 	}
 

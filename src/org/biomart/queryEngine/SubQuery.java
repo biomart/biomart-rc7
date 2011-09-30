@@ -1,7 +1,6 @@
 package org.biomart.queryEngine;
 
 import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
@@ -17,6 +16,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -71,6 +71,8 @@ import org.scribe.model.Verb;
  * OAuth specific webservice queries are also encapsulated in OAuth envelope here.
  */
 public final class SubQuery {
+
+	private final boolean isCountQuery;
 
     /**
      *
@@ -139,16 +141,16 @@ public final class SubQuery {
     /**
      *
      */
-    public SubQuery() {
-		this(new ArrayList<QueryElement>(), new ArrayList<QueryElement>());
+    public SubQuery(boolean isCountQuery) {
+		this(new ArrayList<QueryElement>(), new ArrayList<QueryElement>(), isCountQuery);
 	}
 
     /**
      *
      * @param queryElement
      */
-    public SubQuery(QueryElement queryElement) {
-		this();
+    public SubQuery(QueryElement queryElement, boolean isCountQuery) {
+		this(isCountQuery);
 		this.addElement(queryElement);
 		this.dataset = queryElement.getDataset();
 		this.config = queryElement.getConfig();
@@ -175,7 +177,9 @@ public final class SubQuery {
      * @param filterList
      */
     public SubQuery(ArrayList<QueryElement> attributeList,
-			ArrayList<QueryElement> filterList) {
+			ArrayList<QueryElement> filterList, boolean isCountQuery) {
+
+		this.isCountQuery = isCountQuery;
 
 		this.attributeList = new ArrayList<QueryElement>();
 		if (null != attributeList) {
@@ -619,7 +623,7 @@ public final class SubQuery {
     public String getQuery() {
 		// my first visit, lets generate the SQL
 		if (this.queryString == null) {
-			QueryCompiler qc = new QueryCompiler();
+			QueryCompiler qc = new QueryCompiler(isCountQuery);
 			this.queryString = qc.generateQuery(this, !this.config.searchFromTarget());
 			this.originalQueryString = this.queryString;
 		}
@@ -633,15 +637,25 @@ public final class SubQuery {
     @Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(this.dataset.getName());
-		sb.append("\n\tAttributes: ");
+
+		sb.append("{\"dataset\":\"").append(dataset.getName()).append("\",\"attributes\":[");
+
 		for (int i = 0; i < attributeList.size(); ++i) {
-			sb.append(attributeList.get(i).toString()).append(" ");
+			sb.append("\"").append(attributeList.get(i).toString()).append("\"");
+			if (i != attributeList.size() - 1)
+				sb.append(",");
 		}
-		sb.append("\n\tFilters: ");
+
+		sb.append("],\"filters\":[");
+
 		for (int i = 0; i < filterList.size(); ++i) {
-			sb.append(filterList.get(i).toString()).append(" ");
+			sb.append("\"").append(filterList.get(i).toString()).append("\"");
+			if (i != filterList.size() - 1)
+				sb.append(",");
 		}
+
+		sb.append("]}");
+
 		return sb.toString();
 	}
 
@@ -747,9 +761,11 @@ public final class SubQuery {
 			this.connectToDatabase(tablePartition);
 			this.prepareStreamingStatement(partitionedQuery, tablePartition);
 			Log.debug("resultSets associated with this SubQuery: "+ this.resultSet.size());
-			this.resultSet.add(this.stream ?
-					this.preparedStatement.get(tablePartition).executeQuery() :
-						this.statement.get(tablePartition).executeQuery(partitionedQuery));
+
+			ResultSet rs = stream ? preparedStatement.get(tablePartition).executeQuery() :
+					statement.get(tablePartition).executeQuery(partitionedQuery);
+
+			this.resultSet.add(rs);
 		}
 
 		ResultSetMetaData rsmd = this.resultSet.get(0).getMetaData();
@@ -1103,4 +1119,7 @@ public final class SubQuery {
 		return allTables;
 	}
 
+	public boolean isCountQuery() {
+		return isCountQuery;
+	}
 }

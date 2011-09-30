@@ -24,6 +24,8 @@ public class Query {
     private String _client = "biomartclient";
     private final List<Dataset> _datasets = new ArrayList<Dataset>();
 
+	private boolean isCountQuery;
+
     /*
      * Inner query objects
      */
@@ -103,8 +105,16 @@ public class Query {
 
     public void getResults(OutputStream out) {
         String xml = getXml();
-        _portal.executeQuery(xml, out);
+        _portal.executeQuery(xml, out, isCountQuery);
     }
+
+	public void getisCountQuery(boolean isCountQuery) {
+		this.isCountQuery = isCountQuery;
+	}
+
+	public boolean getisCountQuery() {
+		return isCountQuery;
+	}
 
     /*
      * e.g.

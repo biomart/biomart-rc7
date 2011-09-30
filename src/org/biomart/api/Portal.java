@@ -216,10 +216,10 @@ public final class Portal {
         return rlist;
     }
 
-    public void executeQuery(String xml, OutputStream out) {
+    public void executeQuery(String xml, OutputStream out, boolean isCountQuery) {
         try {
             new QueryController(xml, _registry.getFullRegistry(),
-                    _user == null ? "" : _user).runQuery(out);
+                    _user == null ? "" : _user, isCountQuery).runQuery(out);
         } catch (Exception e) {
             Log.error("Error during querying", e);
             throw new BioMartApiException(e.getMessage());

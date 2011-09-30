@@ -280,8 +280,26 @@ public class PortalResource implements PortalService {
     @Override
     public String getResults(String xml) {
         OutputStream out = new ByteArrayOutputStream();
-        getPortal().executeQuery(xml, out);
+        getPortal().executeQuery(xml, out, false);
         return out.toString();
+    }
+
+	@Path("results/count")
+	@Produces({"application/xml", "application/json"})
+	@GET
+    public CountEstimate getQueryCount(@QueryParam("query") String xml) {
+        OutputStream out = new ByteArrayOutputStream();
+		CountEstimate estimate = new CountEstimate();
+
+        getPortal().executeQuery(xml, out, true);
+
+		String count = out.toString();
+
+		String[] arr = count.split("\n")[1].split("\t");
+		estimate.entries = Integer.parseInt(arr[0]);
+		estimate.total = Integer.parseInt(arr[1]);
+
+		return estimate;
     }
 
     protected Response handleResults(final String query, final boolean download,

@@ -63,6 +63,7 @@ public final class QueryRunner implements OutputConstants {
             );
 
     private boolean hasError = false; // this will be true when one ore more queries fail
+	private final boolean isCountQuery;
 
     /**
      *
@@ -70,11 +71,12 @@ public final class QueryRunner implements OutputConstants {
      * @throws SQLException
      * @throws TechnicalException
      */
-    public QueryRunner(Query query, Function callback, Function errorHandler) throws SQLException, TechnicalException {
+    public QueryRunner(Query query, Function callback, Function errorHandler, boolean isCountQuery) throws SQLException, TechnicalException {
         this.query = query;
         this.numRowsRemaining = query.limit;
         this.callback = callback;
         this.errorHandler = errorHandler;
+		this.isCountQuery = isCountQuery;
 
         this.outputOrder = query.outputOrder;
 
@@ -224,26 +226,33 @@ public final class QueryRunner implements OutputConstants {
      */
     public synchronized void printResults(List<List<String>> interimRT, String threadName) throws IOException {
         int rows = interimRT.size();
-        int cols = this.query.outputOrder.length;
+
+        int cols = isCountQuery ? 2 : this.query.outputOrder.length;
+		
         // int unions = this.query.queryPlanMap.size();
         List<String> res_row = new ArrayList<String>();
 
         int j=0;
-
         if (!isDone) {
             for (int i = 0; i < rows; i++) {
                 res_row = interimRT.get(i);
+
                 String[] curr_row = new String[cols];
 
-                //Log.debug("output atts length: " +this.outputOrder.length);
-                for (j = 0; j < cols; j++) {
-                    // its a pseudo att
-                    if (this.outputOrder[j] < 0)
-                        curr_row[j] = this.query.getPseudoAttributes().get(this.outputOrder[j]+1000).getPseudoAttributeValue(threadName) == null
-                            ? "" : this.query.getPseudoAttributes().get(this.outputOrder[j]+1000).getPseudoAttributeValue(threadName);
-                    else
-                        curr_row[j] = res_row.get(this.outputOrder[j]) == null ? "" : res_row.get(this.outputOrder[j]);
-                }
+				if (isCountQuery) {
+					curr_row[0] = res_row.get(0) == null ? "" : res_row.get(0);
+					curr_row[1] = res_row.get(1) == null ? "" : res_row.get(1);
+				} else {
+					//Log.debug("output atts length: " +this.outputOrder.length);
+					for (j = 0; j < cols; j++) {
+						// its a pseudo att
+						if (this.outputOrder[j] < 0)
+							curr_row[j] = this.query.getPseudoAttributes().get(this.outputOrder[j]+1000).getPseudoAttributeValue(threadName) == null
+								? "" : this.query.getPseudoAttributes().get(this.outputOrder[j]+1000).getPseudoAttributeValue(threadName);
+						else
+							curr_row[j] = res_row.get(this.outputOrder[j]) == null ? "" : res_row.get(this.outputOrder[j]);
+					}
+				}
 
                 String row = Joiner.on('\t').join(curr_row);
                 byte[] bytes = row.getBytes(); // For tracking uniqueness

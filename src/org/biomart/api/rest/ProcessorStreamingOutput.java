@@ -32,7 +32,7 @@ public final class ProcessorStreamingOutput implements StreamingOutput {
 
         try {
             qc = new QueryController(query, portal._registry.getFullRegistry(),
-                    portal._user== null ? "" : portal._user, mimes);
+                    portal._user== null ? "" : portal._user, mimes, false);
         } catch(Exception e) {
             handleException(e);
         }

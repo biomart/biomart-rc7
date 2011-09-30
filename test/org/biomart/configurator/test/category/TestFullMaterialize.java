@@ -259,7 +259,7 @@ public class TestFullMaterialize extends TestMartMaterialize {
 		String queryxml = outputter.outputString(queryElement);
 		ByteArrayOutputStream outputstream = new ByteArrayOutputStream();
 		//query.getResults(outputstream);
-		portal.executeQuery(queryxml, outputstream);
+		portal.executeQuery(queryxml, outputstream, false);
 		outputstream.writeTo(new FileOutputStream(new File(SettingsForTest.getSavedQueryPath(testcase))));
 	}
 	
