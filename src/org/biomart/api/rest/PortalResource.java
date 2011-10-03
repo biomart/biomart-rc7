@@ -290,7 +290,6 @@ public class PortalResource implements PortalService {
     public CountEstimate getQueryCount(@QueryParam("query") String xml) {
         OutputStream out = new ByteArrayOutputStream();
 		CountEstimate estimate = new CountEstimate();
-		estimate.query = xml;
 
         getPortal().executeQuery(xml, out, true);
 
