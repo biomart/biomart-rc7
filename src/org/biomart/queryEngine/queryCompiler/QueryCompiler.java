@@ -853,13 +853,8 @@ public class QueryCompiler {
 		}
 	}
 	
-	// default implementation of web service queries
-	private String searchWebServices(SubQuery subQuery) {
-		return searchWebServices(subQuery, false);
-	}
-
 	// Allow filters to be excluded in count queries so we can get a total #
-	private String searchWebServices(SubQuery subQuery, boolean excludeFilters) {
+	private String searchWebServices(SubQuery subQuery) {
 		org.jdom.Element queryElement = new org.jdom.Element("Query");
 		Document queryDocument = new Document(queryElement);
 //		queryElement.setAttribute("processor", subQuery.getProcessor());
@@ -888,24 +883,22 @@ public class QueryCompiler {
 			datasetElement.addContent(attributeElement);
 		}
 
-		if (excludeFilters) {
-			for(Filter filter : this.selectedFilters.keySet()){
-				org.jdom.Element filterElement = new org.jdom.Element("Filter");
-				filterElement.setAttribute("name", filter.getInternalName());
-				System.err.println(filter.getFilterType());
-				if(subQuery.getVersion().equals("0.7") && filter.getFilterType()==FilterType.BOOLEAN){
-					if(this.selectedFilters.get(filter).equals(this.only)){
-						this.selectedFilters.put(filter,"only");
-						filterElement.setAttribute("excluded","0");
-					} else if(this.selectedFilters.get(filter).equals(this.excluded)){
-						this.selectedFilters.put(filter,"excluded");
-						filterElement.setAttribute("excluded","1");
-					}
-				} else { 
-					filterElement.setAttribute("value", this.selectedFilters.get(filter));
+		for(Filter filter : this.selectedFilters.keySet()){
+			org.jdom.Element filterElement = new org.jdom.Element("Filter");
+			filterElement.setAttribute("name", filter.getInternalName());
+			System.err.println(filter.getFilterType());
+			if(subQuery.getVersion().equals("0.7") && filter.getFilterType()==FilterType.BOOLEAN){
+				if(this.selectedFilters.get(filter).equals(this.only)){
+					this.selectedFilters.put(filter,"only");
+					filterElement.setAttribute("excluded","0");
+				} else if(this.selectedFilters.get(filter).equals(this.excluded)){
+					this.selectedFilters.put(filter,"excluded");
+					filterElement.setAttribute("excluded","1");
 				}
-				datasetElement.addContent(filterElement);
+			} else { 
+				filterElement.setAttribute("value", this.selectedFilters.get(filter));
 			}
+			datasetElement.addContent(filterElement);
 		}
 
 
