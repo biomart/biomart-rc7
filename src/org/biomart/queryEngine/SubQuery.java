@@ -1047,7 +1047,7 @@ public final class SubQuery {
 						ArrayList<String> row = new ArrayList<String>();
 						//Log.debug("Line " + line.toString());
 						cols = line.split("\t", this.totalCols);
-						for (int i = 0; i < this.totalCols; i++) {
+						for (int i = 0; i < this.totalCols && i < cols.length; i++) {
 							row.add(cols[i]);
 						}
 						retRows.add(row);

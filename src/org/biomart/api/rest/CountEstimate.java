@@ -9,5 +9,5 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name="estimate")
 public class CountEstimate {
 	public int entries;
-	public int total;
+	public String query;
 }

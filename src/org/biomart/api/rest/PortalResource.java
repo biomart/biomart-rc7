@@ -290,16 +290,18 @@ public class PortalResource implements PortalService {
     public CountEstimate getQueryCount(@QueryParam("query") String xml) {
         OutputStream out = new ByteArrayOutputStream();
 		CountEstimate estimate = new CountEstimate();
+		estimate.query = xml;
 
         getPortal().executeQuery(xml, out, true);
 
 		String count = out.toString();
 
-		String[] arr = count.split("\n")[1].split("\t");
-		estimate.entries = Integer.parseInt(arr[0]);
-		estimate.total = Integer.parseInt(arr[1]);
-
-		return estimate;
+		try {
+			estimate.entries = Integer.parseInt(count.trim());
+			return estimate;
+		} catch (NumberFormatException e) {
+			throw new WebApplicationException(Response.status(400).entity("Error occurred").type("text/plain").build());
+		}
     }
 
     protected Response handleResults(final String query, final boolean download,

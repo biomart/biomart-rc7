@@ -398,18 +398,7 @@ public class QueryCompiler {
 			}
 		}
 
-		if (!isCountQuery)
-			return querySQL.toString();
-
-		// Return entires + total counts
-		String theQuery = querySQL.toString();
-		theQuery = "SELECT entries.count, total.count FROM "
-			+ "( " + theQuery + " ) entries,"
-			+ "( SELECT COUNT(*) AS count FROM "
-			+ dbName + "." + quoteChar + 
-			(totalMainTableName != null ? totalMainTableName : mainTableName)
-			+ quoteChar+ " main ) total";
-		return theQuery;
+		return querySQL.toString();
 	}
 
 	private void findTableType(HashSet<Column> columnsToCheck,
@@ -849,9 +838,9 @@ public class QueryCompiler {
 					prefix = quoteChar + subQuery.getSchemaName() + quoteChar;
 				
 				return searchSchema(prefix, subQuery.getDataset(), forceSource);
-			}
-			else
+			} else {
 				return searchWebServices(subQuery);
+			}
 		//}
 	}
 	
@@ -864,7 +853,13 @@ public class QueryCompiler {
 		}
 	}
 	
+	// default implementation of web service queries
 	private String searchWebServices(SubQuery subQuery) {
+		return searchWebServices(subQuery, false);
+	}
+
+	// Allow filters to be excluded in count queries so we can get a total #
+	private String searchWebServices(SubQuery subQuery, boolean excludeFilters) {
 		org.jdom.Element queryElement = new org.jdom.Element("Query");
 		Document queryDocument = new Document(queryElement);
 //		queryElement.setAttribute("processor", subQuery.getProcessor());
@@ -880,6 +875,11 @@ public class QueryCompiler {
 			datasetElement.setAttribute("config", subQuery.getDataset().getParentMart().getDefaultConfig().getName());
 		else
 			datasetElement.setAttribute("config", subQuery.getConfig().getName());
+
+		if (isCountQuery) {
+			queryElement.setAttribute("count", "1");
+		}
+		
 		queryElement.addContent(datasetElement);
 
 		for(Attribute attribute : this.selectedAttributes){
@@ -888,22 +888,24 @@ public class QueryCompiler {
 			datasetElement.addContent(attributeElement);
 		}
 
-		for(Filter filter : this.selectedFilters.keySet()){
-			org.jdom.Element filterElement = new org.jdom.Element("Filter");
-			filterElement.setAttribute("name", filter.getInternalName());
-			System.err.println(filter.getFilterType());
-			if(subQuery.getVersion().equals("0.7") && filter.getFilterType()==FilterType.BOOLEAN){
-				if(this.selectedFilters.get(filter).equals(this.only)){
-					this.selectedFilters.put(filter,"only");
-					filterElement.setAttribute("excluded","0");
-				} else if(this.selectedFilters.get(filter).equals(this.excluded)){
-					this.selectedFilters.put(filter,"excluded");
-					filterElement.setAttribute("excluded","1");
+		if (excludeFilters) {
+			for(Filter filter : this.selectedFilters.keySet()){
+				org.jdom.Element filterElement = new org.jdom.Element("Filter");
+				filterElement.setAttribute("name", filter.getInternalName());
+				System.err.println(filter.getFilterType());
+				if(subQuery.getVersion().equals("0.7") && filter.getFilterType()==FilterType.BOOLEAN){
+					if(this.selectedFilters.get(filter).equals(this.only)){
+						this.selectedFilters.put(filter,"only");
+						filterElement.setAttribute("excluded","0");
+					} else if(this.selectedFilters.get(filter).equals(this.excluded)){
+						this.selectedFilters.put(filter,"excluded");
+						filterElement.setAttribute("excluded","1");
+					}
+				} else { 
+					filterElement.setAttribute("value", this.selectedFilters.get(filter));
 				}
-			} else { 
-				filterElement.setAttribute("value", this.selectedFilters.get(filter));
+				datasetElement.addContent(filterElement);
 			}
-			datasetElement.addContent(filterElement);
 		}
 
 

@@ -96,9 +96,9 @@ public final class QueryRunner implements OutputConstants {
      * @throws IOException
      */
     public void printHeader() throws IOException {
-        if(query.hasHeader()) {
+		// Don't print header for count queries
+        if (!isCountQuery && query.hasHeader())
             callback.apply(query.outputDisplayNames);
-        }
     }
 
     //TODO: Note: for special datasets, you launch them all at the begining,
@@ -227,7 +227,7 @@ public final class QueryRunner implements OutputConstants {
     public synchronized void printResults(List<List<String>> interimRT, String threadName) throws IOException {
         int rows = interimRT.size();
 
-        int cols = isCountQuery ? 2 : this.query.outputOrder.length;
+        int cols = isCountQuery ? 1 : this.query.outputOrder.length;
 		
         // int unions = this.query.queryPlanMap.size();
         List<String> res_row = new ArrayList<String>();
@@ -241,7 +241,6 @@ public final class QueryRunner implements OutputConstants {
 
 				if (isCountQuery) {
 					curr_row[0] = res_row.get(0) == null ? "" : res_row.get(0);
-					curr_row[1] = res_row.get(1) == null ? "" : res_row.get(1);
 				} else {
 					//Log.debug("output atts length: " +this.outputOrder.length);
 					for (j = 0; j < cols; j++) {

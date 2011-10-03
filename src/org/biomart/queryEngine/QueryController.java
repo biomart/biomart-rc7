@@ -66,7 +66,7 @@ public final class QueryController {
 	private final Document queryXMLobject;
 	private final QueryValidator queryValidator;
 	private final Query query;
-	private final boolean isCountQuery;
+	private boolean isCountQuery;
 
     public QueryController(String xml, final MartRegistry registryObj, String user, String[] mimes, boolean isCountQuery) {
 		Log.info("Incoming XML query: " + xml);
@@ -89,6 +89,11 @@ public final class QueryController {
             processorObj = initializeProcessor();
             processorObj.preprocess(queryXMLobject); // do any preprocessing on the XML before passing to validator
             processorObj.accepts(mimes); // figure out content type
+
+			org.jdom.Attribute count = queryXMLobject.getRootElement().getAttribute("count");
+			if ( count != null && ("1".equals(count.getValue()) || "true".equals(count.getValue())) ) {
+				this.isCountQuery = true;
+			}
 
             queryValidator.setQueryDocument(queryXMLobject);
             queryValidator.validateQuery();
