@@ -978,6 +978,7 @@ $.widget('ui.resultsPanel', {
                     .dialog('open');
                 return false;
             });
+
         self._xmlViewer = $('#biomart-view-xml').dialog({
             autoOpen: false,
             width: 800,
@@ -1000,6 +1001,7 @@ $.widget('ui.resultsPanel', {
                 }
             }
         });
+
         self._sparqlViewer = $('#biomart-view-sparql').dialog({
             autoOpen: false,
             width: 800,
@@ -1011,6 +1013,7 @@ $.widget('ui.resultsPanel', {
                 'Close': function() { $(this).dialog('close') }
             }
         });
+
         self._javaViewer = $('#biomart-view-java').dialog({
             autoOpen: false,
             width: 800,
@@ -1022,6 +1025,7 @@ $.widget('ui.resultsPanel', {
                 'Close': function() { $(this).dialog('close') }
             }
         });
+
         self._bookmarkViewer = $('#biomart-view-bookmark').dialog({
             autoOpen: false,
             open: function() {
@@ -1039,6 +1043,8 @@ $.widget('ui.resultsPanel', {
         }).find(':text').bind('focus.resultsPanel', function() {
             $(this).select();
         }).end();
+
+        self._countEstimate = $('#biomart-count-estimate').tipsy({gravity: 's'})
     },
 
     downloadXml: function() {
@@ -1060,6 +1066,8 @@ $.widget('ui.resultsPanel', {
 
                         self._downloadXml = options.downloadXml;
                         self._martObj = options.martObj;
+
+                        self._updateCounts(options.downloadXml);
 
                         self._data.empty().queryResults($.extend({
                             animationTime: 50,
@@ -1084,6 +1092,12 @@ $.widget('ui.resultsPanel', {
                 }
             });
         });
+        self._countEstimate
+            .find('.biomart-count-filtered')
+                .text('-')
+            .end()
+            .find('.biomart-count-total')
+                .text('-');
     },
 
     explain: function() {
@@ -1092,6 +1106,40 @@ $.widget('ui.resultsPanel', {
     destroy: function() {
         $.Widget.prototype.destroy.apply(this, arguments);
         this.element.removeClass('ui-resultsPanel');
+    },
+
+    _updateCounts: function(xml) {
+        var that = this;
+
+        $.ajax({
+            url: BIOMART_CONFIG.service.url + 'results/count.json',
+            type: 'GET',
+            data: {
+                query: xml
+            },
+            success: function(json) {
+                that._countEstimate.find('.biomart-count-filtered').text(json.entries);
+            },
+            error: function(json) {
+                that._countEstimate.find('.biomart-count-filtered').text('-');
+            }
+        });
+
+        var noFiltersXml = xml.replace( (/<Filter.*?>/), '');
+
+        $.ajax({
+            url: BIOMART_CONFIG.service.url + 'results/count.json',
+            type: 'GET',
+            data: {
+                query: noFiltersXml
+            },
+            success: function(json) {
+                that._countEstimate.find('.biomart-count-total').text(json.entries);
+            },
+            error: function(json) {
+                that._countEstimate.find('.biomart-count-total').text('-');
+            }
+        });
     }
 });
 

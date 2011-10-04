@@ -5,6 +5,12 @@
   <div class="content hidden">
     <h3><span class="loading-msg"><bm:message code="preview" capitalize="true"/></span></h3>
     <div class="actions clearfix">
+      <span id="biomart-count-estimate" title="<bm:message code="estimated_entries_msg"/>">
+        <bm:message code="entry" plural="true" capitalize="true"/>:
+        <span class="biomart-count-filtered">-</span>
+        /
+        <span class="biomart-count-total">-</span>
+      </span>
       <a href="#" class="bookmark">
         <span class="wrapper">
           <span class="ui-icon ui-icon-bookmark"></span><bm:message code="bookmark" capitalize="true"/></span>

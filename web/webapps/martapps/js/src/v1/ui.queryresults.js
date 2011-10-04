@@ -207,7 +207,6 @@ var QueryResults = {
                                         '<br/><br/>',
                                         '<span class="fyi">',
                                             _('results beyond 1000 not displayed'),
-                                            options.sorting ?  ' ' + _('click column heading to sort') : '',
                                         '</span>'
                                     ].join(''));
                                 }
