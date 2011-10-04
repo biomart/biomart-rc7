@@ -26,8 +26,6 @@
   </target>
   <target name="-init" depends="-load.properties">
     <mkdir dir="${build.test}"/>
-    <mkdir dir="${testoutput.dir}"/>
-    <mkdir dir="${testreport.dir}"/>
   </target>
   <target name="clean" depends="-init">
     <delete file="coverage.ec"/>
@@ -107,8 +105,16 @@
     </junitreport>
     <antcall target="report"/>
   </target>
-  <target name="test" depends="test.api,test.query,test.configurator,test.report">
+  <target name="-cleanreports" depends="-init">
+    <!-- Delete and remake report directories -->
+    <delete dir="${testoutput.dir}" failonerror="false"/>
+    <delete dir="${testreport.dir}" failonerror="false"/>
+    <delete dir="${build.instr}" failonerror="false"/>
+    <mkdir dir="${testoutput.dir}"/>
+    <mkdir dir="${testreport.dir}"/>
+    <delete file="coverage.ec"/>
   </target>
+  <target name="test" depends="-cleanreports,test.api,test.configurator,test.report"/>
   <target name="testforhudson" depends="compile.test,coverage.instr">
     <junit showoutput="true">
       <classpath>
