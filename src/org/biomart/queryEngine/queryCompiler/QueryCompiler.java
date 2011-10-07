@@ -265,12 +265,12 @@ public class QueryCompiler {
 							if(values.length == 1){
 								values = new String[2];
 								if(originalValue.startsWith(">=")){
-									values[0] = originalValue.substring(1);
+									values[0] = originalValue.substring(2);
 									values[1] = null;
 									operation1 = " >= ";
 								} else if (originalValue.startsWith("=<")){
 									values[0] = null;
-									values[1] = originalValue.substring(1);
+									values[1] = originalValue.substring(2);
 									operation2 = " <= ";
 								} else if(originalValue.startsWith(">")){
 									values[0] = originalValue.substring(1);
@@ -372,12 +372,12 @@ public class QueryCompiler {
 					if(values.length == 1){
 						values = new String[2];
 						if(originalValue.startsWith(">=")){
-							values[0] = originalValue.substring(1);
+							values[0] = originalValue.substring(2);
 							values[1] = null;
 							operation1 = " >= ";
 						} else if (originalValue.startsWith("=<")){
 							values[0] = null;
-							values[1] = originalValue.substring(1);
+							values[1] = originalValue.substring(2);
 							operation2 = " <= ";
 						} else if(originalValue.startsWith(">")){
 							values[0] = originalValue.substring(1);
