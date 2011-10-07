@@ -268,7 +268,7 @@ public class QueryCompiler {
 									values[0] = originalValue.substring(2);
 									values[1] = null;
 									operation1 = " >= ";
-								} else if (originalValue.startsWith("=<")){
+								} else if (originalValue.startsWith("<=")){
 									values[0] = null;
 									values[1] = originalValue.substring(2);
 									operation2 = " <= ";
@@ -375,7 +375,7 @@ public class QueryCompiler {
 							values[0] = originalValue.substring(2);
 							values[1] = null;
 							operation1 = " >= ";
-						} else if (originalValue.startsWith("=<")){
+						} else if (originalValue.startsWith("<=")){
 							values[0] = null;
 							values[1] = originalValue.substring(2);
 							operation2 = " <= ";
