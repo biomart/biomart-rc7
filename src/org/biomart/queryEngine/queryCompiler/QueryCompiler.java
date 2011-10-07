@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import org.biomart.common.resources.Log;
 import org.biomart.configurator.utils.McUtils;
 import org.biomart.configurator.utils.type.DatasetTableType;
@@ -258,26 +257,57 @@ public class QueryCompiler {
 						
 						if (subFilter.getQualifier() == OperatorType.RANGE) {
 							querySQL.append("(");
-							String[] values = selectedFilters.get(filter).split(subFilter.getSplitOnValue()); //TODO 
+							String operation1 = " >= ";
+							String operation2 = " <= ";
+							
+							String originalValue = selectedFilters.get(subFilter);
+							String[] values = originalValue.split(subFilter.getSplitOnValue());
 							if(values.length == 1){
 								values = new String[2];
-								values[0] = values[1] = selectedFilters.get(subFilter);
+								if(originalValue.startsWith(">=")){
+									values[0] = originalValue.substring(1);
+									values[1] = null;
+									operation1 = " >= ";
+								} else if (originalValue.startsWith("=<")){
+									values[0] = null;
+									values[1] = originalValue.substring(1);
+									operation2 = " <= ";
+								} else if(originalValue.startsWith(">")){
+									values[0] = originalValue.substring(1);
+									values[1] = null;
+									operation1 = " > ";
+								} else if (originalValue.startsWith("<")){
+									values[0] = null;
+									values[1] = originalValue.substring(1);
+									operation2 = " < ";
+								} else {
+									values[0] = originalValue;
+									values[1] = null;
+									operation1 = " = ";
+								}
 							}
-							if (table.isMain()) {
-								querySQL.append("main.");
-							} else {
-								querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
+							if (values[0]!=null){
+								if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
+									querySQL.append("main.");
+								} else {
+									querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
+								}
+								querySQL.append(quoteChar+subFilter.getDatasetColumn().getName()+ quoteChar);
+								querySQL.append(operation1 + values[0]);
 							}
-							querySQL.append(quoteChar + subFilter.getDatasetColumn().getName()+ quoteChar);
-							querySQL.append(" >= " + values[0] + " AND " );
-							
-							if (table.isMain()) {
-								querySQL.append("main.");
-							} else {
-								querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
+
+							if(values[0]!=null && values[1]!=null)
+								querySQL.append(" AND ");
+
+							if(values[1]!=null){
+								if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
+									querySQL.append("main.");
+								} else {
+									querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
+								}
+								querySQL.append( quoteChar+subFilter.getDatasetColumn().getName()+ quoteChar);
+								querySQL.append(operation2 + values[1] + " " );
 							}
-							querySQL.append( quoteChar+subFilter.getDatasetColumn().getName()+ quoteChar);
-							querySQL.append(" <= " + values[1] + " " );
 							querySQL.append(") ");
 						} else if(subFilter.getQualifier()!=OperatorType.IS){
 							if (table.isMain()) {
@@ -334,26 +364,57 @@ public class QueryCompiler {
 					querySQL.deleteCharAt(querySQL.length()-1);
 					querySQL.append(")");
 				} else if (filter.getQualifier() == OperatorType.RANGE) {
-					String[] values = selectedFilters.get(filter).split(filter.getSplitOnValue());
+					String operation1 = " >= ";
+					String operation2 = " <= ";
+					
+					String originalValue = selectedFilters.get(filter);
+					String[] values = originalValue.split(filter.getSplitOnValue());
 					if(values.length == 1){
 						values = new String[2];
-						values[0] = values[1] = selectedFilters.get(filter);
+						if(originalValue.startsWith(">=")){
+							values[0] = originalValue.substring(1);
+							values[1] = null;
+							operation1 = " >= ";
+						} else if (originalValue.startsWith("=<")){
+							values[0] = null;
+							values[1] = originalValue.substring(1);
+							operation2 = " <= ";
+						} else if(originalValue.startsWith(">")){
+							values[0] = originalValue.substring(1);
+							values[1] = null;
+							operation1 = " > ";
+						} else if (originalValue.startsWith("<")){
+							values[0] = null;
+							values[1] = originalValue.substring(1);
+							operation2 = " < ";
+						} else {
+							values[0] = originalValue;
+							values[1] = null;
+							operation1 = " = ";
+						}
 					}
-					if (table.isMain()) {
-						querySQL.append("main.");
-					} else {
-						querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
+					if (values[0]!=null){
+						if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
+							querySQL.append("main.");
+						} else {
+							querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
+						}
+						querySQL.append(quoteChar+filter.getDatasetColumn().getName()+ quoteChar);
+						querySQL.append(operation1 + values[0]);
 					}
-					querySQL.append(quoteChar+filter.getDatasetColumn().getName()+ quoteChar);
-					querySQL.append(" >= " + values[0] + " AND " );
-					
-					if (table.isMain()) {
-						querySQL.append("main.");
-					} else {
-						querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
+
+					if(values[0]!=null && values[1]!=null)
+						querySQL.append(" AND ");
+
+					if(values[1]!=null){
+						if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
+							querySQL.append("main.");
+						} else {
+							querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
+						}
+						querySQL.append( quoteChar+filter.getDatasetColumn().getName()+ quoteChar);
+						querySQL.append(operation2 + values[1] + " " );
 					}
-					querySQL.append( quoteChar+filter.getDatasetColumn().getName()+ quoteChar);
-					querySQL.append(" <= " + values[1] + " " );
 				} else{
 					for(String value : splitFilter){
 						if (table.isMain()) {
