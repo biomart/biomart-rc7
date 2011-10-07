@@ -64,14 +64,14 @@ public class QueryCompiler {
 	private final String only = "NOT NULL";
 	private final String excluded = "NULL";
 	private String quoteChar = "";
-	
-    /**
-     *
-     * @param dbName
-     * @param ds
-     * @return
-     */
-    public String searchMaterilizedSchema(String dbName, Dataset ds){
+
+	/**
+	 *
+	 * @param dbName
+	 * @param ds
+	 * @return
+	 */
+	public String searchMaterilizedSchema(String dbName, Dataset ds){
 		boolean leftFlag = false; //Hard-coded for now, will be retrieved from properties
 		List<String> dss = new ArrayList<String>();
 		dss.add(ds.getName());
@@ -81,7 +81,7 @@ public class QueryCompiler {
 		List<DatasetTable> allMainTables = new ArrayList<DatasetTable>();
 		//if datasettable is partitioned, replace it to a real datasettable
 		for(DatasetTable tmpDst: allTmpMainTables) {
-				allMainTables.add(tmpDst);
+			allMainTables.add(tmpDst);
 		}
 		/*for(Table table : mart.getTableList()){
 			if(table.getMain()){
@@ -221,7 +221,7 @@ public class QueryCompiler {
 			}
 			querySQL.append(dbName + "." + quoteChar+ mainTableName + quoteChar+ " main ");
 		} // if
-	
+
 
 		/*
 		 * Loop through the filters, adding them to the WHERE clause
@@ -250,16 +250,16 @@ public class QueryCompiler {
 						}
 						Filter subFilter = filter.getFilterList(dss).get(i);
 						DatasetTable table = subFilter.getDatasetTable();
-                        DatasetTableType tableType = table.getType();
+						DatasetTableType tableType = table.getType();
 						String tableName = subFilter.getDatasetTable().getSubPartitionCommaList(ds.getName());
 						if(McUtils.hasPartitionBinding(tableName))
 							tableName = McUtils.getRealName(tableName, ds);
-						
+
 						if (subFilter.getQualifier() == OperatorType.RANGE) {
 							querySQL.append("(");
 							String operation1 = " >= ";
 							String operation2 = " <= ";
-							
+
 							String originalValue = selectedFilters.get(subFilter);
 							String[] values = originalValue.split(subFilter.getSplitOnValue());
 							if(values.length == 1){
@@ -350,7 +350,7 @@ public class QueryCompiler {
 				String[] splitFilter = selectedFilters.get(filter).split("[,\\n\\r]");
 				DatasetTable table = filter.getDatasetTable();
 				DatasetTableType tableType = table.getType();
-                if(filter.getQualifier()==OperatorType.E && splitFilter.length > 1){
+				if(filter.getQualifier()==OperatorType.E && splitFilter.length > 1){
 					if (table.isMain()) {
 						querySQL.append("main.");
 					} else {
@@ -364,57 +364,61 @@ public class QueryCompiler {
 					querySQL.deleteCharAt(querySQL.length()-1);
 					querySQL.append(")");
 				} else if (filter.getQualifier() == OperatorType.RANGE) {
-					String operation1 = " >= ";
-					String operation2 = " <= ";
-					
-					String originalValue = selectedFilters.get(filter);
-					String[] values = originalValue.split(filter.getSplitOnValue());
-					if(values.length == 1){
-						values = new String[2];
-						if(originalValue.startsWith(">=")){
-							values[0] = originalValue.substring(2);
-							values[1] = null;
-							operation1 = " >= ";
-						} else if (originalValue.startsWith("<=")){
-							values[0] = null;
-							values[1] = originalValue.substring(2);
-							operation2 = " <= ";
-						} else if(originalValue.startsWith(">")){
-							values[0] = originalValue.substring(1);
-							values[1] = null;
-							operation1 = " > ";
-						} else if (originalValue.startsWith("<")){
-							values[0] = null;
-							values[1] = originalValue.substring(1);
-							operation2 = " < ";
-						} else {
-							values[0] = originalValue;
-							values[1] = null;
-							operation1 = " = ";
-						}
-					}
-					if (values[0]!=null){
-						if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
-							querySQL.append("main.");
-						} else {
-							querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
-						}
-						querySQL.append(quoteChar+filter.getDatasetColumn().getName()+ quoteChar);
-						querySQL.append(operation1 + values[0]);
-					}
+					String combineOperator = filter.getFilterOperation()==null ? " AND " : " " + filter.getFilterOperation().toString() + " ";
+					for(String originalValue : splitFilter){
+						String operation1 = " >= ";
+						String operation2 = " <= ";
 
-					if(values[0]!=null && values[1]!=null)
-						querySQL.append(" AND ");
-
-					if(values[1]!=null){
-						if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
-							querySQL.append("main.");
-						} else {
-							querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
+						String[] values = originalValue.split(filter.getSplitOnValue());
+						if(values.length == 1){
+							values = new String[2];
+							if(originalValue.startsWith(">=")){
+								values[0] = originalValue.substring(2);
+								values[1] = null;
+								operation1 = " >= ";
+							} else if (originalValue.startsWith("<=")){
+								values[0] = null;
+								values[1] = originalValue.substring(2);
+								operation2 = " <= ";
+							} else if(originalValue.startsWith(">")){
+								values[0] = originalValue.substring(1);
+								values[1] = null;
+								operation1 = " > ";
+							} else if (originalValue.startsWith("<")){
+								values[0] = null;
+								values[1] = originalValue.substring(1);
+								operation2 = " < ";
+							} else {
+								values[0] = originalValue;
+								values[1] = null;
+								operation1 = " = ";
+							}
 						}
-						querySQL.append( quoteChar+filter.getDatasetColumn().getName()+ quoteChar);
-						querySQL.append(operation2 + values[1] + " " );
+						if (values[0]!=null){
+							if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
+								querySQL.append("main.");
+							} else {
+								querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
+							}
+							querySQL.append(quoteChar+filter.getDatasetColumn().getName()+ quoteChar);
+							querySQL.append(operation1 + values[0]);
+						}
+
+						if(values[0]!=null && values[1]!=null)
+							querySQL.append(" AND ");
+
+						if(values[1]!=null){
+							if(tableType.equals(DatasetTableType.MAIN) || tableType.equals(DatasetTableType.MAIN_SUBCLASS) || tableName.endsWith("main") || tableName.endsWith("main||")){
+								querySQL.append("main.");
+							} else {
+								querySQL.append(dbName + "." + quoteChar+ tableName + quoteChar+ ".");
+							}
+							querySQL.append( quoteChar+filter.getDatasetColumn().getName()+ quoteChar);
+							querySQL.append(operation2 + values[1] + " " );
+						}
+						querySQL.append(combineOperator);
 					}
+					querySQL.delete(querySQL.length() - combineOperator.length(), querySQL.length());
 				} else{
 					for(String value : splitFilter){
 						if (table.isMain()) {
@@ -451,7 +455,7 @@ public class QueryCompiler {
 					if(McUtils.hasPartitionBinding(tableName))
 						tableName = McUtils.getRealName(tableName, ds);
 					querySQL.append(" main." + quoteChar+ keyName+ quoteChar + "=" + 
-						dbName + "." + quoteChar+ tableName + quoteChar+ "." + quoteChar+ keyName+ quoteChar + " AND");
+							dbName + "." + quoteChar+ tableName + quoteChar+ "." + quoteChar+ keyName+ quoteChar + " AND");
 				}
 			}
 			if(dmTables.size()>0){
@@ -477,15 +481,15 @@ public class QueryCompiler {
 		}
 	}
 
-    /**
-     *
-     * @param dbName 
-     * @return
-     */
-    public String searchSourceSchema(String dbName){
+	/**
+	 *
+	 * @param dbName 
+	 * @return
+	 */
+	public String searchSourceSchema(String dbName){
 		//		searchMaterilizedSchema();
 		//		System.out.println("----");
-    	dbName = dbName + ".";
+		dbName = dbName + ".";
 		// Create list of all main tables
 		List<DatasetTable> allMainTables  = selectedAttributes.iterator().next().getDatasetTable().getMart().getOrderedMainTableList();
 		Set<Column> columnsToCheck = new HashSet<Column>();
@@ -523,7 +527,7 @@ public class QueryCompiler {
 		 * main table. Otherwise, it is our main.
 		 */
 		DatasetTable mainTable = allMainTables.get(allMainTables.size()-1);//null;
-/*		outer:
+		/*		outer:
 			for(DatasetTable table:allMainTables){
 				//for (Column column : columnsToCheck) {
 					//if (table.getColumnList().contains(column)) {
@@ -542,7 +546,7 @@ public class QueryCompiler {
 		for (Attribute attribute:selectedAttributes){
 			DatasetColumn curColumn = attribute.getDataSetColumn();
 			DatasetTable curDataSetTable = curColumn.getDatasetTable();
-//			if(curDataSetTable.getType().equals(DatasetTableType.MAIN) || curDataSetTable.getType().equals( DatasetTableType.MAIN_SUBCLASS))
+			//			if(curDataSetTable.getType().equals(DatasetTableType.MAIN) || curDataSetTable.getType().equals( DatasetTableType.MAIN_SUBCLASS))
 			if (curDataSetTable.isMain()) 
 				curDataSetTable = mainTable;
 			Table curSourceTable = curColumn.getSourceColumn().getTable();
@@ -560,7 +564,7 @@ public class QueryCompiler {
 			for(Filter filter:selectedFilters.keySet()){
 				DatasetColumn curColumn = filter.getDatasetColumn();
 				DatasetTable curDataSetTable = curColumn.getDatasetTable();
-//				if(curDataSetTable.getType().equals(DatasetTableType.MAIN) || curDataSetTable.getType().equals( DatasetTableType.MAIN_SUBCLASS))
+				//				if(curDataSetTable.getType().equals(DatasetTableType.MAIN) || curDataSetTable.getType().equals( DatasetTableType.MAIN_SUBCLASS))
 				if (curDataSetTable.isMain())
 					curDataSetTable = mainTable;
 				Table curSourceTable = curColumn.getSourceColumn().getTable();
@@ -617,12 +621,12 @@ public class QueryCompiler {
 		} else {
 			querySQL.append("SELECT ");
 			for(Attribute attribute:selectedAttributes){
-					querySQL.append(dbName);			
-					String tableName = attribute.getDataSetColumn().getSourceColumn().getTable().getName();
-					querySQL.append(quoteChar + tableName + quoteChar);
-					querySQL.append(".");
-					querySQL.append(quoteChar+attribute.getDataSetColumn().getSourceColumn().getName()+quoteChar);				
-					querySQL.append(", ");
+				querySQL.append(dbName);			
+				String tableName = attribute.getDataSetColumn().getSourceColumn().getTable().getName();
+				querySQL.append(quoteChar + tableName + quoteChar);
+				querySQL.append(".");
+				querySQL.append(quoteChar+attribute.getDataSetColumn().getSourceColumn().getName()+quoteChar);				
+				querySQL.append(", ");
 			}
 			// Clean up the final comma if necessary
 			if(selectedAttributes.size()>0){
@@ -699,16 +703,16 @@ public class QueryCompiler {
 			}
 			querySQL.delete(querySQL.length()-4, querySQL.length()); 
 		}
-//		System.out.print("Source: ");
-//		System.out.println(querySQL);
+		//		System.out.print("Source: ");
+		//		System.out.println(querySQL);
 		return querySQL.toString();
 	}
 
-    /**
-     * Returns an RDBMS/case-independent deterministic ordering of tables (for join) 
-     */
+	/**
+	 * Returns an RDBMS/case-independent deterministic ordering of tables (for join) 
+	 */
 	private List<Table> getReorderedJoinTableList(LinkedHashMap<Table, Relation> orderedSourceTables) {
-		
+
 		Map<Table,List<Table>> dependenceMap = new TreeMap<Table, List<Table>>();
 		boolean first = true;
 		for (Table sourceTable : orderedSourceTables.keySet()) {
@@ -718,7 +722,7 @@ public class QueryCompiler {
 				Relation relation = orderedSourceTables.get(sourceTable);
 				Table referencedTable = relation.getFirstKeyColumnForOtherTable(sourceTable).getTable();
 				assert null!=referencedTable;
-				
+
 				List<Table> referencingTableList = dependenceMap.get(referencedTable);
 				if (null==referencingTableList) {
 					referencingTableList = new ArrayList<Table>();
@@ -729,7 +733,7 @@ public class QueryCompiler {
 			}
 		}
 		assert orderedSourceTables.isEmpty() || !dependenceMap.isEmpty() : dependenceMap;
-		
+
 		List<Table> reorderedJoinTableList = new ArrayList<Table>();
 		if (!orderedSourceTables.isEmpty()) {
 			Table firstSourceTable = orderedSourceTables.keySet().iterator().next();
@@ -737,7 +741,7 @@ public class QueryCompiler {
 			reorderedJoinTableList.add(firstSourceTable);
 			recursiveTableAddition(dependenceMap, reorderedJoinTableList, firstSourceTable);
 		}
-		
+
 		String debugString = McUtils.NEW_LINE + "dependenceMap = " + dependenceMap + McUtils.NEW_LINE + McUtils.NEW_LINE + "joinTableList = " + reorderedJoinTableList + McUtils.NEW_LINE;
 		assert reorderedJoinTableList.size()==orderedSourceTables.size() && new TreeSet<Table>(reorderedJoinTableList).size()==orderedSourceTables.size() : debugString;
 		Log.debug(debugString);
@@ -755,46 +759,46 @@ public class QueryCompiler {
 		}
 	}
 
-    /**
-     *
-     * @param value
-     */
-    public void setQcPathMap(Map<DatasetTable,List<Object>> value) {
+	/**
+	 *
+	 * @param value
+	 */
+	public void setQcPathMap(Map<DatasetTable,List<Object>> value) {
 		this.qcPathMap = value;
 	}
 
-    /**
-     *
-     * @param value
-     */
-    public void setSelectedAttributes(List<Attribute> value) {
+	/**
+	 *
+	 * @param value
+	 */
+	public void setSelectedAttributes(List<Attribute> value) {
 		this.selectedAttributes = value;
 	}
 
-    /**
-     *
-     * @param value
-     */
-    public void setSelectedFilters(Map<Filter,String> value) {
+	/**
+	 *
+	 * @param value
+	 */
+	public void setSelectedFilters(Map<Filter,String> value) {
 		this.selectedFilters = value;
 	}
 
-    /**
-     *
-     */
+	/**
+	 *
+	 */
 	private final boolean isCountQuery;
-    public QueryCompiler(boolean isCountQuery) {
+	public QueryCompiler(boolean isCountQuery) {
 		this.isCountQuery = isCountQuery;
 		this.selectedAttributes = new ArrayList<Attribute>();
 		this.selectedFilters = new HashMap<Filter, String>();
 	}
 	/**
 	 * Generates the SQL query corresponding to the SubQuery object specified
-     *
-     * @param subQuery
-     * @param forceSource
-     * @return
-     */
+	 *
+	 * @param subQuery
+	 * @param forceSource
+	 * @return
+	 */
 
 	public String generateQuery(SubQuery subQuery, boolean forceSource) {
 		// If forcing it to use the source schema or that the schema is not materialized
@@ -804,107 +808,107 @@ public class QueryCompiler {
 		//}
 		// Use the materialized schema
 		//else {
-			ArrayList<Attribute> portables = new ArrayList<Attribute>();
-			List<String> datasets = new ArrayList<String>();
-			datasets.add(subQuery.getDataset().getInternalName());
-			for(QueryElement queryElement : subQuery.getQueryAttributeList()){
-				Attribute attribute;
-				switch(queryElement.getType()){
-				case ATTRIBUTE:
-					attribute = (Attribute) queryElement.getElement();
-					List<Attribute> attributeList = attribute.getAttributeList(datasets,true);
-					if(attributeList.isEmpty()){
-						attributeList = new ArrayList<Attribute>();
-						attributeList.add(attribute);
-					}
-					for(Attribute subAttribute : attributeList){
-						if(subAttribute==null)
-							Log.error("ATTRIBUTE is NULL");
-						if(subAttribute.getValue() == null || subAttribute.getValue().equals(""))
-							this.selectedAttributes.add(subAttribute);
-					}
-					break;
-				case EXPORTABLE_ATTRIBUTE:
-					for(Element element : queryElement.getElementList()){
-						attribute = (Attribute) element;
-						if(attribute==null)
-							Log.error("EXPORTABLE ATTRIBUTE is NULL");
-						portables.add(attribute);
-						if(queryElement.getPortablePosition()==null){
-							queryElement.setPortablePosition(portables.size()-1);
-						}
-					}
-					break;
+		ArrayList<Attribute> portables = new ArrayList<Attribute>();
+		List<String> datasets = new ArrayList<String>();
+		datasets.add(subQuery.getDataset().getInternalName());
+		for(QueryElement queryElement : subQuery.getQueryAttributeList()){
+			Attribute attribute;
+			switch(queryElement.getType()){
+			case ATTRIBUTE:
+				attribute = (Attribute) queryElement.getElement();
+				List<Attribute> attributeList = attribute.getAttributeList(datasets,true);
+				if(attributeList.isEmpty()){
+					attributeList = new ArrayList<Attribute>();
+					attributeList.add(attribute);
 				}
+				for(Attribute subAttribute : attributeList){
+					if(subAttribute==null)
+						Log.error("ATTRIBUTE is NULL");
+					if(subAttribute.getValue() == null || subAttribute.getValue().equals(""))
+						this.selectedAttributes.add(subAttribute);
+				}
+				break;
+			case EXPORTABLE_ATTRIBUTE:
+				for(Element element : queryElement.getElementList()){
+					attribute = (Attribute) element;
+					if(attribute==null)
+						Log.error("EXPORTABLE ATTRIBUTE is NULL");
+					portables.add(attribute);
+					if(queryElement.getPortablePosition()==null){
+						queryElement.setPortablePosition(portables.size()-1);
+					}
+				}
+				break;
 			}
+		}
 
-			for(QueryElement queryElement : subQuery.getQueryFilterList()){
-				Filter filter;
-				switch(queryElement.getType()){
-				case FILTER:
-					filter = (Filter) queryElement.getElement();
+		for(QueryElement queryElement : subQuery.getQueryFilterList()){
+			Filter filter;
+			switch(queryElement.getType()){
+			case FILTER:
+				filter = (Filter) queryElement.getElement();
 
-					if(subQuery.isDatabase() || subQuery.getVersion().equals("0.7")){
-						if(filter.isFilterList()){
-							for(Filter subFilter : filter.getFilterList(datasets)){
-								if(subFilter.getFilterType()==FilterType.BOOLEAN){
-									if(queryElement.getFilterValues().equals("only")){
-										subFilter.setQualifier(OperatorType.IS);
-										queryElement.setFilterValues(this.only);
-									} else if(queryElement.getFilterValues().equals("excluded")){
-										subFilter.setQualifier(OperatorType.IS);
-										queryElement.setFilterValues(this.excluded);
-									}
+				if(subQuery.isDatabase() || subQuery.getVersion().equals("0.7")){
+					if(filter.isFilterList()){
+						for(Filter subFilter : filter.getFilterList(datasets)){
+							if(subFilter.getFilterType()==FilterType.BOOLEAN){
+								if(queryElement.getFilterValues().equals("only")){
+									subFilter.setQualifier(OperatorType.IS);
+									queryElement.setFilterValues(this.only);
+								} else if(queryElement.getFilterValues().equals("excluded")){
+									subFilter.setQualifier(OperatorType.IS);
+									queryElement.setFilterValues(this.excluded);
 								}
 							}
 						}
 					}
-					this.selectedFilters.put(filter,queryElement.getFilterValues());
-					if(subQuery.isDatabase() || subQuery.getVersion().equals("0.7")){
-						if(filter.getFilterType()==FilterType.BOOLEAN){
-							if(queryElement.getFilterValues().equals("only")){
-								filter.setQualifier(OperatorType.IS);
-								this.selectedFilters.put(filter,this.only);
-							} else if(queryElement.getFilterValues().equals("excluded")){
-								filter.setQualifier(OperatorType.IS);
-								this.selectedFilters.put(filter,this.excluded);
-							}
-						} 
-					}
-					break;
-				case IMPORTABLE_FILTER:
-					for(Element element : queryElement.getElementList()){
-						filter = (Filter) element;
-						if(filter.getAttribute()==null)
-							Log.error("IMPORTABLE FILTER's attribute is NULL");
-						portables.add(filter.getAttribute());
-						if(queryElement.getPortablePosition()==null){
-							queryElement.setPortablePosition(portables.size()-1);
-						}
-					}
-					break;
 				}
+				this.selectedFilters.put(filter,queryElement.getFilterValues());
+				if(subQuery.isDatabase() || subQuery.getVersion().equals("0.7")){
+					if(filter.getFilterType()==FilterType.BOOLEAN){
+						if(queryElement.getFilterValues().equals("only")){
+							filter.setQualifier(OperatorType.IS);
+							this.selectedFilters.put(filter,this.only);
+						} else if(queryElement.getFilterValues().equals("excluded")){
+							filter.setQualifier(OperatorType.IS);
+							this.selectedFilters.put(filter,this.excluded);
+						}
+					} 
+				}
+				break;
+			case IMPORTABLE_FILTER:
+				for(Element element : queryElement.getElementList()){
+					filter = (Filter) element;
+					if(filter.getAttribute()==null)
+						Log.error("IMPORTABLE FILTER's attribute is NULL");
+					portables.add(filter.getAttribute());
+					if(queryElement.getPortablePosition()==null){
+						queryElement.setPortablePosition(portables.size()-1);
+					}
+				}
+				break;
 			}
-			this.selectedAttributes.addAll(0, portables);
-			subQuery.setTotalCols(this.selectedAttributes.size());
-			if(subQuery.isDatabase()){
-				String prefix = "";
-				if (subQuery.getDbType() == DBType.ORACLE || subQuery.getDbType() == DBType.POSTGRES || subQuery.getDbType() == DBType.DB2)
-					quoteChar = "\"";
-				if(subQuery.useDbName() && subQuery.useSchema())
-					prefix = quoteChar + subQuery.getDatabaseName() + quoteChar + "." + quoteChar + subQuery.getSchemaName() + quoteChar;
-				else if(subQuery.useDbName())
-					prefix = quoteChar + subQuery.getDatabaseName() + quoteChar;
-				else if(subQuery.useSchema())
-					prefix = quoteChar + subQuery.getSchemaName() + quoteChar;
-				
-				return searchSchema(prefix, subQuery.getDataset(), forceSource);
-			} else {
-				return searchWebServices(subQuery);
-			}
+		}
+		this.selectedAttributes.addAll(0, portables);
+		subQuery.setTotalCols(this.selectedAttributes.size());
+		if(subQuery.isDatabase()){
+			String prefix = "";
+			if (subQuery.getDbType() == DBType.ORACLE || subQuery.getDbType() == DBType.POSTGRES || subQuery.getDbType() == DBType.DB2)
+				quoteChar = "\"";
+			if(subQuery.useDbName() && subQuery.useSchema())
+				prefix = quoteChar + subQuery.getDatabaseName() + quoteChar + "." + quoteChar + subQuery.getSchemaName() + quoteChar;
+			else if(subQuery.useDbName())
+				prefix = quoteChar + subQuery.getDatabaseName() + quoteChar;
+			else if(subQuery.useSchema())
+				prefix = quoteChar + subQuery.getSchemaName() + quoteChar;
+
+			return searchSchema(prefix, subQuery.getDataset(), forceSource);
+		} else {
+			return searchWebServices(subQuery);
+		}
 		//}
 	}
-	
+
 	private String searchSchema(String dbName, Dataset ds, boolean forceSource){
 		if(forceSource){
 			this.qcPathMap = McUtils.getQcPathMap(ds);
@@ -913,18 +917,18 @@ public class QueryCompiler {
 			return searchMaterilizedSchema(dbName, ds);
 		}
 	}
-	
+
 	// Allow filters to be excluded in count queries so we can get a total #
 	private String searchWebServices(SubQuery subQuery) {
 		org.jdom.Element queryElement = new org.jdom.Element("Query");
 		Document queryDocument = new Document(queryElement);
-//		queryElement.setAttribute("processor", subQuery.getProcessor());
-//		queryElement.setAttribute("limit", Integer.toString(subQuery.getLimit()));
+		//		queryElement.setAttribute("processor", subQuery.getProcessor());
+		//		queryElement.setAttribute("limit", Integer.toString(subQuery.getLimit()));
 		queryElement.setAttribute("client", subQuery.getClient());
 		String virtualSchema = subQuery.getDataset().getValueForColumn(11);
 		if(virtualSchema != null && !virtualSchema.equals(""))
 			queryElement.setAttribute("virtualSchemaName",virtualSchema);
-		
+
 		org.jdom.Element datasetElement = new org.jdom.Element("Dataset");
 		datasetElement.setAttribute("name", subQuery.getDataset().getName());
 		if(subQuery.getConfig().getName()==null)
@@ -935,7 +939,7 @@ public class QueryCompiler {
 		if (isCountQuery) {
 			queryElement.setAttribute("count", "1");
 		}
-		
+
 		queryElement.addContent(datasetElement);
 
 		for(Attribute attribute : this.selectedAttributes){
@@ -966,16 +970,16 @@ public class QueryCompiler {
 		XMLOutputter outputter = new XMLOutputter();
 		return outputter.outputString(queryDocument);
 	}
-	
+
 	private int getLastIndex(Set<Table> set, List<Object> list){
 		int i = 0;
 		if(set!=null && list!=null){
-		for(Table item : set){
-			if (list.lastIndexOf(item) > i)
-				i = list.lastIndexOf(item);
+			for(Table item : set){
+				if (list.lastIndexOf(item) > i)
+					i = list.lastIndexOf(item);
+			}
 		}
-		}
-		
+
 		return i;
 	}
 }
