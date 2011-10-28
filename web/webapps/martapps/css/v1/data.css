@@ -562,7 +562,7 @@ iframe.streaming {
 }
 .biomart .tmamap {
 	position: relative;
-	height: 600px;
+	height: 700px;
 	/*width: 1000px;*/
 }
 .biomart .tmamap canvas{
@@ -717,9 +717,7 @@ iframe.streaming {
 #biomart-results .actions {
     margin: 10px 0 5px;
     float: right;
-    color: #444;
 }
-#biomart-results #biomart-count-estimate,
 #biomart-results .actions a {
     font-size: 12px;
     margin-left: 10px;

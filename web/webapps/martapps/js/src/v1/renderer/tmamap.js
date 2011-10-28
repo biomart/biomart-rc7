@@ -5,9 +5,9 @@
     results.tmamap = Object.create(results.chart);
     results.tmamap.tagName = 'div';
     results.tmamap._heatColumn = 4;
-    results.tmamap._max = 6;
+    results.tmamap._max = 9;
     results.tmamap._min = 0;
-    results.tmamap._mid = 3;
+    results.tmamap._mid = 5;
     results.tmamap._maxXY = [];
     results.tmamap._lines = [];
     results.tmamap._legendText = '';
@@ -129,13 +129,24 @@
     	var preX = 0;
     	var preY = 0;
     	for(var category in results.tmamap._lines){
+    		if(results.tmamap._lines.hasOwnProperty(category)){
+    			if(results.tmamap._maxXY[category][0] > preX)
+        			preX = results.tmamap._maxXY[category][0];
+        		if(results.tmamap._maxXY[category][1] > preY)
+        			preY = results.tmamap._maxXY[category][1];
+    		}
+    	}
+    	for(var category in results.tmamap._lines){
         	if(results.tmamap._lines.hasOwnProperty(category)){
         		for(var data in results.tmamap._lines[category]){
                 	if(results.tmamap._lines[category].hasOwnProperty(data)){
                 		var x = results.tmamap._lines[category][data].x * scale + (gap+preX)*scale*(Math.floor(numCat/2));
             			var y = results.tmamap._lines[category][data].y * scale + (gap+preY)*scale*(numCat%2);
-                		if(a > x - radius && a < x + radius 
-                				&& b > y - radius && b < y + radius){
+            			var drawRadius = radius;
+            			if(results.tmamap._lines[category][data].x > Math.floor(results.tmamap._lines[category][data].x))
+            				drawRadius = radius * 2;
+                		if(a > x - drawRadius && a < x + drawRadius 
+                				&& b > y - drawRadius && b < y + drawRadius){
                 			var content = results.tmamap._lines[category][data].tooltip +"("
                 							+results.tmamap._lines[category][data].stage+","
                 							+results.tmamap._lines[category][data].outcome+","
@@ -145,8 +156,6 @@
                 		}
                 	}
         		}
-        		preX = results.tmamap._maxXY[category][0];
-        		preY = results.tmamap._maxXY[category][1];
         		numCat ++;
         	}
     	}
@@ -186,9 +195,9 @@
             opacity: .9
         });
         //make sure of max and min for tma map
-        results.tmamap._max = 6;
+        results.tmamap._max = 9;
         results.tmamap._min = 0;
-        results.tmamap._mid = 3;
+        results.tmamap._mid = 5;
         // Use canvas to draw the legend
         var legend,
         	tmamap,
@@ -224,7 +233,7 @@
         
         this._plot = tmamap;
         tmacanvas = tmacanvas.get(0);
-        x1=0; y1=0; x2=300 * this._lines.length; y2=600;
+        x1=0; y1=0; x2=350 * this._lines.length; y2=700;
         tmacanvas.width = x2;
         tmacanvas.height = y2;
         this._element.css('width', x2 + 'px');
@@ -243,6 +252,14 @@
     	var numCat = 0;
     	var preX = 0;
     	var preY = 0;
+    	for(var category in this._lines){
+    		if(this._lines.hasOwnProperty(category)){
+    			if(results.tmamap._maxXY[category][0] > preX)
+        			preX = results.tmamap._maxXY[category][0];
+        		if(results.tmamap._maxXY[category][1] > preY)
+        			preY = results.tmamap._maxXY[category][1];
+    		}
+    	}
     	var shift = 15;
     	var lastX = 0;
     	var context = tmacanvas.getContext('2d');
@@ -270,12 +287,15 @@
             			if(x > lastX)
             				lastX = x;
             			var value = this._lines[category][data].value;
+            			var drawRadius = radius;
+            			if(this._lines[category][data].x > Math.floor(this._lines[category][data].x))
+            				drawRadius = radius * 2;
             			// draw the TMA map dots            			
             			context.fillStyle = this._getColor(value);
             			context.strokeStyle = this._getColor(this._max);
             			// draw circle
             			context.beginPath();
-            			context.arc(x,y,radius, 0, Math.PI*2,true);
+            			context.arc(x,y,drawRadius, 0, Math.PI*2,true);
             			context.closePath();
             			
             			context.fill();
@@ -290,8 +310,6 @@
             			}
                 	}
         		}
-        		preX = this._maxXY[category][0];
-        		preY = this._maxXY[category][1];
         		numCat ++;
         	}
         	
@@ -300,17 +318,6 @@
         var x =  lastX + radius + gap*scale;
 		var y =  y2 - 200;
 		context.fillStyle = "Grey";
-		/*
-        context.fillText("no tumor/missing core   = black", x,y+shift);
-        context.fillText("negative      = 0 (white)", x,y+shift*2);
-        context.fillText("focal/vf/vvf  = 1", x,y+shift*3);
-        context.fillText("<5%           = 2", x,y+shift*4);
-        context.fillText("<10%          = 3", x,y+shift*5);
-        context.fillText("10-25%        = 4", x,y+shift*6);
-        context.fillText("25-50%        = 5", x,y+shift*7);
-        context.fillText(">50           = 6", x,y+shift*8);
-        context.fillText("empty/blank   = no circle",x,y+shift*9);
-		 */
 		var texts = this._legendText.split(',');
 		for(var i =0; i< texts.length; i++){
 			context.fillText(texts[i], x, y+shift*(i+1));

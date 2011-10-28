@@ -1164,13 +1164,16 @@
     /* BIOHEATMAP */
     results.bioheatmap = Object.create(results.chart);
     results.bioheatmap.tagName = 'div';
-    results.bioheatmap._max = 6;
+    results.bioheatmap._max = 9;
     results.bioheatmap._min = 0;
     results.bioheatmap._keyMap = {};
     results.bioheatmap._maxXY = [];
     results.bioheatmap._lines = [];
     results.bioheatmap._xlabels = [];
     results.bioheatmap._ylabels = [];
+    results.bioheatmap.stages = [];
+    results.bioheatmap.patientStatus =[];
+    results.bioheatmap.tissueType = [];
     results.bioheatmap._header = null;
     results.bioheatmap.initExport = function(url) {};
     results.bioheatmap._doExport = function(form) {};
@@ -1182,6 +1185,7 @@
             max = this._max,
             mid = (max + min) / 2;
 
+        if(isNaN(val)) return 'rgb(255,255,255)';
         if (val > max) return 'rgb(255,0,0)';
         if (val < min) return 'rgb(0,0,255)';
 
@@ -1215,6 +1219,9 @@
         this._ylabels = [];
         this._keyMap = {};
         this._maxXY = [];
+        this.stages = [];
+        this.patientStatus =[];
+        this.tissueType = [];
     };
     results.bioheatmap.parse = function(rows, writee) {
 	    var n = rows.length,
@@ -1224,7 +1231,7 @@
 		
 		// hard coded col value for now
 		var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5, tmaName=6;
-		var stageCol = 8, outcomeCol = 9;
+		var stageCol = 8, outcomeCol = 9, patientStatusCol = 10, tissueTypeCol = 11, popcureID=12;
 		this._xaxisLabel = this._header[tmaName] + " " + rows[0][tmaName];
 		
 		for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
@@ -1240,6 +1247,9 @@
 	        tooltipID = row[rowGeneID],
 	        stageID = row[stageCol],
 	        outcomeID = row[outcomeCol],
+	        patientStatusID = row[patientStatusCol],
+	        tissueTypeID = row[tissueTypeCol],
+	        popcure = row[popcureID],
 	        avg = (parseFloat(value1) + parseFloat(value2))/2;
 	        
 	        if(rawKey in this._lines){
@@ -1261,6 +1271,22 @@
 	        	this._max = valueID;
 	        if(valueID < this._min)
 	        	this._min = valueID;
+	        
+	        if(rawKey in this.stages){
+	        }else{
+	        	this.stages[rawKey] = new Array();
+	        }
+	        if(rawKey in this.patientStatus){
+	        }else{
+	        	this.patientStatus[rawKey] = new Array();
+	        }
+	        if(rawKey in this.tissueType){
+	        }else{
+	        	this.tissueType[rawKey] = new Array();
+	        }
+	        this.stages[rawKey][valueX] = stageID;
+	        this.patientStatus[rawKey][valueX] = patientStatusID;
+	        this.tissueType[rawKey][valueX] = tissueTypeID;
 	
 	        this._lines[rawKey].push({
 	        	x: valueX,
@@ -1268,14 +1294,88 @@
 	        	value: valueID,
 	        	tooltip : tooltipID,
 	        	stage : stageID,
-	        	outcome : outcomeID
+	        	outcome : outcomeID,
+	        	patientStatus : patientStatusID,
+	        	tissueType : tissueTypeID,
+	        	popcure : popcure
 	        });
 	        this._xlabels[valueX] = tooltipID;
 	        this._ylabels[avg] = stageID;
 		}
 	
     };
-   
+    results.bioheatmap._showTooltip = function(x, y, contents) {
+        var left = x - 10,
+            w = this._element.width(),
+            pw = this._plot.width();
+            diff = w - pw + this._element.offset().left;
+
+        this._tooltip
+            .html(contents)
+            .css({
+                'top': y - 6,
+                left: diff < left ? left : x + 5
+            })
+            .fadeIn(100);
+    };
+    results.bioheatmap.onMouseMove = function(event) {
+    	
+    	var a = event.layerX;
+    	var b = event.layerY;
+    	var tooltipx = event.pageX;
+    	var tooltipy = event.pageY;
+    	var rectH = 20;
+    	var rectW = 30;
+    	var gap = 1;
+    	var scale = 40;
+    	var numCat = 0;
+    	var preX = 0;
+    	var preY = 0;
+	
+    	for(var category in results.bioheatmap._lines){
+        	if(results.bioheatmap._lines.hasOwnProperty(category)){
+        		
+				
+        		for(var ind=1;ind <= preX; ind++){
+            		var x = ind * (rectW+gap) + (preX+gap)*rectW*numCat;
+            		if(a > x && a < x + rectW 
+            				&& b > (rectH+gap) && b < (rectH+gap) + rectH){
+            			var content = results.bioheatmap.stages[category][ind];
+            			results.bioheatmap._showTooltip(tooltipx,tooltipy,content);
+            			return;
+            		}else if(a > x && a < x + rectW 
+            				&& b > 2*(rectH+gap) && b < 2*(rectH+gap) + rectH){
+            			var content = results.bioheatmap.patientStatus[category][ind];
+            			results.bioheatmap._showTooltip(tooltipx,tooltipy,content);
+            			return;
+            		}else if(a > x && a < x + rectW 
+            				&& b > 3*(rectH+gap) && b < 3*(rectH+gap) + rectH){
+            			var content = results.bioheatmap.tissueType[category][ind];
+            			results.bioheatmap._showTooltip(tooltipx,tooltipy,content);
+            			return;
+            		}
+            	}
+        		for(var data in results.bioheatmap._lines[category]){
+                	if(results.bioheatmap._lines[category].hasOwnProperty(data)){
+                		var x = results.bioheatmap._lines[category][data].x * (rectW+gap) + (preX+gap)*rectW*numCat;
+                		var y = (results.bioheatmap._lines[category][data].y + 3) * (rectH+gap) ;
+                		
+                		if(a > x && a < x + rectW 
+                				&& b > y && b < y + rectH){
+                			var content = results.bioheatmap._lines[category][data].popcure+
+                				"("+results.bioheatmap._lines[category][data].value+")";
+                			results.bioheatmap._showTooltip(tooltipx,tooltipy,content);
+                			return;
+                		}
+                	}
+        		}
+        		numCat ++;
+        		preX = results.bioheatmap._maxXY[category][0];
+				preY = results.bioheatmap._maxXY[category][1] + 3;
+        	}
+    	}
+    	results.bioheatmap._tooltip.fadeOut(100);
+    };
     results.bioheatmap.draw = function(writee) {
     	if (this._hasError) return;
 
@@ -1289,7 +1389,7 @@
             return;
         }
         
-        results.bioheatmap._max = 6;
+        results.bioheatmap._max = 9;
         results.bioheatmap._min = 0;
 
         writee.find('div.heat-box').tipsy({
@@ -1297,6 +1397,28 @@
             gravity: 'w',
             opacity: .9
         });
+        //define color map used for drawing heatmap covariates
+        var colorMap = [];
+        colorMap['Tumor'] = "Red";
+        colorMap['Control'] = "Orange";
+        colorMap['Adenoma'] = "Yellow";
+        colorMap['Metastasis'] = "Grey";
+        colorMap['Tumor Edge'] = "Pink";
+        colorMap['Metastasis Edge'] = "Blue";
+        colorMap['Normal'] = "Green";
+        colorMap['I'] = this._getColor(0.2 * this._max);
+        colorMap['II'] = this._getColor(0.4 * this._max);
+        colorMap['III'] = this._getColor(0.6 * this._max);
+        colorMap['IV'] = this._getColor(0.8 * this._max);
+        colorMap['99'] = this._getColor(this._max);
+        colorMap['Dead of disease'] = "Red";
+        colorMap['Alive-No evidence of this tumour'] = "Green";
+        colorMap['Dead unknown cause'] = "Grey";
+        colorMap['Dead of other causes'] = "Brown";
+        colorMap['Alive with disease'] = "Orange";
+        colorMap['Unknown'] = "Black";
+        colorMap['Alive-Evidence of this tumour'] = "Blue";
+        colorMap['Dead - unknown cause'] = "Grey";
         // Use canvas to draw the legend
         var legend,
         	tmamap,
@@ -1332,19 +1454,20 @@
         //draw heat map
         var preX = 0;
     	var preY = 0;
-    	var rectH = 10;
+    	var maxX = 0;
+    	var maxY = 0;
+    	var rectH = 20;
     	var rectW = 30;
     	for(var category in this._lines){
         	if(this._lines.hasOwnProperty(category)){
-		        preX = this._maxXY[category][0];
-				preY = this._maxXY[category][1];
-				break;
+        		maxX += this._maxXY[category][0];
+        		maxY = this._maxXY[category][1] + 3;
         	}
     	}
         
         this._plot = tmamap;
         tmacanvas = tmacanvas.get(0);
-        x1=0; y1=0; x2=300 * this._lines.length; y2=600;
+        x1=0; y1=0; x2=300 * this._lines.length; y2=700;
         tmacanvas.width = x2;
         tmacanvas.height = y2;
         this._element.css('width', x2 + 'px');
@@ -1363,17 +1486,31 @@
     	var numCat = 0;
     	var shift = 15;
     	var labelX = [];
-    	var labelY = [];
+    	var labelY = ["","Stage","Patient status", "Tissue type"];
     	var context = tmacanvas.getContext('2d');
         for(var category in this._lines){
         	if(this._lines.hasOwnProperty(category)){
+        		
+        		 //draw stage, patient status and tissue type chart on top
+                for(var i=1;i <= preX; i++){
+                	var style = colorMap[this.stages[category][i]];
+             		context.fillStyle = style;
+        			context.fillRect(i*(rectW+gap) + (preX+gap)*rectW*numCat,rectH+gap,rectW,rectH);
+        			style = colorMap[this.patientStatus[category][i]];
+        			context.fillStyle = style;
+        			context.fillRect(i*(rectW+gap) + (preX+gap)*rectW*numCat,2*(rectH+gap),rectW,rectH);
+        			style = colorMap[this.tissueType[category][i]];
+        			context.fillStyle = style;
+        			context.fillRect(i*(rectW+gap) + (preX+gap)*rectW*numCat,3*(rectH+gap),rectW,rectH);
+        			context.fill();
+                }
         		for(var data in this._lines[category]){
                 	if(this._lines[category].hasOwnProperty(data)){
-            			var x = this._lines[category][data].x * (rectW+gap) + (preX+gap)*rectW*numCat;
-            			var y = this._lines[category][data].y * (rectH+gap) ;
+                		var x = this._lines[category][data].x * (rectW+gap) + (preX+gap)*rectW*numCat;
+                		var y = (this._lines[category][data].y + 3) * (rectH+gap) ;
             			labelX[this._lines[category][data].x] = this._lines[category][data].tooltip;
-            			labelY[this._lines[category][data].y] = this._lines[category][data].outcome;
-            			var value = this._lines[category][data].value;
+            			labelY[this._lines[category][data].y+3] = this._lines[category][data].outcome;
+            			value = this._lines[category][data].value;
             			// draw the heatmap rect            			
             			context.fillStyle = this._getColor(value);
             			context.fillRect(x,y,rectW,rectH);
@@ -1381,25 +1518,26 @@
                 	}
         		}
         		numCat ++;
-        		break;
+        		preX = this._maxXY[category][0];
+				preY = this._maxXY[category][1] + 3;
         	}
         }
     
         //draw x and y labels
         context.font = "10px sans-serif";
         context.textBaseline = "top";
-        context.fillStyle = this._getColor((this._max+this.min)/2);
-        for(var i=1;i <= preY; i++){
-        	context.fillText(labelY[i], (preX+1)*(rectW+gap) , i*(rectH+gap));
+        context.fillStyle = "Orange";
+        for(var i=1;i <= maxY; i++){
+        	context.fillText(labelY[i], (maxX+1)*(rectW+gap) , i*(rectH+gap));
         }
-        for(var i=1;i <= preX; i++){
+        for(var i=1;i <= maxX; i++){
         	context.save();
-        	context.translate(i*(rectW+gap)+ rectW/2, (preY+1)*(rectH+gap));
+        	context.translate(i*(rectW+gap)+ rectW/2, (maxY+1)*(rectH+gap));
             context.rotate(Math.PI/2);
         	context.fillText(labelX[i], 0, 0);
         	context.restore();
         }
-        
+
         
         legend = $('<div class="heat-legend"/>')
             .append(canvas)
