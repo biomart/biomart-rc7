@@ -1491,21 +1491,19 @@
         for(var category in this._lines){
         	if(this._lines.hasOwnProperty(category)){
         		
-        		 //draw stage, patient status and tissue type chart on top
-                for(var i=1;i <= preX; i++){
-                	var style = colorMap[this.stages[category][i]];
-             		context.fillStyle = style;
-        			context.fillRect(i*(rectW+gap) + (preX+gap)*rectW*numCat,rectH+gap,rectW,rectH);
-        			style = colorMap[this.patientStatus[category][i]];
-        			context.fillStyle = style;
-        			context.fillRect(i*(rectW+gap) + (preX+gap)*rectW*numCat,2*(rectH+gap),rectW,rectH);
-        			style = colorMap[this.tissueType[category][i]];
-        			context.fillStyle = style;
-        			context.fillRect(i*(rectW+gap) + (preX+gap)*rectW*numCat,3*(rectH+gap),rectW,rectH);
-        			context.fill();
-                }
         		for(var data in this._lines[category]){
                 	if(this._lines[category].hasOwnProperty(data)){
+                		//draw stage, patient status and tissue type chart on top
+                		var style = colorMap[this.stages[category][this._lines[category][data].x]];
+                 		context.fillStyle = style;
+            			context.fillRect(this._lines[category][data].x*(rectW+gap) + (preX+gap)*rectW*numCat,this._lines[category][data].y * (rectH+gap),rectW,rectH);
+            			style = colorMap[this.patientStatus[category][this._lines[category][data].x]];
+            			context.fillStyle = style;
+            			context.fillRect(this._lines[category][data].x*(rectW+gap) + (preX+gap)*rectW*numCat,(this._lines[category][data].y + 1) * (rectH+gap),rectW,rectH);
+            			style = colorMap[this.tissueType[category][this._lines[category][data].x]];
+            			context.fillStyle = style;
+            			context.fillRect(this._lines[category][data].x*(rectW+gap) + (preX+gap)*rectW*numCat,(this._lines[category][data].y + 2) * (rectH+gap),rectW,rectH);
+            			
                 		var x = this._lines[category][data].x * (rectW+gap) + (preX+gap)*rectW*numCat;
                 		var y = (this._lines[category][data].y + 3) * (rectH+gap) ;
             			labelX[this._lines[category][data].x] = this._lines[category][data].tooltip;
