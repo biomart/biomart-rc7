@@ -1231,7 +1231,7 @@
 		
 		// hard coded col value for now
 		var rowCancerType = 0, rowValue1 = 1, rowValue2 = 2, rowX = 3, rowID = 4, rowGeneID = 5, tmaName=6;
-		var stageCol = 8, outcomeCol = 9, patientStatusCol = 10, tissueTypeCol = 11, popcureID=12;
+		var stageCol = 8, outcomeCol = 9, patientStatusCol = 10, tissueTypeCol = 11, popcureCol=12;
 		this._xaxisLabel = this._header[tmaName] + " " + rows[0][tmaName];
 		
 		for (var i=0, row, rawKey, cleanedKey, index, n=rows.length; i<n; i++) {
@@ -1249,7 +1249,7 @@
 	        outcomeID = row[outcomeCol],
 	        patientStatusID = row[patientStatusCol],
 	        tissueTypeID = row[tissueTypeCol],
-	        popcure = row[popcureID],
+	        popcureID = row[popcureCol],
 	        avg = (parseFloat(value1) + parseFloat(value2))/2;
 	        
 	        if(rawKey in this._lines){
@@ -1297,7 +1297,7 @@
 	        	outcome : outcomeID,
 	        	patientStatus : patientStatusID,
 	        	tissueType : tissueTypeID,
-	        	popcure : popcure
+	        	popcure : popcureID
 	        });
 	        this._xlabels[valueX] = tooltipID;
 	        this._ylabels[avg] = stageID;
@@ -1335,7 +1335,7 @@
     	for(var category in results.bioheatmap._lines){
         	if(results.bioheatmap._lines.hasOwnProperty(category)){
         		
-				
+				/*
         		for(var ind=1;ind <= preX; ind++){
             		var x = ind * (rectW+gap) + (preX+gap)*rectW*numCat;
             		if(a > x && a < x + rectW 
@@ -1354,12 +1354,33 @@
             			results.bioheatmap._showTooltip(tooltipx,tooltipy,content);
             			return;
             		}
-            	}
+            	}*/
         		for(var data in results.bioheatmap._lines[category]){
                 	if(results.bioheatmap._lines[category].hasOwnProperty(data)){
                 		var x = results.bioheatmap._lines[category][data].x * (rectW+gap) + (preX+gap)*rectW*numCat;
                 		var y = (results.bioheatmap._lines[category][data].y + 3) * (rectH+gap) ;
+                		var stageY =  1 * (rectH+gap) ;
+                		var patientStatusY =  2 * (rectH+gap) ;
+                		var tissueTypeY = 3 * (rectH+gap) ;
                 		
+                		if(a > x && a < x + rectW 
+                				&& b > stageY && b < stageY + rectH){
+                			var content = results.bioheatmap._lines[category][data].stage;
+                			results.bioheatmap._showTooltip(tooltipx,tooltipy,content);
+                			return;
+                		}
+                		if(a > x && a < x + rectW 
+                				&& b > patientStatusY && b < patientStatusY + rectH){
+                			var content = results.bioheatmap._lines[category][data].patientStatus;
+                			results.bioheatmap._showTooltip(tooltipx,tooltipy,content);
+                			return;
+                		}
+                		if(a > x && a < x + rectW 
+                				&& b > tissueTypeY && b < tissueTypeY + rectH){
+                			var content = results.bioheatmap._lines[category][data].tissueType;
+                			results.bioheatmap._showTooltip(tooltipx,tooltipy,content);
+                			return;
+                		}
                 		if(a > x && a < x + rectW 
                 				&& b > y && b < y + rectH){
                 			var content = results.bioheatmap._lines[category][data].popcure+
@@ -1494,15 +1515,15 @@
         		for(var data in this._lines[category]){
                 	if(this._lines[category].hasOwnProperty(data)){
                 		//draw stage, patient status and tissue type chart on top
-                		var style = colorMap[this.stages[category][this._lines[category][data].x]];
+                		var style = colorMap[this._lines[category][data].stage];
                  		context.fillStyle = style;
-            			context.fillRect(this._lines[category][data].x*(rectW+gap) + (preX+gap)*rectW*numCat,this._lines[category][data].y * (rectH+gap),rectW,rectH);
-            			style = colorMap[this.patientStatus[category][this._lines[category][data].x]];
+            			context.fillRect(this._lines[category][data].x*(rectW+gap) + (preX+gap)*rectW*numCat,1 * (rectH+gap),rectW,rectH);
+            			style = colorMap[this._lines[category][data].patientStatus];
             			context.fillStyle = style;
-            			context.fillRect(this._lines[category][data].x*(rectW+gap) + (preX+gap)*rectW*numCat,(this._lines[category][data].y + 1) * (rectH+gap),rectW,rectH);
-            			style = colorMap[this.tissueType[category][this._lines[category][data].x]];
+            			context.fillRect(this._lines[category][data].x*(rectW+gap) + (preX+gap)*rectW*numCat,2 * (rectH+gap),rectW,rectH);
+            			style = colorMap[this._lines[category][data].tissueType];
             			context.fillStyle = style;
-            			context.fillRect(this._lines[category][data].x*(rectW+gap) + (preX+gap)*rectW*numCat,(this._lines[category][data].y + 2) * (rectH+gap),rectW,rectH);
+            			context.fillRect(this._lines[category][data].x*(rectW+gap) + (preX+gap)*rectW*numCat,3 * (rectH+gap),rectW,rectH);
             			
                 		var x = this._lines[category][data].x * (rectW+gap) + (preX+gap)*rectW*numCat;
                 		var y = (this._lines[category][data].y + 3) * (rectH+gap) ;

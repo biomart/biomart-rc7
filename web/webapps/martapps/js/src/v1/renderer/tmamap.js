@@ -298,7 +298,9 @@
             			context.arc(x,y,drawRadius, 0, Math.PI*2,true);
             			context.closePath();
             			
-            			context.fill();
+            			if(!isNaN(value)){
+            				context.fill();
+            			}
             			context.stroke();
 	            		
             			// draw value
@@ -307,6 +309,14 @@
             			context.textBaseline = "middle";
             			if(!isNaN(value)){
             				context.fillText(value,x-radius/4,y);
+            			}else{
+            				//draw red cross within the circle
+            				drawRadius = drawRadius / Math.sqrt(2);
+            				context.moveTo(x-drawRadius,y-drawRadius);
+            				context.lineTo(x+drawRadius,y+drawRadius);
+            				context.moveTo(x-drawRadius,y+drawRadius);
+            				context.lineTo(x+drawRadius,y-drawRadius);
+            				context.stroke();
             			}
                 	}
         		}
