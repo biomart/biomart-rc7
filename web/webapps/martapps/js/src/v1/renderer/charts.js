@@ -1363,8 +1363,7 @@
                 		}
                 		if(a > x && a < x + rectW 
                 				&& b > y && b < y + rectH){
-                			var content = results.bioheatmap._lines[category][data].popcure+
-                				"("+results.bioheatmap._lines[category][data].value+")";
+                			var content = results.bioheatmap._lines[category][data].value;
                 			results.bioheatmap._showTooltip(tooltipx,tooltipy,content);
                 			return;
                 		}
