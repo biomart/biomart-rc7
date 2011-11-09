@@ -1335,26 +1335,6 @@
     	for(var category in results.bioheatmap._lines){
         	if(results.bioheatmap._lines.hasOwnProperty(category)){
         		
-				/*
-        		for(var ind=1;ind <= preX; ind++){
-            		var x = ind * (rectW+gap) + (preX+gap)*rectW*numCat;
-            		if(a > x && a < x + rectW 
-            				&& b > (rectH+gap) && b < (rectH+gap) + rectH){
-            			var content = results.bioheatmap.stages[category][ind];
-            			results.bioheatmap._showTooltip(tooltipx,tooltipy,content);
-            			return;
-            		}else if(a > x && a < x + rectW 
-            				&& b > 2*(rectH+gap) && b < 2*(rectH+gap) + rectH){
-            			var content = results.bioheatmap.patientStatus[category][ind];
-            			results.bioheatmap._showTooltip(tooltipx,tooltipy,content);
-            			return;
-            		}else if(a > x && a < x + rectW 
-            				&& b > 3*(rectH+gap) && b < 3*(rectH+gap) + rectH){
-            			var content = results.bioheatmap.tissueType[category][ind];
-            			results.bioheatmap._showTooltip(tooltipx,tooltipy,content);
-            			return;
-            		}
-            	}*/
         		for(var data in results.bioheatmap._lines[category]){
                 	if(results.bioheatmap._lines[category].hasOwnProperty(data)){
                 		var x = results.bioheatmap._lines[category][data].x * (rectW+gap) + (preX+gap)*rectW*numCat;
@@ -1544,18 +1524,36 @@
     
         //draw x and y labels
         context.font = "10px sans-serif";
-        context.textBaseline = "top";
-        context.fillStyle = "Orange";
+        context.textBaseline = "middle";
+        context.fillStyle = "Black";
+        
         for(var i=1;i <= maxY; i++){
-        	context.fillText(labelY[i], (maxX+1)*(rectW+gap) , i*(rectH+gap));
+        	context.fillText(labelY[i], maxX*(rectW+gap)+ gap*rectW*numCat , (i+0.5)*(rectH+gap));
         }
+        numCat = 0;
+        for(var category in this._lines){
+        	if(this._lines.hasOwnProperty(category)){
+        		var curX = this._maxXY[category][0];
+        		for(var i=1; i <= curX; i++){
+        			context.save();
+                	context.translate(i*(rectW+gap)+ rectW/2 + (preX+gap)*rectW*numCat, (maxY+1)*(rectH+gap));
+                    context.rotate(Math.PI/2);
+                	context.fillText(this._lines[category][i-1].tooltip, 0, 0);
+                	context.restore();
+        		}
+        		preX = curX;
+        		numCat ++;
+        		
+        	}
+        }
+        /*
         for(var i=1;i <= maxX; i++){
         	context.save();
         	context.translate(i*(rectW+gap)+ rectW/2, (maxY+1)*(rectH+gap));
             context.rotate(Math.PI/2);
         	context.fillText(labelX[i], 0, 0);
         	context.restore();
-        }
+        }*/
 
         
         legend = $('<div class="heat-legend"/>')
