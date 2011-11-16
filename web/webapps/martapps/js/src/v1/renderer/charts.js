@@ -1337,7 +1337,7 @@
         		
         		for(var data in results.bioheatmap._lines[category]){
                 	if(results.bioheatmap._lines[category].hasOwnProperty(data)){
-                		var x = results.bioheatmap._lines[category][data].x * (rectW+gap) + (preX+gap)*rectW*numCat;
+                		var x = results.bioheatmap._lines[category][data].x * (rectW+gap) + (preX+gap)*rectW*numCat  - rectW-gap;
                 		var y = (results.bioheatmap._lines[category][data].y + 3) * (rectH+gap) ;
                 		var stageY =  1 * (rectH+gap) ;
                 		var patientStatusY =  2 * (rectH+gap) ;
@@ -1446,7 +1446,7 @@
                 $(this).children('span.value').fadeOut(300);
             });
 
-        tmamap = $('<div class="tmamap"/>')
+        tmamap = $('<div class="bioheatmap"/>')
         	.append(tmacanvas)
         	.disableSelection()
         	.appendTo(writee);
@@ -1467,7 +1467,7 @@
         
         this._plot = tmamap;
         tmacanvas = tmacanvas.get(0);
-        x1=0; y1=0; x2=300 * this._lines.length; y2=700;
+        x1=0; y1=0; x2=300 * this._lines.length; y2=500;
         tmacanvas.width = x2;
         tmacanvas.height = y2;
         this._element.css('width', x2 + 'px');
@@ -1496,15 +1496,18 @@
                 		//draw stage, patient status and tissue type chart on top
                 		var style = colorMap[this._lines[category][data].stage];
                  		context.fillStyle = style;
-            			context.fillRect(this._lines[category][data].x*(rectW+gap) + (preX+gap)*rectW*numCat,1 * (rectH+gap),rectW,rectH);
+            			context.fillRect(this._lines[category][data].x*(rectW+gap) + (preX+gap)*rectW*numCat - rectW-gap,
+            					1 * (rectH+gap),rectW,rectH);
             			style = colorMap[this._lines[category][data].patientStatus];
             			context.fillStyle = style;
-            			context.fillRect(this._lines[category][data].x*(rectW+gap) + (preX+gap)*rectW*numCat,2 * (rectH+gap),rectW,rectH);
+            			context.fillRect(this._lines[category][data].x*(rectW+gap) + (preX+gap)*rectW*numCat - rectW-gap,
+            					2 * (rectH+gap),rectW,rectH);
             			style = colorMap[this._lines[category][data].tissueType];
             			context.fillStyle = style;
-            			context.fillRect(this._lines[category][data].x*(rectW+gap) + (preX+gap)*rectW*numCat,3 * (rectH+gap),rectW,rectH);
+            			context.fillRect(this._lines[category][data].x*(rectW+gap) + (preX+gap)*rectW*numCat - rectW-gap,
+            					3 * (rectH+gap),rectW,rectH);
             			
-                		var x = this._lines[category][data].x * (rectW+gap) + (preX+gap)*rectW*numCat;
+                		var x = this._lines[category][data].x * (rectW+gap) + (preX+gap)*rectW*numCat - rectW-gap;
                 		var y = (this._lines[category][data].y + 3) * (rectH+gap) ;
             			labelX[this._lines[category][data].x] = this._lines[category][data].tooltip;
             			labelY[this._lines[category][data].y+3] = this._lines[category][data].outcome;
@@ -1527,7 +1530,7 @@
         context.fillStyle = "Black";
         
         for(var i=1;i <= maxY; i++){
-        	context.fillText(labelY[i], maxX*(rectW+gap)+ gap*rectW*numCat , (i+0.5)*(rectH+gap));
+        	context.fillText(labelY[i], maxX*(rectW+gap)+ gap*rectW*(numCat-1)  - rectW-gap, (i+0.5)*(rectH+gap));
         }
         numCat = 0;
         for(var category in this._lines){
@@ -1535,7 +1538,7 @@
         		var curX = this._maxXY[category][0];
         		for(var i=1; i <= curX; i++){
         			context.save();
-                	context.translate(i*(rectW+gap)+ rectW/2 + (preX+gap)*rectW*numCat, (maxY+1)*(rectH+gap));
+                	context.translate(i*(rectW+gap)+ rectW/2 + (preX+gap)*rectW*numCat  - rectW-gap, (maxY+1)*(rectH+gap));
                     context.rotate(Math.PI/2);
                 	context.fillText(this._lines[category][i-1].tooltip, 0, 0);
                 	context.restore();
