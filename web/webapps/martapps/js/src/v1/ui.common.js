@@ -943,6 +943,30 @@ $.widget('ui.resultsPanel', {
                 self._exportForm.submit();
                 return false;
             });
+        // Support for Galaxy export function
+        self._galaxy = element.find('.galaxy')
+            .hide()
+            .bind('click', function() {
+                var url = self._galaxyUrl;
+                if (url) {
+                    var $form = $('<form style="height: 1; visibility: hidden" action="' + url + '">').appendTo(document.body);
+                    // Replace invalid Galaxy name character
+                    var title = self._title.replace('&raquo;', '-');
+                    $.cookie('GALAXY_URL', null, { path: '/' });
+                    $form
+                        .append( $('<input type="hidden" name="URL" value="' + location.protocol + '//' + location.host + BIOMART_CONFIG.service.url + 'results/?query=' + 
+                                encodeURIComponent(self._downloadXml) + '"/>') )
+                        .append( $('<input type="hidden" name="name" value="' + title + '"/>') )
+                        .append( $('<input type="hidden" name="type" value="text"/>') )
+                        .submit();
+                } else {
+                    alert('Galaxy URL not found. Try restarting again from the Galaxy server.');
+                }
+                return false;
+            });
+        if (self._galaxyUrl = $.cookie('GALAXY_URL')) {
+            self._galaxy.show();
+        }
         self._explain = element
             .delegate('.explain', 'click.resultsPanel', function() {
                 self._xmlViewer
@@ -1053,6 +1077,7 @@ $.widget('ui.resultsPanel', {
 
     run: function(title, options) {
         var self = this;
+        self._title = title;
         self._content.removeClass('hidden');
         self._wrapper.addClass('wide', 50, function() {
             self._content

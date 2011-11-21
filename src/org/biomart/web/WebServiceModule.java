@@ -9,6 +9,7 @@ import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 import java.util.HashMap;
 import java.util.Map;
 import org.biomart.api.factory.XmlMartRegistryModule;
+import org.biomart.oauth.provider.servlets.GalaxyEndpointServlet;
 import org.biomart.processors.ProcessorModule;
 import org.mortbay.servlet.GzipFilter;
 
@@ -23,6 +24,8 @@ public class WebServiceModule extends ServletModule {
         install(new ProcessorModule());
 
         bind(GzipFilter.class).in(Scopes.SINGLETON);
+
+        bind(GalaxyEndpointServlet.class).in(Scopes.SINGLETON);
 
         filter("*").through(AuthFilter.class);
         filter("*").through(FlashMessageFilter.class);
@@ -44,6 +47,8 @@ public class WebServiceModule extends ServletModule {
 
         initParams.put(ResourceConfig.PROPERTY_CONTAINER_RESPONSE_FILTERS, JSONCallbackResponseFilter.class.getName());
         initParams.put(PackagesResourceConfig.PROPERTY_PACKAGES, "org.biomart.api;org.codehaus.jackson.jaxrs");
+
+        serve("/galaxy").with(GalaxyEndpointServlet.class);
 
         filter("/martservice/*", "/biomart/*", "/martsemantics/*").through(GuiceContainer.class, initParams);
     }
