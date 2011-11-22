@@ -1,5 +1,6 @@
 <%@ page language="java"%>
 <%@ page session="false" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> 
 <%@ taglib uri="/WEB-INF/bmtaglib.tld" prefix="bm" %>
 <div id="biomart-results">
   <div class="content hidden">
@@ -33,14 +34,12 @@
           <bm:message code="download data" capitalize="true"/>
         </span>
       </a>
-      <c:if test="${cookie.GALAXY_URL.value}">
-        <a href="#" class="galaxy">
-          <span class="wrapper">
-            <span class="ui-icon ui-icon-transferthick-e-w"></span>
-            <bm:message code="export to Galaxy" capitalize="true"/>
-          </span>
-        </a>
-      </c:if>
+      <a href="#" class="galaxy">
+        <span class="wrapper">
+          <span class="ui-icon ui-icon-transferthick-e-w"></span>
+          <bm:message code="export to Galaxy" capitalize="true"/>
+        </span>
+      </a>
       <a href="#" class="blue large awesome edit" title="<bm:message code="go back to search options" capitalize="true"/>">
         <span class="wrapper">
           <span class="ui-icon ui-icon-arrowreturnthick-1-w"></span>
