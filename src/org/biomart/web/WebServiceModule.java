@@ -9,7 +9,7 @@ import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 import java.util.HashMap;
 import java.util.Map;
 import org.biomart.api.factory.XmlMartRegistryModule;
-import org.biomart.oauth.provider.servlets.GalaxyEndpointServlet;
+import org.biomart.galaxy.GalaxyEndpointServlet;
 import org.biomart.processors.ProcessorModule;
 import org.mortbay.servlet.GzipFilter;
 

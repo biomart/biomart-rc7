@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.biomart.oauth.provider.servlets;
+package org.biomart.galaxy;
 
 import java.io.IOException;
 
@@ -43,9 +43,6 @@ public class GalaxyEndpointServlet extends HttpServlet {
 
         if (url != null) {
             Cookie c = new Cookie("GALAXY_URL", url);
-            // Up to one hour
-            c.setMaxAge(3600);
-            c.setDomain(((ServletRequest)request).getServerName());
             c.setPath("/");
             response.addCookie(c);
         }
