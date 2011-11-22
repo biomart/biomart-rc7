@@ -730,6 +730,10 @@ iframe.streaming {
     margin: 10px 0 5px;
     float: right;
 }
+#biomart-count-estimate {
+  color: #333;
+}
+#biomart-count-estimate,
 #biomart-results .actions a {
     font-size: 12px;
     margin-left: 10px;
