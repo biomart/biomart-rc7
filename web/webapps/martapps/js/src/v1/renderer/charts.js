@@ -1035,13 +1035,6 @@
             rawKey = row[rowCancerType],
             cleanedKey = typeof rawKey == 'string' ? biomart.stripHtml(rawKey) : rawKey;
             
-            /*this._lines.push({
-                key: cleanedKey,
-                raw: rawKey,
-                values: [],
-                totals: []
-            });*/
-            
             index = this._lines.length - 1;
            
             var value1 = row[rowValue1],
@@ -1053,11 +1046,23 @@
             var avg = (parseFloat(value1) + parseFloat(value2))/2;
             
             if(rawKey in this._lines){
-            	
+            	if(valueX in this._lines[rawKey]){
+            		
+            	}else{
+            		this._lines[rawKey][valueX] = {
+                			Group : [],
+                			boxValue : []
+                	};
+            	}
             }else{
-            	this._lines[rawKey] = [];
+            	this._lines[rawKey] = new Array();
+            	this._lines[rawKey][valueX] = {
+            			Group : [],
+            			boxValue : []
+            	};
             }
-            this._lines[rawKey].push( [parseInt(valueX) , avg , valueID] );
+
+            this._lines[rawKey][valueX].Group.push([avg, valueID]);
         }
 	
     };
@@ -1113,37 +1118,78 @@
 		this._element.css('height', ( 200 + 155) + 'px');
 		
         var chartLines = [];
-        for (var key in this._lines) {
-        	if(this._lines.hasOwnProperty(key)){
-	        	chartLines.push({
-	        		data : this._lines[key],
-	        		label : key
-	        	});
-        	}
-            //if (!chartLines[j]) chartLines[j] = { data: [] , label:''};
-            //chartLines[0].data[j] = line.values;
-            //chartLines[0].label = line.rawKey;
-        }
-        
-        this._plot = $.plot(this._element, chartLines, {
-            series: {
-            	stack: true,
-                bars: { show: true }
-            },
-            xaxis: {},
-            yaxis: {},
-            grid: {
-                clickable: true,
-                hoverable: true,
-                autoHighlight: true
-            },
-            legend: {
-                margin: [5, 5],
-                backgroundOpacity: .6,
-                  show: true,
-                position: 'ne'
-            }
-        });
+		var xTicks = [];
+		var isDigit = false;
+		for( var key in this._lines){
+			if(this._lines.hasOwnProperty(key)){
+				var chartLine = {
+		        		data : [],
+		        		label : key
+		        };
+				var index = 0;
+				for(var xkey in this._lines[key]){
+					if(this._lines[key].hasOwnProperty(xkey)){
+						var y=parseInt(xkey);
+						isDigit = !isNaN(y);
+						if (isNaN(y)){
+							index ++;
+							for(var i = 0; i<this._lines[key][xkey].Group.length; i++){
+								chartLine.data.push([index, this._lines[key][xkey].Group[i][0],this._lines[key][xkey].Group[i][1]]);
+							}
+							xTicks.push([index,xkey]);
+						} else{
+							for(var i = 0; i<this._lines[key][xkey].Group.length; i++){
+								chartLine.data.push([y, this._lines[key][xkey].Group[i][0],this._lines[key][xkey].Group[i][1]]);
+							}
+						}
+					}
+				}
+    			chartLines.push(chartLine);
+			}
+		}
+		if(isDigit){
+			this._plot = $.plot(this._element, chartLines, {
+	            series: {
+	            	stack: 0,
+	                lines: {show: false, steps: false },
+	                bars: {show: true, barWidth: 0.5, align: 'center'}
+	            },
+	            xaxis: {},
+	            yaxis: {},
+	            grid: {
+	                clickable: true,
+	                hoverable: true,
+	                autoHighlight: true
+	            },
+	            legend: {
+	                margin: [5, 5],
+	                backgroundOpacity: .6,
+	                  show: true,
+	                position: 'ne'
+	            }
+	        });
+		}else {
+	        this._plot = $.plot(this._element, chartLines, {
+	            series: {
+	            	stack: 0,
+	                lines: {show: false, steps: false },
+	                bars: {show: true, barWidth: 0.5, align: 'center'}
+	            },
+	            xaxis: {min: 0, max: index+2 , ticks: xTicks},
+	            yaxis: {},
+	            grid: {
+	                clickable: true,
+	                hoverable: true,
+	                autoHighlight: true
+	            },
+	            legend: {
+	                margin: [5, 5],
+	                backgroundOpacity: .6,
+	                  show: true,
+	                position: 'ne'
+	            }
+	        });
+		}
         
         //var series = this._plot.getData();
         
