@@ -1120,23 +1120,30 @@
         var chartLines = [];
 		var xTicks = [];
 		var isDigit = false;
+		var categories = [];
+		var index = 0;
 		for( var key in this._lines){
 			if(this._lines.hasOwnProperty(key)){
 				var chartLine = {
 		        		data : [],
 		        		label : key
 		        };
-				var index = 0;
+				
 				for(var xkey in this._lines[key]){
 					if(this._lines[key].hasOwnProperty(xkey)){
 						var y=parseInt(xkey);
 						isDigit = !isNaN(y);
 						if (isNaN(y)){
-							index ++;
-							for(var i = 0; i<this._lines[key][xkey].Group.length; i++){
-								chartLine.data.push([index, this._lines[key][xkey].Group[i][0],this._lines[key][xkey].Group[i][1]]);
+							if(xkey in categories){
+								
+							}else{
+								index ++;
+								categories[xkey] = index;
 							}
-							xTicks.push([index,xkey]);
+							for(var i = 0; i<this._lines[key][xkey].Group.length; i++){
+								chartLine.data.push([categories[xkey], this._lines[key][xkey].Group[i][0],this._lines[key][xkey].Group[i][1]]);
+							}
+							xTicks.push([categories[xkey],xkey]);
 						} else{
 							for(var i = 0; i<this._lines[key][xkey].Group.length; i++){
 								chartLine.data.push([y, this._lines[key][xkey].Group[i][0],this._lines[key][xkey].Group[i][1]]);
