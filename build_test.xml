@@ -77,7 +77,7 @@
       <test name="org.biomart.api.PortalTest" outfile="${testoutput.dir}/TEST-PortalTest"/>
       <test name="org.biomart.api.QueryTest" outfile="${testoutput.dir}/TEST-QueryTest"/>
       <test name="org.biomart.api.MartApiTest" outfile="${testoutput.dir}/TEST-MartApiTest"/>
-      <test name="org.biomart.api.SourceSchemaApiTest" outfile="${testoutput.dir}/TEST-SourceSchemaApiTest"/>
+      <!--<test name="org.biomart.api.SourceSchemaApiTest" outfile="${testoutput.dir}/TEST-SourceSchemaApiTest"/>-->
       <test name="org.biomart.api.rest.PortalResourceTest" outfile="${testoutput.dir}/TEST-PortalResourceTest"/>
       <!--<test name="org.biomart.api.rest.RestApplicationSPARQLTest" outfile="${testoutput.dir}/TEST-RestApplicationSPARQLTest"/>-->
     </junit>
