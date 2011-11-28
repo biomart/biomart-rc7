@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <JSChart>
     <dataset type="pie">
-        <data unit="Blood" value="192"/>
+        <data unit="Blood" value="298"/>
         <data unit="Brain" value="566"/>
         <data unit="Breast" value="430"/>
         <data unit="Colon" value="244"/>
