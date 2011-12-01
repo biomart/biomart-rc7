@@ -11,6 +11,16 @@
 <%-- Common libraries --%>
 <jwr:script src="/lib.js"/>
 
+<% if (Boolean.getBoolean("canvasExpress.include")) { %>
+<script src="${siteUrl}js/lib/canvasExpress/canvasXpress.min.js"></script>
+<script src="${siteUrl}js/lib/canvasExpress/ext-base.js"></script>
+<script src="${siteUrl}js/lib/canvasExpress/ext-all-debug.js"></script>
+<script src="${siteUrl}js/lib/canvasExpress/color-field.js"></script>
+<script src="${siteUrl}js/lib/canvasExpress/ext-canvasXpress.js"></script>
+<script src="${siteUrl}js/lib/canvasExpress/datadumper.min.js"></script>
+<script src="${siteUrl}js/lib/canvasExpress/sprintf.min.js"></script>
+<% } %>
+
 <c:choose>
 	<c:when test="${param.version eq '2'}">
     <jwr:script src="/lib_v2.js"/>
