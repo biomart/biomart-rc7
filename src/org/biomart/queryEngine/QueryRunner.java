@@ -3,6 +3,7 @@ package org.biomart.queryEngine;
 import org.biomart.common.exceptions.BioMartQueryException;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.io.EOFException;
 import java.io.IOException;
 import java.sql.DriverManager;
@@ -18,7 +19,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.biomart.common.constants.OutputConstants;
@@ -54,13 +58,21 @@ public final class QueryRunner implements OutputConstants {
     private int numRowsRemaining = -1;
 
     boolean isDone = false;
+    protected static final ScheduledThreadPoolExecutor executor;
 
-    private static final CompletionService<Boolean> COMP_SERVICE = new ExecutorCompletionService<Boolean>(
-                new ThreadPoolExecutor(20, 40, 120L, TimeUnit.SECONDS,
-                    new ArrayBlockingQueue<Runnable>(100),
-                    new ThreadPoolExecutor.DiscardPolicy()
-                )
-            );
+	static {
+		int poolSize = 100;
+
+		ThreadFactory tf = new ThreadFactoryBuilder()
+			.setDaemon(false)
+			.setNameFormat("Job-%d")
+			.setThreadFactory(Executors.defaultThreadFactory())
+			.build();
+
+		executor = new ScheduledThreadPoolExecutor(poolSize, tf, new ThreadPoolExecutor.AbortPolicy());
+	}
+
+    protected static final CompletionService<Boolean> COMP_SERVICE = new ExecutorCompletionService<Boolean>(executor);
 
     private boolean hasError = false; // this will be true when one ore more queries fail
 	private final boolean isCountQuery;

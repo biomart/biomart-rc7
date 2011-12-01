@@ -16,7 +16,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,6 +23,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.commons.lang.StringUtils;
@@ -729,10 +729,37 @@ public final class SubQuery {
      * @throws TechnicalException
      */
     public void executeQuery(int qposition) throws IOException, SQLException, TechnicalException {
+        // Kill count queries after 10 seconds if it hasn't returned results yet
+        if (isCountQuery) {
+            Runnable cleanUp = new Runnable() {
+                public void run() {
+                    try {
+                        if (!isClosed && SubQuery.this.isDatabase()) {
+                            Log.debug("Killing count query");
+                            SubQuery.this.closeDBConnection();
+                        }
+                    } catch (Exception e) {
+                        throw new BioMartException(e);
+                    }
+                }
+            };
+
+            QueryRunner.executor.schedule(cleanUp, 5, TimeUnit.SECONDS);
+        }
+
 		// reinitialise the resultsTable
 		this.resultTable = new ArrayList<ArrayList<String>>();
 		if (this.isDatabase()) {
-			executeDatabaseQuery();
+            try {
+                executeDatabaseQuery();
+            // suppress SQL Exception if count query (To make timeouts work)
+            } catch (SQLException e) {
+                if (!isCountQuery) {
+                    throw e;
+                } else {
+                    throw new BioMartException("Count query took too long");
+                }
+            }
 		} else {
 			executeMartServiceQuery();
 		}
@@ -873,22 +900,26 @@ public final class SubQuery {
 		}
 	}
 
+    private boolean isClosed = false;
+
     /**
      *
      * @throws SQLException
      * @throws IOException
      */
     public void closeDBConnection() throws SQLException, IOException {
-		if (this.isDatabase()) {
-			try {
-				for (int i = 0; i < this.connection.size(); i++) {
-					if (this.connection.get(i) != null)
-						this.connection.get(i).close();
-				}
-			} catch (SQLException ex) {
-				Logger.getLogger(SubQuery.class.getName()).log(Level.SEVERE,
-						null, ex);
-			}
+		if (!isClosed && this.isDatabase()) {
+            try {
+                    for (int i = 0; i < this.connection.size(); i++) {
+                        if (this.connection.get(i) != null)
+                            this.connection.get(i).close();
+                    }
+            } catch (SQLException ex) {
+                Logger.getLogger(SubQuery.class.getName()).log(Level.SEVERE,
+                        null, ex);
+            } finally {
+                isClosed = true;
+            }
 		}
 	}
 
