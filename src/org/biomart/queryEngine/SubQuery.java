@@ -737,7 +737,10 @@ public final class SubQuery {
                         if (!isClosed && SubQuery.this.isDatabase()) {
                             Log.debug("Killing count query");
                             SubQuery.this.closeDBConnection();
+                        } else if (!isClosed) {
+                            SubQuery.this.resultSetURL.close();
                         }
+                        isClosed = true;
                     } catch (Exception e) {
                         throw new BioMartException(e);
                     }
