@@ -173,6 +173,20 @@ public class Main {
 		System.out.println("Starting server");
 		server.start();
 
+        if (martappsCxt.getSessionHandler().getSessionManager().isFailed()) {
+            System.err.println("Session manager failed to start");
+            stop();
+            return;
+        }
+
+        // Check if we have unavailable exceptions
+        Throwable t =  martappsCxt.getUnavailableException();
+        if (t != null) {
+            System.err.println("Error on server startup");
+            stop();
+            return;
+        }
+
 		String url = System.getProperty("http.url");
 		System.out.println("Server started at : " + url);
 
