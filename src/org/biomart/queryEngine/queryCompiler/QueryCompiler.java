@@ -261,6 +261,7 @@ public class QueryCompiler {
 							String operation2 = " <= ";
 
 							String originalValue = selectedFilters.get(subFilter);
+							if(originalValue==null) originalValue = currentValue;
 							String[] values = originalValue.split(subFilter.getSplitOnValue());
 							if(values.length == 1){
 								values = new String[2];
