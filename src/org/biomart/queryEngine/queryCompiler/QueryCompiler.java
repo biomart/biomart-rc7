@@ -241,7 +241,7 @@ public class QueryCompiler {
 					querySQL.append("(");
 					String currentValue = null;
 					for(int i = 0; i < filter.getFilterList(dss).size(); ++i){
-						if(filter.getSplitOnValue().equals("") || splitValue.length==1){
+						if(filter.getSplitOnValue().equals("") || splitValue.length==1 || filter.getQualifier().equals(OperatorType.RANGE)){
 							currentValue = value;
 						} else if (splitValue.length==filter.getFilterList(dss).size()){
 							currentValue = splitValue[i];
