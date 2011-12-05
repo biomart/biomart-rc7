@@ -18,18 +18,10 @@
     Cancer Projects: <strong>26</strong> 
     </p>
 
-    <!--
-    <a href='/pages/summary/'><div class='pie-container' id="pie-projects_by_tissue">This feature requires JavaScript to view.</div></a>
-    -->
-
-    <!--
-    <a href='/pages/summary/'><div class='pie-container' id="pie-samples_by_tissue">This feature requires JavaScript to view.</div></a>
-    -->
-    
     <a href='/pages/summary/'><div class='pie-container' id="pie-donors_by_tissue">This feature requires JavaScript to view.</div></a>
    
     <p>
-    Total Donors: <strong>2,952</strong> 
+    Total Donors: <strong>2,961</strong> 
     </p>
 
 </div>
@@ -38,14 +30,6 @@
     /*
        use JSChart to render pie charts
      */
-/*
-    var projectsChart = new JSChart('pie-projects_by_tissue', 'pie');
-    projectsChart.setDataXML("/pages/summary/jscharts-pie-data.projects_by_tissue.xml");
-    projectsChart.draw();
-    var samplesChart = new JSChart('pie-samples_by_tissue', 'pie');
-    samplesChart.setDataXML("/pages/summary/jscharts-pie-data.samples_by_tissue.xml");
-    samplesChart.draw();
-*/
     var samplesChart = new JSChart('pie-donors_by_tissue', 'pie');
     samplesChart.setDataXML("/pages/summary/jscharts-pie-data.donors_by_tissue.xml");
     samplesChart.draw();
