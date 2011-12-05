@@ -9,10 +9,10 @@
         <data unit="Liver" value="27"/>
         <data unit="Lung" value="267"/>
         <data unit="Ovary" value="509"/>
-        <data unit="Pancreas" value="166"/>
+        <data unit="Pancreas" value="178"/>
         <data unit="Rectum" value="69"/>
         <data unit="Skin" value="1"/>
-        <data unit="Stomach" value="142"/>
+        <data unit="Stomach" value="152"/>
         <data unit="Uterus" value="70"/>
     </dataset>
     <colorset>
