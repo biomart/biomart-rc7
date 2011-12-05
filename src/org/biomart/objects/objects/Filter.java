@@ -383,6 +383,21 @@ public class Filter extends Element	{
 	}
 
 	public boolean inPartition(Collection<String> values) {
+        // First check that child filters are in partition as well
+        List<Filter> childFilters = this.getFilterList();
+
+        if (!childFilters.isEmpty()) {
+            boolean hasValidChildFilters = false;
+            for (Filter childFilter : childFilters) {
+                if (childFilter.inPartition(values)) {
+                    hasValidChildFilters = true;
+                    break;
+                }
+            }
+            if (!hasValidChildFilters)
+                return false;
+        }
+
 		if(values == null || values.isEmpty())
 			return true;
 		//is it a pointer?

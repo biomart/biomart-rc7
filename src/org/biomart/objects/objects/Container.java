@@ -563,21 +563,6 @@ public class Container extends MartConfiguratorObject {
 			if(datasets == null || datasets.isEmpty())
 				filList.add(filter);
 			else if(filter.inPartition(datasets)) {
-
-                // Make sure that at least one filter in filter list is in partition
-                List<Filter> childFilters = filter.getFilterList();
-                if (!childFilters.isEmpty()) {
-                    boolean hasValidChildFilters = false;
-                    for (Filter childFilter : childFilters) {
-                        if (childFilter.inPartition(datasets)) {
-                            hasValidChildFilters = true;
-                            break;
-                        }
-                    }
-                    if (!hasValidChildFilters)
-                        continue;
-                }
-
 				filList.add(filter);
 			}
 		}
