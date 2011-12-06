@@ -32,7 +32,7 @@
     <h2 class="gradient-grey-reverse ui-corner-top">Documentation</h2>
     <div id="biomart-content" class="ui-widget-content clearfix">
     <h3>Data Submission Guidelines</h3>
-      <p>For information on how to submit your data to the ICGC please refer to the <a href='/pages/docs/ICGC_data_submission_manual_0_5d.pdf'>ICGC Data Submission Manual</a>. Please contact <a href="mailto:dcc-support@lists.oicr.on.ca">ICGC Data Coordination Centre</a> if you would like to set up an ICGC node or if  you have any questions or comments about the data submission process.</p>
+      <p>For information on how to submit your data to the ICGC please refer to the <a href='/pages/docs/ICGC_data_submission_manual.pdf'>ICGC Data Submission Manual</a>. Please contact <a href="mailto:dcc-support@lists.oicr.on.ca">ICGC Data Coordination Centre</a> if you would like to set up an ICGC node or if  you have any questions or comments about the data submission process.</p>
 
 <br />
     <h3>BioMart</h3>
