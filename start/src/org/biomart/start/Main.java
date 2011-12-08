@@ -182,7 +182,7 @@ public class Main {
         // Check if we have unavailable exceptions
         Throwable t =  martappsCxt.getUnavailableException();
         if (t != null) {
-            System.err.println("Error on server startup");
+            System.err.println("Error on server startup: " + t.getMessage());
             stop();
             return;
         }
@@ -202,7 +202,7 @@ public class Main {
 	 */
 	public void stop() {		
 		try {
-			System.out.println("Stoping server");
+			System.out.println("Stopping server");
 			server.stop();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
