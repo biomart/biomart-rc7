@@ -25,7 +25,6 @@ import org.biomart.api.factory.MartRegistryFactory;
 import org.biomart.common.resources.Log;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.openid4java.OpenIDException;
-import org.openid4java.consumer.ConsumerException;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.consumer.VerificationResult;
 import org.openid4java.discovery.DiscoveryInformation;
@@ -40,6 +39,8 @@ import org.openid4java.message.ax.FetchResponse;
 import org.openid4java.message.sreg.SRegMessage;
 import org.openid4java.message.sreg.SRegRequest;
 import org.openid4java.message.sreg.SRegResponse;
+import org.openid4java.util.HttpClientFactory;
+import org.openid4java.util.ProxyProperties;
 
 /**
  *
@@ -57,12 +58,35 @@ public class UserResource {
     @Inject
     public UserResource(MartRegistryFactory factory) {
         this.factory = factory;
+
+        setProxy();
+
         manager = new ConsumerManager();
         manager.setAllowStateless(true);
         manager.setMaxAssocAttempts(0);
         manager.getRealmVerifier().setEnforceRpId(false);
         Integer maxNonceAge = Integer.getInteger("openid.maxnonceage", 60);
         manager.setMaxNonceAge(maxNonceAge);
+    }
+
+    private static void setProxy() {
+        String proxyHost = System.getProperty("http.proxyHost");
+        if(proxyHost != null && proxyHost.length() > 0) {
+            String proxyPort = System.getProperty("http.proxyPort");
+            int proxyPortValue = 8080;
+            if(proxyPort != null && proxyPort.length() > 0) {
+                try {
+                    proxyPortValue = Integer.parseInt(proxyPort);
+               } catch(Throwable t) {
+                    // do nothing
+               }
+            }
+
+            ProxyProperties proxyProps = new ProxyProperties();
+            proxyProps.setProxyHostName(proxyHost);
+            proxyProps.setProxyPort(proxyPortValue);
+            HttpClientFactory.setProxyProperties(proxyProps);
+        }
     }
 
     @Path("relogin")
