@@ -171,7 +171,13 @@ public class Main {
 
 		// Start server
 		System.out.println("Starting server");
-		server.start();
+        try {
+            server.start();
+        } catch (Exception e) {
+            System.err.println("Error on server startup: " + e.getMessage());
+            stop();
+            return;
+        }
 
         if (martappsCxt.getSessionHandler().getSessionManager().isFailed()) {
             System.err.println("Session manager failed to start");
