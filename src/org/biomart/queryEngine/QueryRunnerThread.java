@@ -215,18 +215,7 @@ public final class QueryRunnerThread implements Callable {
             batchStart += this.batchSize;
             batchEnd += this.batchSize;
         }
-       //sqObj.cleanUp();
-        new Thread() {
-            public void run() {
-                try {
-                    sqObj.cleanUp();
-                }
-                catch(Exception e) {
-                    // Results have been returned already. No big deal if we see
-                    // an error here (to the user...).
-                }
-            }
-        }.start();
+        sqObj.cleanUp();
     }
 
     /**

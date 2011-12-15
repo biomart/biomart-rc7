@@ -458,7 +458,7 @@ public final class SubQuery {
 			int portableLength = imp.getElementList().size();
 			//need to call this to guarantee that this.originalQueryString is set for the next line
             this.getQuery();
-			StringBuilder updatedQuery = new StringBuilder(this.queryString);
+			StringBuilder updatedQuery = new StringBuilder(this.originalQueryString);
 			HashSet<List<String>> indexValues = new HashSet<List<String>>();
 			HashSet<String> values = new HashSet<String>();
 
