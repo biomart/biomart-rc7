@@ -1,6 +1,6 @@
 #!/usr/bin/env bash 
 
-DEFAULT_MAX_HEAP="4096m"
+DEFAULT_MAX_HEAP="6144m"
 
 usage() {
     echo "Usage: $0 {start|stop|run|restart|check|supervise} [ JAVA_OPTIONS ]"
