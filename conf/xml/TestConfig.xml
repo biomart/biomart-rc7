@@ -130,7 +130,7 @@
 	</testcase>
 
 	<!-- make sure ICGC4 xml format is loaded properly -->
-	<testcase name="open_icgc4" category="TestOpenOldXML" ignore="false" subset="true">
+	<testcase name="open_icgc4" category="TestOpenOldXML" ignore="true" subset="true">
 		<usergroup>anonymous</usergroup>
 		<basexml>../registry/icgc4.xml</basexml>
 		<sourcexml>icgc4_reference.xml</sourcexml>
