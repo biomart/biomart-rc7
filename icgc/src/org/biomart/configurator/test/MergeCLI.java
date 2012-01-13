@@ -14,9 +14,11 @@ import org.biomart.common.resources.Settings;
 import org.biomart.configurator.controller.MartController;
 import org.biomart.configurator.utils.McGuiUtils;
 import org.biomart.configurator.utils.McUtils;
+import org.biomart.configurator.utils.type.DatasetTableType;
 import org.biomart.configurator.view.menu.McMenus;
 import org.biomart.objects.objects.Column;
 import org.biomart.objects.objects.Dataset;
+import org.biomart.objects.objects.DatasetColumn;
 import org.biomart.objects.objects.DatasetTable;
 import org.biomart.objects.objects.Mart;
 import org.biomart.objects.objects.MartRegistry;
@@ -84,6 +86,38 @@ public class MergeCLI {
 				}
 			}
 		}
+		
+		for(String martName : this.updatedInfo.keySet()){
+			Mart originalMart = originalRegistry.getMartByName(martName);
+			if(originalMart !=null){
+				HashMap<String, HashMap<String, ArrayList<String>>> datasets = this.updatedInfo.get(martName);
+				for(String dsName : datasets.keySet()){
+					// Dataset originalDS = originalMart.getDatasetByName(dsName);
+					// if(originalDS != null){ 
+					HashMap<String, ArrayList<String>> tables = datasets.get(dsName);
+					for(String tableName : tables.keySet()){
+						DatasetTable originalTable = originalMart.getTableByName(tableName);
+						if(originalTable == null){
+							 originalTable = new DatasetTable(originalMart, tableName, DatasetTableType.DIMENSION);
+							 originalTable.addInPartitions(dsName);
+							 originalMart.addTable(originalTable);
+						}
+						
+						ArrayList<String> columns = tables.get(tableName);
+						for(String column : columns){
+							if(originalTable.getColumnByName(column) == null){
+								DatasetColumn newColumn = new DatasetColumn(originalTable, column);
+								originalTable.addColumn(newColumn);
+								newColumn.addInPartitions(dsName);
+							}
+						}
+					}
+					//}
+				}
+			}
+			MartController.getInstance().createNaiveForOrphanColumn(originalMart);
+		}
+		
 		this.saveXML();
 	}
 	
