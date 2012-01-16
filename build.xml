@@ -118,6 +118,7 @@
     <chmod perm="+x" file="${dist.dir}/scripts/martconfigurator.sh"/>
     <chmod perm="+x" file="${dist.dir}/scripts/martrunner.sh"/>
     <chmod perm="+x" file="${dist.dir}/scripts/updateICGC.sh"/>
+    <chmod perm="+x" file="${dist.dir}/scripts/mergeICGC.sh"/>
     <chmod perm="+x" file="${dist.dir}/scripts/biomart-server.sh"/>
     <chmod perm="+x" file="${dist.dir}/scripts/generate-password.sh"/>
     <replace file="${dist.dir}/biomart.properties" token="/path/to/registry_file" value="${registry.file}"/>
