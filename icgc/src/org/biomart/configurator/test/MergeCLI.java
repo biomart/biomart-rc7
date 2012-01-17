@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.biomart.common.resources.Log;
 import org.biomart.common.resources.Resources;
@@ -22,7 +23,9 @@ import org.biomart.objects.objects.DatasetColumn;
 import org.biomart.objects.objects.DatasetTable;
 import org.biomart.objects.objects.Mart;
 import org.biomart.objects.objects.MartRegistry;
+import org.biomart.objects.objects.Options;
 import org.jdom.Document;
+import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 
 public class MergeCLI {
@@ -51,11 +54,15 @@ public class MergeCLI {
 		this.updatedRegistryFile = updatedRegistryFile;
 		this.datasetRoot = datasetRoot;
 
-		this.loadUpdatedTables();
+		Element updatedOptions = this.loadUpdatedTables();
 
 		MartRegistry originalRegistry = this.openXML(this.originalRegistryFile);
+		
+		Element originalOptions = Options.getInstance().getOptionRootElement();
+		
+		Element mergedOptions = this.mergeOptions(originalOptions, updatedOptions);
 
-
+		Options.getInstance().setOptions(mergedOptions);
 
 		for(Mart originalMart : originalRegistry.getMartList()){
 			Dataset originalDS = originalMart.getDatasetBySuffix(this.datasetRoot);
@@ -121,7 +128,49 @@ public class MergeCLI {
 		this.saveXML();
 	}
 	
-	private void loadUpdatedTables(){
+	@SuppressWarnings("unchecked")
+	private Element mergeOptions(Element originalOptions, Element updatedOptions) {
+		
+		HashMap<String, Element> updatedOptionMap = new HashMap<String, Element>();
+		
+		for(Element mart : (List<Element>)updatedOptions.getChildren()){
+			for (Element config : (List<Element>)mart.getChildren()){
+				for (Element filter : (List<Element>)config.getChildren()){
+					for (Element dataset : (List<Element>)filter.getChildren()){
+						if(dataset.getAttributeValue("name").endsWith(this.datasetRoot)){
+							String martName = mart.getAttributeValue("name");
+							String configName = config.getAttributeValue("name");
+							String filterName = filter.getAttributeValue("name");
+							updatedOptionMap.put(martName + ";" + configName + ";" + filterName, dataset);
+						}
+					}
+				}
+			}
+		}
+		
+		for(Element mart : (List<Element>)originalOptions.getChildren()){
+			for (Element config : (List<Element>)mart.getChildren()){
+				for (Element filter : (List<Element>)config.getChildren()){
+					for (Element dataset : (List<Element>)filter.getChildren()){
+						String martName = mart.getAttributeValue("name");
+						String configName = config.getAttributeValue("name");
+						String filterName = filter.getAttributeValue("name");
+						if(dataset.getAttributeValue("name").endsWith(this.datasetRoot)){
+							dataset.detach();
+						}
+						Element replacementDataset = updatedOptionMap.get(martName + ";" + configName + ";" + filterName);
+						if(dataset!=null){
+							filter.addContent(replacementDataset);
+						}
+					}
+				}
+			}
+		}
+		
+		return originalOptions;
+	}
+
+	private Element loadUpdatedTables(){
 		MartRegistry updatedRegistry = this.openXML(this.updatedRegistryFile);
 		
 		for(Mart updatedMart : updatedRegistry.getMartList()){
@@ -146,6 +195,8 @@ public class MergeCLI {
 			}
 			this.updatedInfo.put(updatedMart.getName(), updatedDatasets);
 		}
+		
+		return Options.getInstance().getOptionRootElement();
 	}
 	
 	private MartRegistry openXML(String registryFile) {
