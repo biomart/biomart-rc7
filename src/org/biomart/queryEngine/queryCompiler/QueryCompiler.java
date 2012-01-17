@@ -12,6 +12,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.biomart.common.resources.Log;
+import org.biomart.common.resources.Settings;
 import org.biomart.configurator.utils.McUtils;
 import org.biomart.configurator.utils.type.DatasetTableType;
 import org.biomart.objects.enums.FilterType;
@@ -72,7 +73,7 @@ public class QueryCompiler {
 	 * @return
 	 */
 	public String searchMaterilizedSchema(String dbName, Dataset ds){
-		boolean leftFlag = false; //Hard-coded for now, will be retrieved from properties
+		boolean leftFlag =  ("true".equalsIgnoreCase(Settings.getProperty("leftjoin")) ? true : false);
 		List<String> dss = new ArrayList<String>();
 		dss.add(ds.getName());
 
