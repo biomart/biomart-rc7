@@ -363,7 +363,8 @@ $.widget('ui.simplerfilter', {
         // Add an invalid "Choose" option to select boxes
         var select = element.find('select:not([multiple])');
         if (options.chooseText) {
-            select.prepend(['<option value="">-- ', _('select', biomart.CAPITALIZE), ' --</option>'].join('')).val(options.defaultValue || '');
+        	if(type != 'singleSelectUpload')
+        		select.prepend(['<option value="">-- ', _('select', biomart.CAPITALIZE), ' --</option>'].join('')).val(options.defaultValue || '');
         }
         select.prettybox();
 

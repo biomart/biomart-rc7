@@ -229,12 +229,16 @@ $.namespace('biomart', function(self) {
     // TODO: clearing of filters should be handled elsewhere, similar to validators returning values
     self.clearFilter = function(element, cb) {
         var name = element.attr('filter-name');
+        var type = element.attr('filter-type');
         element.removeClass('ui-active');
         element.find(':input').each(function() {
             var $this = $(this);
             if ($this.is('select,.ui-autocomplete-input')) {
-                $this.val(['-- ', _('select', biomart.CAPITALIZE), '--'].join(''));
-            	//$this.val(element.data('item').values[0].displayName);
+            	console.log(element.data('item'));
+            	if(type === 'singleSelectUpload')
+            		$this.val(element.data('item').filters[0].displayName);
+            	else
+            		$this.val(['-- ', _('select', biomart.CAPITALIZE), '--'].join(''));
             } else if ($this.is(':text,textarea')) {
                 $this.val('');
             } else if ($this.is('[type=radio]')) {
