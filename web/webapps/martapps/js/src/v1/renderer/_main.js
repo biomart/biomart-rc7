@@ -88,7 +88,7 @@ $.namespace('biomart.renderer', function(self) {
                 if (!select[1] && !biomart.renderer.renderInvalid) return false;
 
                 html.push(select[0]);
-
+                
                 return ['<div class="value group clearfix', (!select[1] ? ' invalid' : ''), '">', 
                         html.join(''),
                         '<span class="subgroup upload-subgroup">',

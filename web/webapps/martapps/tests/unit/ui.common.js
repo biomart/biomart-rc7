@@ -125,7 +125,7 @@ test('Simpler filter widget: add and remove events', function() {
     input.val(_value).trigger('change');
 });
 
-/*
+
 test('Simpler filter widget: default text', function() {
     var item = {
             name: 'foo',
@@ -142,7 +142,7 @@ test('Simpler filter widget: default text', function() {
             .simplerfilter();
 
     ok(el.find('option[value=""]').length, 'Default "Choose" text exists');
-});*/
+});
 
 test('Simpler filter widget: no default text', function() {
     var item = {

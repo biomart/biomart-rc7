@@ -233,8 +233,8 @@ $.namespace('biomart', function(self) {
         element.find(':input').each(function() {
             var $this = $(this);
             if ($this.is('select,.ui-autocomplete-input')) {
-                //$this.val(['-- ', _('select', biomart.CAPITALIZE), '--'].join(''));
-            	$this.val(element.data('item').values[0].displayName);
+                $this.val(['-- ', _('select', biomart.CAPITALIZE), '--'].join(''));
+            	//$this.val(element.data('item').values[0].displayName);
             } else if ($this.is(':text,textarea')) {
                 $this.val('');
             } else if ($this.is('[type=radio]')) {
