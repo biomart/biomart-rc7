@@ -234,7 +234,6 @@ $.namespace('biomart', function(self) {
         element.find(':input').each(function() {
             var $this = $(this);
             if ($this.is('select,.ui-autocomplete-input')) {
-            	console.log(element.data('item'));
             	if(type === 'singleSelectUpload')
             		$this.val(element.data('item').filters[0].displayName);
             	else
