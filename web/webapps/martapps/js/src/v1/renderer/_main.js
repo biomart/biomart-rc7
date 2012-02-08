@@ -71,7 +71,7 @@ $.namespace('biomart.renderer', function(self) {
             'singleSelect': function(item, value) {
                 var html = [],
                     select = createDropdown(item, false, value ? value[1] : null, item.values, 'field');
-
+                
                 if (!select[1] && !biomart.renderer.renderInvalid) return false;
 
                 html.push(select[0]);
@@ -155,7 +155,7 @@ $.namespace('biomart.renderer', function(self) {
                 items = [];
                 valid = false;
             }
-
+            
             html.push(['<select class="', className, '"',
                 multiple ? ' multiple="true"' : '', '>'
             ].join('')); 

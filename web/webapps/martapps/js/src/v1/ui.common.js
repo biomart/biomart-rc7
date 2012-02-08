@@ -151,7 +151,7 @@ $.widget('ui.prettybox', {
         var self = this,
             options = self.options,
             select = this.element.hide(),
-            multipleText = ['-- ', _('select', biomart.CAPITALIZE), ' --'].join(''),
+            //multipleText = ['-- ', _('select', biomart.CAPITALIZE), ' --'].join(''),
             multiple = select.multiple,
             combo = $('<div class="ui-prettybox ui-state-default ui-corner-all clearfix"/>').insertAfter(select),
             input = $('<input/>').appendTo(combo),
@@ -215,7 +215,7 @@ $.widget('ui.prettybox', {
                         $this.data('valid', true);
                         select.val(ui.item.id).trigger('change');
                     } else {
-                        $this.val(multipleText);
+                        //$this.val(multipleText);
 
                         $('<li class="' + ui.item.id + '">' + ui.item.value + '</li>')
                             .addClass('ui-corner-all ui-state-default')
@@ -308,7 +308,7 @@ $.widget('ui.prettybox', {
         if (!multiple) {
             input.val(select.children().eq(select[0].selectedIndex).text()).data('valid', true);
         } else {
-            input.val(multipleText);
+            input.val(select.children().eq(select[0].selectedIndex).text());
         }
 
         self.element.addClass('ui-prettybox');
@@ -363,7 +363,7 @@ $.widget('ui.simplerfilter', {
         // Add an invalid "Choose" option to select boxes
         var select = element.find('select:not([multiple])');
         if (options.chooseText) {
-            select.prepend(['<option value="">-- ', _('select', biomart.CAPITALIZE), ' --</option>'].join('')).val(options.defaultValue || '');
+            //select.prepend(['<option value="">-- ', _('select', biomart.CAPITALIZE), ' --</option>'].join('')).val(options.defaultValue || '');
         }
         select.prettybox();
 
@@ -499,7 +499,7 @@ $.widget('ui.simplerfilter', {
                 if (!select[0].multiple) {
                     select
                         .prettybox('destroy')
-                        .prepend(['<option value="">-- ', _('select', biomart.CAPITALIZE), ' --</option>'].join(''))
+                        //.prepend(['<option value="">-- ', _('select', biomart.CAPITALIZE), ' --</option>'].join(''))
                         .val(self.options.defaultValue)
                         .prettybox();
                 }
@@ -517,7 +517,7 @@ $.widget('ui.simplerfilter', {
             if (!select[0].multiple) {
                 select
                     .prettybox('destroy')
-                    .prepend(['<option value="">-- ', _('select', biomart.CAPITALIZE), ' --</option>'].join(''))
+                    //.prepend(['<option value="">-- ', _('select', biomart.CAPITALIZE), ' --</option>'].join(''))
                     .val(self.options.defaultValue || '')
                     .prettybox();
             }
@@ -552,7 +552,7 @@ $.widget('ui.simplerfilter', {
         this.element.find('select:not([multiple])').each(function() {
             var $this = $(this),
                 $box = $this.siblings('.ui-prettybox')
-                value = $this.children('option:selected').text() || ['-- ', _('select', biomart.CAPITALIZE), ' --'].join('');
+                value = $this.children('option:selected').text() /*|| ['-- ', _('select', biomart.CAPITALIZE), ' --'].join('')*/;
             $box.children('.ui-autocomplete-input').val(value);
         });
     },
