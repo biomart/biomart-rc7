@@ -263,7 +263,7 @@ $.namespace('biomart.renderer', function(self) {
             id = biomart.uuid(),
             element = $(['<', tagName, ' id="', id, '" class="container level-', level, ' ', 
                 self.makeClassName(item.name), ' gradient-grey-reverse"/>'].join(''));
-
+        
         if (!item) {
             alert('Container object cannot be null');
             return;
@@ -275,10 +275,11 @@ $.namespace('biomart.renderer', function(self) {
 
         $(['<', headerTagName, ' class="', headerClassName, '">',
                 item.displayName,
-            '</', headerTagName, '>'].join('')).appendTo(element);
+            '</', headerTagName, '>',].join('')).appendTo(element);
+        
 
         if (o.appendTo) element.appendTo(o.appendTo);
-
+        
         // Draw filters
         if (mode & self.FILTERS) {
             if (item.filters.length) {
@@ -306,10 +307,47 @@ $.namespace('biomart.renderer', function(self) {
                 }
             }
         }
-
+        
         if (mode & self.ATTRIBUTES) {
             // Draw attributes
             if (item.attributes.length) {
+            	element.delegate('a.select-all', 'click', function(ev) {
+            		// update url parameters
+            		for (var i=0, a; a=item.attributes[i]; i++) {
+            			a.selected = true;
+            			o.updateAttributes(a);
+            		}
+            		// check all the checkbox under the container
+            		$(ev.target)
+            			.closest('.container')
+            			.find('.attribute-container input:checkbox')
+            			.each(function() {
+            				var $attributeContainer = $(this).closest('.attribute-container');
+            				this.checked = true;
+                			$attributeContainer.addClass('ui-active');
+            			});
+            		
+            	});
+            	element.delegate('a.unselect-all', 'click', function(ev) {
+            		// update url parameters
+            		for (var i=0, a; a=item.attributes[i]; i++) {
+            			a.selected = false;
+            			o.updateAttributes(a);
+            		}
+            		// check all the checkbox under the container
+            		$(ev.target)
+            			.closest('.container')
+            			.find('.attribute-container input:checkbox')
+            			.each(function() {
+            				var $attributeContainer = $(this).closest('.attribute-container');
+            				this.checked = false;
+                			$attributeContainer.removeClass('ui-active');
+            			});
+            		
+            	});
+            	// add select all and unselect all links to Container (Attributes only) 
+            	$('<div align="right" class="clearfix"><a class="select-all" href="javascript:;">select all</a> | <a href="javascript:;" class="unselect-all">select none</a></div>').appendTo(element);
+            	
                 var list = $('<ul class="items attributes clearfix"/>').appendTo(element);
                 for (var i=0, a, formatted, checked; a=item.attributes[i]; i++) {
                     // Either a default selected attribute, or it's selected from URL query param

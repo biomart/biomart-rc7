@@ -942,6 +942,12 @@ $.namespace('biomart.martwizard', function(self) {
                         });
                 }
             },
+            updateAttributes : function(item){
+            	if(item.selected)
+            		addQueryAttribute(item);
+            	else
+            		removeQueryAttribute(item);
+            },
             appendTo: element
         });
     }
