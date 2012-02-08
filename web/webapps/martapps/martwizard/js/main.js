@@ -621,9 +621,11 @@ $.namespace('biomart.martwizard', function(self) {
                 if (this.checked) {
                     addQueryAttribute(item);
                     $parent.addClass('ui-active');
+                    debugger;
                 } else {
                     removeQueryAttribute(item);
                     $parent.removeClass('ui-active');
+                    debugger;
                 }
             });
 
@@ -941,12 +943,6 @@ $.namespace('biomart.martwizard', function(self) {
                             }
                         });
                 }
-            },
-            updateAttributes : function(item){
-            	if(item.selected)
-            		addQueryAttribute(item);
-            	else
-            		removeQueryAttribute(item);
             },
             appendTo: element
         });

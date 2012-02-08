@@ -312,11 +312,6 @@ $.namespace('biomart.renderer', function(self) {
             // Draw attributes
             if (item.attributes.length) {
             	element.delegate('a.select-all', 'click', function(ev) {
-            		// update url parameters
-            		for (var i=0, a; a=item.attributes[i]; i++) {
-            			a.selected = true;
-            			o.updateAttributes(a);
-            		}
             		// check all the checkbox under the container
             		$(ev.target)
             			.closest('.container')
@@ -324,16 +319,14 @@ $.namespace('biomart.renderer', function(self) {
             			.each(function() {
             				var $attributeContainer = $(this).closest('.attribute-container');
             				this.checked = true;
+                			$(this).trigger('click.martwizard');
+                			this.checked = true;
                 			$attributeContainer.addClass('ui-active');
+                			$attributeContainer.trigger('addattribute');
             			});
             		
             	});
             	element.delegate('a.unselect-all', 'click', function(ev) {
-            		// update url parameters
-            		for (var i=0, a; a=item.attributes[i]; i++) {
-            			a.selected = false;
-            			o.updateAttributes(a);
-            		}
             		// check all the checkbox under the container
             		$(ev.target)
             			.closest('.container')
@@ -341,7 +334,10 @@ $.namespace('biomart.renderer', function(self) {
             			.each(function() {
             				var $attributeContainer = $(this).closest('.attribute-container');
             				this.checked = false;
+                			$(this).trigger('click.martwizard');
+                			this.checked = false;
                 			$attributeContainer.removeClass('ui-active');
+                			$attributeContainer.trigger('removeattribute');
             			});
             		
             	});
