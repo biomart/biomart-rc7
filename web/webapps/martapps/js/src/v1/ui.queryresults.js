@@ -214,6 +214,22 @@ var QueryResults = {
 
                             if (options.sort) self.sort(options.sort.order=='asc', options.sort.col);
                             if (self._isPaginated) element.paginate('page', options.page);
+                            
+                            // and download link for each page
+                            element.delegate('a.report-download','click',function(ev){
+                            	 var $form = $('<form style="height: 1; visibility: hidden" action="'+ BIOMART_CONFIG.service.url+'results">').appendTo(document.body);
+                            	 
+                                 $form
+                                 	.append( $('<input type="hidden" name="download" value="true"/>'))
+                                 	.append( $('<input type="hidden" name="query"/>'));
+                                 $form.children('input[name=query]').val(queries);
+                                 $form.submit();
+                            });
+                            
+                            if(options.displayType === 'table' && (/martreport/).test(location.href)){
+                            	$('<a href="javascript:;" class="report-download">Download</a>').appendTo(element);
+                            }
+                            
                         } else if (!element.datacontroller('hasError')) {
                             element.html(['<p class="empty">', _('no_results'), '</p>'].join(''));
                         }

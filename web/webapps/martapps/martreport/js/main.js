@@ -372,7 +372,7 @@ $.namespace('biomart.martreport', function(self) {
         } else return; 
 
         if (!c.containers) return;
-
+        
         for (var i=0, child; child=c.containers[i]; i++) 
             storeDisplayContainers(temp, child, d+1);
     }
