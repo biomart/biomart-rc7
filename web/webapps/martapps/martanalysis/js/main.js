@@ -640,6 +640,12 @@ $.namespace('biomart.martform', function(self) {
                 options.displayType = config.rendering;
                 options.dataAggregation = config.aggregation;
                 options.displayOptions = config.options;
+                
+                var colTypes = [];
+                for(var name in queryMart.attributes){
+                	colTypes.push(queryMart.attributes[name].dataType);
+                }
+                options.colDataTypes = colTypes;
 
                 if (sort) options.sort = {order: sort[0], col: sort[1]};
 

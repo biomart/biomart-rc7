@@ -11,7 +11,7 @@
             arr = [],
             currVal,
             className;
-
+        
         while (n--) {
             var m = writee.data('numCols') || rows[n].length;
             arr[n] = [];

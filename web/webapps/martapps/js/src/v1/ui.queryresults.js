@@ -27,7 +27,8 @@ var QueryResults = {
         sorting: true,
         showEmpty: false,
         timeout: 45000,
-        displayOptions: {}
+        displayOptions: {},
+        colDataTypes: {} //add all column types for sort to make sense
     },
 
     _isPaginated: false,

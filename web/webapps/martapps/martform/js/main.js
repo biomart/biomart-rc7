@@ -503,7 +503,14 @@ $.namespace('biomart.martform', function(self) {
         } else {
             title = _elements.field.marts.children(':selected').eq(0).data('group');
         }
-
+        
+        var colTypes = [];
+        for(var name in mart.attributes){
+        	colTypes.push(mart.attributes[name].type);
+        }
+        
+        console.log(colTypes);
+        
         _elements.submit.addClass('hidden');
         _elements.header.slideUp('fast');
         _elements.content.slideUp({
@@ -516,7 +523,8 @@ $.namespace('biomart.martform', function(self) {
                         downloadXml: downloadXml,
                         martObj: mart,
                         dataAggregation: 'none',
-                        displayType: 'table'
+                        displayType: 'table',
+                        colDataTypes: colTypes
                     }, QUERY_RESULTS_OPTIONS));
             }
         });
@@ -589,10 +597,10 @@ $.namespace('biomart.martform', function(self) {
                 }
             }
         }
-
+        
         for (var k in biomart._state.attributes) {
             var item = biomart._state.attributes[k];
-            mart.attributes[item.name] = {name: item.name};
+            mart.attributes[item.name] = {name: item.name, type: item.dataType};
         }
 
         return mart;

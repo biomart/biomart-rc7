@@ -102,6 +102,14 @@ $.namespace('biomart.martwizard', function(self) {
                 },
 
                 function() {
+                	var colTypes = [];
+                    for(var attr in biomart._state.queryMart.attributes){
+                    	var item = biomart._state.queryMart.attributes[attr];
+                    	colTypes.push(item.type);
+                    }
+                    
+                    console.log(colTypes);
+                    
                     _elements.contentWrapper.slideUp();
                     _elements.toolbar.slideUp();
                     _elements.results.resultsPanel('run', 
@@ -111,7 +119,8 @@ $.namespace('biomart.martwizard', function(self) {
                             downloadXml: getXml('TSV', -1, true, QUERY_CLIENT),
                             martObj: biomart._state.queryMart,
                             dataAggregation: 'none',
-                            displayType: 'table'
+                            displayType: 'table',
+                            colDataTypes: colTypes
                         }, QUERY_RESULTS_OPTIONS));
                     $.publish('biomart.loaded');
                 }
@@ -560,7 +569,7 @@ $.namespace('biomart.martwizard', function(self) {
                 biomart.resource.load('attributes', function(json) {
                     for (var i=0, a; a=json[i]; i++) {
                         if (a.selected || $.inArray(a.name, biomart._state.selectedAttributes) != -1) {
-                            biomart._state.queryMart.attributes = { name: a.name };
+                            biomart._state.queryMart.attributes = { name: a.name , type: a.dataType};
                             $.publish('biomart.change', 'attributes', a, true);
                         }
                     }
@@ -759,7 +768,7 @@ $.namespace('biomart.martwizard', function(self) {
     }
 
     function addQueryAttribute(item) {
-        biomart._state.queryMart.attributes[item.name] = {name: item.name};
+        biomart._state.queryMart.attributes[item.name] = {name: item.name, type: item.dataType};
         updateAttributeParam();
         $.publish('biomart.change', 'attributes', item, true);
     }
@@ -922,7 +931,7 @@ $.namespace('biomart.martwizard', function(self) {
             extraClassNames: extraClassNames || '',
             selectedAttributes: biomart._state.selectedAttributes,
             onAttributeSelect: function(item) {
-                biomart._state.queryMart.attributes[item.name] = {name:item.name};
+                biomart._state.queryMart.attributes[item.name] = {name:item.name, type:item.dataType};
                 $.publish('biomart.change', 'attributes', item, true);
             },
             extras: function(item, element) {
