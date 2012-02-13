@@ -120,7 +120,7 @@ var QueryResults = {
             $td = $element.find('td.sort').removeClass('sorted desc asc').eq(index),
             cache = $element._resultsCache,
             originalCache = cache.slice();
-
+        
         $td.addClass(['sorted ', asc ? 'asc' : 'desc'].join(''));
 
         self.element.datacontroller('highlight', index);
@@ -129,6 +129,24 @@ var QueryResults = {
         $element._resultsCache.sort(function(left, right) {
             var a = left[index].replace(self._htmlRegex, '').toUpperCase(),
                 b = right[index].replace(self._htmlRegex, '').toUpperCase();
+            var datatype = self.options.colDataTypes[index];
+            // parse the data to the correct data types for sorting
+            switch(datatype){
+	            case 'STRING':
+	    			break;
+	    		case 'INTEGER':
+	    			a = parseInt(a);
+	    			b = parseInt(b);
+	    			break;
+	    		case 'FLOAT':
+	    			a = parseFloat(a);
+	    			b = parseFloat(b);
+	    			break;
+	    		case 'BOOLEAN':
+	    			a = (a === 'TRUE');
+	    			b = (b === 'TRUE');
+	    			break;
+            }
             if (a > b) return asc ? 1 : -1;
             else if (a < b) return asc ? -1 : 1;
             return 0;
