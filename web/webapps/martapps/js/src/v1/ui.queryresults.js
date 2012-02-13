@@ -241,7 +241,11 @@ var QueryResults = {
                                  $form
                                  	.append( $('<input type="hidden" name="download" value="true"/>'))
                                  	.append( $('<input type="hidden" name="query"/>'));
-                                 $form.children('input[name=query]').val(queries);
+                                 
+                                 var dlQueries = queries.replace('TSVX', 'TSV');
+                                 
+                                 $form.children('input[name=query]').val(dlQueries);
+                                 
                                  $form.submit();
                             });
                             
