@@ -666,12 +666,49 @@ $.namespace('biomart.martreport', function(self) {
             .appendTo(element)
             .wrap('<div class="content"/>');
 
+        element.delegate('a.report-download','click',function(ev){
+       	 	var $form = $('<form style="height: 1; visibility: hidden" action="'+ BIOMART_CONFIG.service.url+'results">').appendTo(document.body);
+       	 
+            $form
+            	.append( $('<input type="hidden" name="download" value="true"/>'))
+            	.append( $('<input type="hidden" name="query"/>'));
+            
+            var datasets;
+            if (container.independent) {
+                datasets = mart.datasets;
+            } else {
+                datasets = userDatasets || mart.datasets.slice(0,1);
+            }
+            
+            var queryMart = $.extend({}, mart);
+            queryMart.datasets = container.independent ? datasets : datasets[datasets.length > 10 ? 10 : 0];
+            queryMart.filters = {};
+            
+            if (container.independent) {
+                var params = {datasets: datasets.join(','), container: container.name};
+                if (mart.config) {
+                    params.config = mart.config;
+                }
+                biomart.resource.load('attributes/mapped', function(json) {
+                	queryMart.attributes = json;
+                }, params);
+            }else{
+            	queryMart.attributes = container.attributes;
+            }
+            
+            var dlQueries = prepareXML('TSV', -1, true, queryClient, queryMart, container.independent)
+            
+            $form.children('input[name=query]').val(dlQueries);
+            
+            $form.submit();
+        });
         // New header
         if (!isSub) 
             $('<h' + level + '/>')
                 .text(container.displayName)
                 .css('cursor', 'pointer')
                 .append('<span class="ui-icon ui-icon-triangle-1-s"/>')
+                .append('<div align="right"><a href="javascript:;" class="report-download">Download</a></div>')
                 .disableSelection()
                 .prependTo(element)
                 .minimizer({duration: 100, state: 'hide'});

@@ -235,7 +235,7 @@ var QueryResults = {
                             if (self._isPaginated) element.paginate('page', options.page);
                             
                             // and download link for each page
-                            element.delegate('a.report-download','click',function(ev){
+                            /*element.delegate('a.report-download','click',function(ev){
                             	 var $form = $('<form style="height: 1; visibility: hidden" action="'+ BIOMART_CONFIG.service.url+'results">').appendTo(document.body);
                             	 
                                  $form
@@ -250,9 +250,9 @@ var QueryResults = {
                             });
                             
                             if(options.displayType === 'table' && (/martreport/).test(location.href)){
-                            	$('<a href="javascript:;" class="report-download">Download</a>').appendTo(element);
+                            	$('<a href="javascript:;" class="report-download">Download</a>').insertBefore(element);
                             }
-                            
+                            */
                         } else if (!element.datacontroller('hasError')) {
                             element.html(['<p class="empty">', _('no_results'), '</p>'].join(''));
                         }
