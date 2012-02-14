@@ -687,6 +687,20 @@ $.namespace('biomart.martreport', function(self) {
             var queryMart = $.extend({}, mart);
             queryMart.datasets = container.independent ? datasets : datasets[datasets.length > 10 ? 10 : 0];
             queryMart.filters = {};
+            if (!container.topLevel) {
+                if (!container.filters) {
+                    alert('Sub-containers must container one filter: ' + container.name);
+                    return;
+                }
+                for (var i=0, filter; filter = container.filters[i]; i++) {
+                    queryMart.filters[filter.name] = filter;
+                }
+            } else {
+                for (var k in allFilters) {
+                    f = allFilters[k].filter;
+                    queryMart.filters[f.name] = f;
+                }
+            }
             
             if (container.independent) {
                 var params = {datasets: datasets.join(','), container: container.name};
