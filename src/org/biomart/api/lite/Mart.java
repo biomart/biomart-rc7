@@ -476,7 +476,12 @@ public class Mart extends LiteMartConfiguratorObject implements Serializable {
     @XmlAttribute(name="config")
     @JsonProperty("config")
     public String getConfigName() {
-        org.biomart.objects.objects.Config cfg = this.martpointerObject.getConfig();
+    	boolean useMasterConfig = Boolean.parseBoolean(System.getProperty("biomart.query.masterconfig"));
+    	org.biomart.objects.objects.Config cfg;
+    	if(useMasterConfig)
+    		cfg = this.martpointerObject.getMart().getMasterConfig();
+    	else
+    		cfg = this.martpointerObject.getConfig();
         return cfg.getName();
     }
 
