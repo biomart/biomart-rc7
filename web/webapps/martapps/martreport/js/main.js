@@ -240,7 +240,7 @@ $.namespace('biomart.martreport', function(self) {
             queue.queue(function(c, i) {
                 if (!c.data('loaded')) {
                     if (i==0) $loading.slideDown();
-                    c.children('h3,h4').minimizer('show');
+                    c.children('h3,h4').minimizer('hide');
                     loadContainer(c, function() { 
                         if (--total == 0) {
                             self.unlock();
@@ -666,7 +666,11 @@ $.namespace('biomart.martreport', function(self) {
             .appendTo(element)
             .wrap('<div class="content"/>');
 
-        element.delegate('a.report-download','click',function(ev){
+        
+        var dlLink = $('<div align="right"><a href="javascript:;" class="report-download">Download</a></div>');
+        dlLink.delegate('a.report-download','click',function(ev){
+        	ev.stopPropagation();
+        	
        	 	var $form = $('<form style="height: 1; visibility: hidden" action="'+ BIOMART_CONFIG.service.url+'results">').appendTo(document.body);
        	 
             $form
@@ -708,7 +712,7 @@ $.namespace('biomart.martreport', function(self) {
                 .text(container.displayName)
                 .css('cursor', 'pointer')
                 .append('<span class="ui-icon ui-icon-triangle-1-s"/>')
-                .append('<div align="right"><a href="javascript:;" class="report-download">Download</a></div>')
+                .append(dlLink)
                 .disableSelection()
                 .prependTo(element)
                 .minimizer({duration: 100, state: 'hide'});
