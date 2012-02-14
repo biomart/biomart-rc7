@@ -196,6 +196,15 @@ $.namespace('biomart.martreport', function(self) {
     };
     self.unlock = function() {
         self._loadInProgress = false;
+        // show all the donwload links after all container is loaded
+        var $children = $containers.children('.container');
+        for( var i=0, container; i< $children.length; i++){
+        	container = $children.eq(i);
+	        for( var j=0, dl; j<container.find('.report-download').length; j++){
+	        	dl = container.find('.report-download').eq(j);
+	        	dl.parent().show('slow');
+	        }
+        }
     };
 
     /* 
@@ -667,7 +676,7 @@ $.namespace('biomart.martreport', function(self) {
             .wrap('<div class="content"/>');
 
         
-        var dlLink = $('<div align="right"><a href="javascript:;" class="report-download">Download</a></div>');
+        var dlLink = $('<div align="right" style="display: none"><a href="javascript:;" class="report-download">Download</a></div>');
         dlLink.delegate('a.report-download','click',function(ev){
         	ev.stopPropagation();
         	
