@@ -730,7 +730,17 @@ $.namespace('biomart.martreport', function(self) {
             $form.submit();
         });
         // New header
-        if (!isSub) 
+        if (!isSub) {
+        	// remove download link for mutation
+        	if(container.name == 'mutation'){
+        	$('<h' + level + '/>')
+                .text(container.displayName)
+                .css('cursor', 'pointer')
+                .append('<span class="ui-icon ui-icon-triangle-1-s"/>')
+                .disableSelection()
+                .prependTo(element)
+                .minimizer({duration: 100, state: 'hide'});
+        	}else{
             $('<h' + level + '/>')
                 .text(container.displayName)
                 .css('cursor', 'pointer')
@@ -739,7 +749,8 @@ $.namespace('biomart.martreport', function(self) {
                 .disableSelection()
                 .prependTo(element)
                 .minimizer({duration: 100, state: 'hide'});
-        
+        	}
+        }
         element.data('item', container);
         element.data('mart', mart);
 
