@@ -219,6 +219,8 @@ public class XMLAttributeTableModel extends AbstractTableModel {
 			//check value
 			Boolean b = new Boolean(value);
 			object.setProperty(XMLElements.HIDE, Boolean.toString(b));
+		}else if(dataObj.get(row).get(0).equals(XMLElements.DATATYPE.toString())) {
+			object.setProperty(XMLElements.DATATYPE, value);
 		}
 	}
 	
@@ -236,6 +238,8 @@ public class XMLAttributeTableModel extends AbstractTableModel {
 			//check value
 			Boolean b = new Boolean(value);
 			object.setProperty(XMLElements.HIDE, Boolean.toString(b));
+		}else if(dataObj.get(row).get(0).equals(XMLElements.DATATYPE.toString())) {
+			object.setProperty(XMLElements.DATATYPE, value);
 		}
 	}
 	
@@ -550,7 +554,20 @@ public class XMLAttributeTableModel extends AbstractTableModel {
 					MartController.getInstance().setProperty(c, dataObj.get(row).get(0), value, this.selectedDs);
 				}
 			}
-		}else {
+		}
+		else if(dataObj.get(row).get(0).equals(XMLElements.DATATYPE.toString())) {
+			List<Attribute> clist = McGuiUtils.INSTANCE.findAttributeInOtherConfigs((Attribute)object);
+			MartController.getInstance().setProperty(object, dataObj.get(row).get(0), value, this.selectedDs);
+			//object.setProperty(XMLElements.NAME, value);
+			if(needSync == McGuiUtils.ErrorMsg.YES ||
+					needSync == McGuiUtils.ErrorMsg.NO_MORE_WARNING) {				
+								
+				for(Attribute c: clist) {
+					MartController.getInstance().setProperty(c, dataObj.get(row).get(0), value, this.selectedDs);
+				}
+			}
+		}
+		else {
 			object.setProperty(XMLElements.valueFrom(dataObj.get(row).get(0)), value);
 		}
 		return needSync;
