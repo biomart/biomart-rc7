@@ -82,6 +82,13 @@ public final class QueryController {
 			SAXBuilder builder = new SAXBuilder();
 			InputSource is = new InputSource(in);
 			queryXMLobject = builder.build(is);
+			
+			boolean useMasterConfig = Boolean.parseBoolean(System.getProperty("biomart.query.masterconfig"));
+			if(useMasterConfig){
+				String configName = queryXMLobject.getRootElement().getChild("Dataset").getAttributeValue("config");
+				configName = this.registryObj.getConfigByName(configName).getMart().getMasterConfig().getName();
+				queryXMLobject.getRootElement().getChild("Dataset").setAttribute("config", configName);
+			}
 
             queryValidator = new QueryValidator(queryXMLobject, registryObj, userGroup);
             queryValidator.validateProcessor();
