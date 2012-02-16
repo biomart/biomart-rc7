@@ -249,7 +249,10 @@ $.namespace('biomart.martreport', function(self) {
             queue.queue(function(c, i) {
                 if (!c.data('loaded')) {
                     if (i==0) $loading.slideDown();
-                    c.children('h3,h4').minimizer('hide');
+                    if(c[0].classList[1] == 'gene_info')
+                    	c.children('h3,h4').minimizer('show');
+                    else
+                    	c.children('h3,h4').minimizer('hide');
                     loadContainer(c, function() { 
                         if (--total == 0) {
                             self.unlock();
