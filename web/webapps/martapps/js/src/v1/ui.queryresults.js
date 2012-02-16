@@ -233,26 +233,6 @@ var QueryResults = {
 
                             if (options.sort) self.sort(options.sort.order=='asc', options.sort.col);
                             if (self._isPaginated) element.paginate('page', options.page);
-                            
-                            // and download link for each page
-                            /*element.delegate('a.report-download','click',function(ev){
-                            	 var $form = $('<form style="height: 1; visibility: hidden" action="'+ BIOMART_CONFIG.service.url+'results">').appendTo(document.body);
-                            	 
-                                 $form
-                                 	.append( $('<input type="hidden" name="download" value="true"/>'))
-                                 	.append( $('<input type="hidden" name="query"/>'));
-                                 
-                                 var dlQueries = queries.replace('TSVX', 'TSV');
-                                 
-                                 $form.children('input[name=query]').val(dlQueries);
-                                 
-                                 $form.submit();
-                            });
-                            
-                            if(options.displayType === 'table' && (/martreport/).test(location.href)){
-                            	$('<a href="javascript:;" class="report-download">Download</a>').insertBefore(element);
-                            }
-                            */
                         } else if (!element.datacontroller('hasError')) {
                             element.html(['<p class="empty">', _('no_results'), '</p>'].join(''));
                         }
@@ -314,8 +294,8 @@ var QueryResults = {
         count: function(displayOptions) {
             var self = this,
                 element = self.element.addClass('table'),
-                table = $('<table class="aggregate"/>').appendTo(element),
-                thead = $('<thead/>').appendTo(table),
+                table = $('<table class="aggregate writee"/>').appendTo(element),
+                thead = $('<thead  unselectable="on" style="-moz-user-select: none;"/>').appendTo(table),
                 tbody = $('<tbody/>').appendTo(table),
                 options = self.options,
                 queries = options.queries,
@@ -325,6 +305,7 @@ var QueryResults = {
                 tableHeader = [],
                 rowMap = {},
                 colMap = {},
+                cache = [],
                 colIndex = 1, // start at 1 because 0 is the merge/primary column
                 next = function() {
                     openConnections--;
@@ -371,13 +352,13 @@ var QueryResults = {
 
             // build templates
             rowTemplate[0] = '<td class="merge"></td>';
-            tableHeader[0] = '<td class="merge">Dataset</td>';
+            tableHeader[0] = '<td class="merge sort"><p><span class="ui-icon"/>Dataset</p></td>';
             for (var i=0, query; query=queries[i]; i++) {
                 if (query.attr) {
                     if (!colMap[query.attr.name]) {
                         colMap[query.attr.name] = colIndex;
                         rowTemplate[colIndex] = ['<td class="', query.attr.name, '"><span class="icon throbber">&nbsp;</span></td>'].join('');
-                        tableHeader[colIndex] = ['<td class="', query.attr.name, '">', query.attr.displayName, '</td>'].join('');
+                        tableHeader[colIndex] = ['<td class="', query.attr.name, ' sort"><p><span class="ui-icon"/>', query.attr.displayName, '</p></td>'].join('');
                         colIndex++;
                     }
                 }
@@ -469,6 +450,7 @@ var QueryResults = {
                                     if ($.inArray(row[0], seen) == -1) {
                                         seen.push(row[0]);
                                     }
+                                    
                                 }
                             } // for
 
@@ -506,7 +488,7 @@ var QueryResults = {
                     }
                     else if (seen && seen.length) cell.html(['<span class="zero">0.00%</span>'].join(''));
                     else cell.html(['<span class="empty">', _('empty_value'), '</span>'].join(''));
-                });
+                });                
             }
         },
 
