@@ -127,9 +127,13 @@ var QueryResults = {
         
         $element._originalCache = originalCache;
         $element._resultsCache.sort(function(left, right) {
+        	
             var a = left[index].replace(self._htmlRegex, '').toUpperCase(),
                 b = right[index].replace(self._htmlRegex, '').toUpperCase();
             var datatype = self.options.colDataTypes[index];
+            // when sort always move no data to the end
+            if(a === '' || a === null) return 1;
+            if(b === '' || b === null) return -1;
             // parse the data to the correct data types for sorting
             switch(datatype){
 	            case 'STRING':
@@ -312,6 +316,9 @@ var QueryResults = {
                     queue.dequeue(biomart.MAX_CONCURRENT_REQUESTS - openConnections);
                 };
 
+                self.element.datacontroller('writee', table);
+                self.element._resultsCache = [];
+                
             element.one('queue.done.aggregate', function() {
                 if (self._error) {
                     self.element.before([
@@ -403,7 +410,8 @@ var QueryResults = {
                         },
                         success: function(data) {
                             var rows = data.split('\n');
-
+                            var cache = [];
+                            cache.push(curr.dataset.displayName);
                             for (var i=0, row; row=rows[i]; i++) {
                                 var aggr = rowMap[curr.dataset.name].element,
                                     cell;
@@ -445,14 +453,15 @@ var QueryResults = {
                                             .data('total', row[1])
                                             .data('totalName', curr.attr.attributes[1].displayName)
                                             .data('uniqueName', curr.dataset.displayName);
+                                        cache.push((seen / row[1] * 100).toString());
                                     }
 
                                     if ($.inArray(row[0], seen) == -1) {
                                         seen.push(row[0]);
                                     }
-                                    
                                 }
                             } // for
+                            self.element._resultsCache.push(cache);
 
                             finalizeColumn(aggr, curr.attr.name);
                         }
@@ -488,7 +497,7 @@ var QueryResults = {
                     }
                     else if (seen && seen.length) cell.html(['<span class="zero">0.00%</span>'].join(''));
                     else cell.html(['<span class="empty">', _('empty_value'), '</span>'].join(''));
-                });                
+                });
             }
         },
 
