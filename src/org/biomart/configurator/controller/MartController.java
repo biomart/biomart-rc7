@@ -39,6 +39,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
+import org.apache.commons.lang.WordUtils;
 import org.biomart.backwardCompatibility.DatasetFromUrl;
 import org.biomart.backwardCompatibility.MartInVirtualSchema;
 import org.biomart.common.exceptions.AssociationException;
@@ -3394,7 +3395,9 @@ public class MartController {
 				if(!((DatasetColumn)col).hasReferences()) {
 					//create a naive attribute and filter for it
 					String baseName = dst.getName()+Resources.get("tablenameSep")+col.getName();
-					Attribute att = new Attribute((DatasetColumn)col,baseName);
+					String displayName = WordUtils.capitalize(col.getName());
+					displayName = displayName.replaceAll("_", " ");
+					Attribute att = new Attribute((DatasetColumn)col,baseName,displayName);
 					if(newAttributeContainer == null) {
 						newAttributeContainer = new Container(Resources.get("NEWATTRIBUTE"));
 						master.getRootContainer().addContainer(newAttributeContainer);

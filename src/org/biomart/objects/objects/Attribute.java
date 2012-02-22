@@ -179,6 +179,18 @@ public class Attribute extends Element implements Comparable<Attribute> {
 		this.setNodeType(McNodeType.ATTRIBUTE);
 	}
 	
+	public Attribute(DatasetColumn dsColumn, String name, String displayName) {
+		this(name, displayName);
+		if(dsColumn==null) {
+			Log.debug("error *** datasetcolumn is null for attribute "+name);
+			this.setObjectStatus(ValidationStatus.INVALID);
+		} else {
+			this.updateDatasetColumn(dsColumn);
+			this.setObjectStatus(ValidationStatus.VALID);
+		}
+		
+		this.setNodeType(McNodeType.ATTRIBUTE);
+	}
 	
 	public Attribute getPointedAttribute() {
 		Config pointedConfig = this.getPointedConfing();

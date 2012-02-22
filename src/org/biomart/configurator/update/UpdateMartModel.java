@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.WordUtils;
 import org.biomart.backwardCompatibility.BackwardCompatibility;
 import org.biomart.backwardCompatibility.DatasetFromUrl;
 import org.biomart.common.exceptions.AssociationException;
@@ -696,8 +697,9 @@ public class UpdateMartModel {
 		String baseName = dsc.getTable().getName()
 				+ Resources.get("tablenameSep") + dsc.getName();
 		String name = McUtils.getUniqueAttributeName(mart, baseName);
-
-		Attribute newA = new Attribute(dsc, name);
+		String displayName = WordUtils.capitalize(dsc.getName());
+		displayName = displayName.replaceAll("_", " ");
+		Attribute newA = new Attribute(dsc, name,displayName);
 		newA.setVisibleModified(true);
 		container.addAttribute(newA);
 		container.setVisibleModified(true); // TODO: if a container has both ADD
