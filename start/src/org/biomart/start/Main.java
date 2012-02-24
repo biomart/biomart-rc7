@@ -123,20 +123,22 @@ public class Main {
             server = new Server();
         }
 
-		WebAppContext martappsCxt = new WebAppContext();
+				WebAppContext martappsCxt = new WebAppContext();
         martappsCxt.setContextPath("/");
-		HandlerCollection handlers = new HandlerCollection();
+				HandlerCollection handlers = new HandlerCollection();
         List<String> appLocations = new ArrayList<String>();
         appLocations.add(martappsLocation);
         martappsCxt.setDefaultsDescriptor(_webLocation + "/etc/webdefault.xml");
         martappsCxt.setParentLoaderPriority(true);
 
         String includesPath = System.getProperty("site.includes", _webLocation + "/includes");
-		WebAppContext confCxt = new WebAppContext(includesPath, "/includes");
+				WebAppContext confCxt = new WebAppContext(includesPath, "/includes");
+        confCxt.setDefaultsDescriptor(_webLocation + "/etc/webdefault.xml");
         setupWebAppContext(confCxt);
 
         String pagesPath = System.getProperty("site.pages", _webLocation + "/pages");
-		WebAppContext pagesCxt = new WebAppContext(pagesPath, "/pages");
+				WebAppContext pagesCxt = new WebAppContext(pagesPath, "/pages");
+        pagesCxt.setDefaultsDescriptor(_webLocation + "/etc/webdefault.xml");
         setupWebAppContext(pagesCxt);
         pagesCxt.addFilter("org.biomart.web.LocationsFilter", "*", org.mortbay.jetty.Handler.DEFAULT);
 
@@ -145,7 +147,7 @@ public class Main {
         String[] locs = new String[appLocations.size()];
         ResourceCollection resources = new ResourceCollection(appLocations.toArray(locs));
         martappsCxt.setBaseResource(resources);
-		martappsCxt.getServletContext().getContextHandler() .setMaxFormContentSize(1000000);
+				martappsCxt.getServletContext().getContextHandler() .setMaxFormContentSize(1000000);
 
         contexts.add(pagesCxt);
         contexts.add(confCxt);
@@ -189,6 +191,7 @@ public class Main {
         Throwable t =  martappsCxt.getUnavailableException();
         if (t != null) {
             System.err.println("Error on server startup: " + t.getMessage());
+            t.printStackTrace();
             stop();
             return;
         }

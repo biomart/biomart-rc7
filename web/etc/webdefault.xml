@@ -24,10 +24,31 @@
    metadata-complete="true"
    version="2.5"> 
 
-  <description>
-    Default web.xml file.  
-    This file is applied to a Web application before it's own WEB_INF/web.xml file
-  </description>
+  <!-- Auth for admin pages -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Administration</web-resource-name>
+      <url-pattern>admin/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>admin</role-name>
+    </auth-constraint>
+  </security-constraint>
+  <!-- Uncomment to enable site-wide BASIC authentication
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>All</web-resource-name>
+      <url-pattern>/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint>
+      <role-name>user</role-name>
+    </auth-constraint>
+  </security-constraint>
+  -->
+  <login-config>
+    <auth-method>BASIC</auth-method>
+    <realm-name>Auth</realm-name>
+  </login-config>
 
 
   <!-- ==================================================================== -->
