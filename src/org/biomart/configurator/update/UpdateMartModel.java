@@ -664,6 +664,16 @@ public class UpdateMartModel {
 
 	private void updateConfigForNewColumn(Config config, DatasetColumn newDsc,
 			Container newAC, Container newFC) {
+		
+		DatasetTable table = (DatasetTable)newDsc.getTable();
+		List<DatasetTable> maintables = config.getMart().getOrderedMainTableList();
+		
+		if(table.getType() != DatasetTableType.DIMENSION){
+			//if table is not the last submain, skip update
+			if(table.getName() != maintables.get(maintables.size()-1).getName())
+				return ;
+		}
+		
 		String tableName = newDsc.getTable().getName();
 		Container foundAttContainer = this.findContainer(config, newAC, newFC,
 				tableName + Resources.get("ATTRIBUTESUFFIX"));
