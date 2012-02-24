@@ -32,7 +32,7 @@
 		<sourcexml>source_mssql.xml</sourcexml>
 	</testcase>
 	
-	<testcase name="createsavexml_source_db2" category="TestAddingSource" ignore="false" subset="true">
+	<testcase name="createsavexml_source_db2" category="TestAddingSource" ignore="true" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
 			<db type="DB2" jdbcurl="jdbc:db2://biomartdb-dev.res.oicr.on.ca:50000/" username="martadm" password="Bi0M4rt" 
@@ -70,7 +70,7 @@
 		<sourcexml>mart_naive_pg.xml</sourcexml>
 	</testcase>
 	
-	<testcase name="createsavexml_mart_naive_db2" category="TestAddingSource" ignore="false" subset="true">
+	<testcase name="createsavexml_mart_naive_db2" category="TestAddingSource" ignore="true" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Relational Mart">
 			<db type="DB2" jdbcurl="jdbc:db2://biomartdb-dev.res.oicr.on.ca:50000/" username="martadm" password="Bi0M4rt" 
@@ -176,7 +176,7 @@
 		<sourcesql>mart_materialize_mssql.sql</sourcesql>
 	</testcase>
 	
-	<testcase name="mart_materialize_db2" category="TestMartMaterialize" ignore="false" subset="true">
+	<testcase name="mart_materialize_db2" category="TestMartMaterialize" ignore="true" subset="true">
 	<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
 			<db type="DB2" jdbcurl="jdbc:db2://biomartdb-dev.res.oicr.on.ca:50000/" username="martadm" password="Bi0M4rt" 
@@ -245,7 +245,7 @@
 		<Query client="biomartclient" processor="TSV" limit="-1" header="1"><Dataset name="vega58hs_sub_test" config="gene_config"><Filter name="gene__gene_id_1021_101" value="10"/><Attribute name="gene__gene_id_1021_101"/></Dataset></Query>
 	</testcase>
 	
-	<testcase name="full_materialize_db2" category="TestFullMaterialize" ignore="false" subset="false">
+	<testcase name="full_materialize_db2" category="TestFullMaterialize" ignore="true" subset="false">
 	<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
 			<db type="DB2" jdbcurl="jdbc:db2://biomartdb-dev.res.oicr.on.ca:50000/" username="MARTADM" password="Bi0M4rt" 
@@ -314,7 +314,7 @@
 		<Query client="biomartclient" processor="TSV" limit="-1" header="1"><Dataset name="dbo" config="gene_config"><Filter name="gene__gene_id_1021" value="34336"/><Attribute name="gene__gene_id_1021"/></Dataset></Query>
 	</testcase>
 	
-	<testcase name="query_db2"  category="TestQuery" ignore="false" subset="true">
+	<testcase name="query_db2"  category="TestQuery" ignore="true" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="Source Schema">
 			<db type="DB2" jdbcurl="jdbc:db2://biomartdb-dev.res.oicr.on.ca:50000/" username="martadm" password="Bi0M4rt" 
