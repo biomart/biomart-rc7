@@ -405,7 +405,7 @@
 	</testcase>
 	
 	<!-- relational mart link test -->
-	<testcase name="link_relational_mart"  category="TestLink" ignore="false" subset="true">
+	<testcase name="link_relational_mart"  category="TestLink" ignore="true" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="URL">
 			<url host="http://bm-test.res.oicr.on.ca" port="9002" path="/biomart/martservice">
@@ -459,7 +459,7 @@
 		<usergroup>anonymous</usergroup>
 		<connection type="Relational Mart">
 			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
-				database="vega_mart_60" schema="vega_mart_60" tables="meta_conf__dataset__main, meta_conf__interface__dm, meta_conf__user__dm, meta_conf__xml__dm, meta_template__template__main, meta_template__xml__dm, meta_version__version__main" naive="false"/>
+				database="vega_mart_60" schema="vega_mart_60" tables="hsapiens_gene_vega__gene__main" naive="true"/>
 		</connection>
 		<updatedatabase database="vega_mart_60" schema="vega_mart_60"></updatedatabase>
 		<sourcexml>mart_update.xml</sourcexml>
@@ -469,13 +469,15 @@
 		<usergroup>anonymous</usergroup>
 		<connection type="Relational Mart">
 			<db type="mysql" jdbcurl="jdbc:mysql://biomartdb-dev.res.oicr.on.ca:3306/" username="martadmin" password="Bi0M4rt" 
-				database="vega_mart_60_test" schema="vega_mart_60_test" tables="meta_conf__dataset__main, meta_conf__interface__dm, meta_conf__user__dm, meta_conf__xml__dm, meta_template__template__main, meta_template__xml__dm, meta_version__version__main" naive="false"/>
+				database="vega_mart_60" schema="vega_mart_60" tables="mmusculus_gene_vega__gene__main" naive="true"/>
 		</connection>
-		<updatedatabase database="vega_mart_60_test" schema="vega_mart_60_test"></updatedatabase>
+				<!-- vega_test_newcolumn database has a new column 'test1' in mmusculus_gene_vega__translation__gene table
+		     biotype_1064 were deleted from both_gene_vega__translation__main -->
+		<updatedatabase database="vega_test_newcolumn" schema="vega_test_newcolumn"></updatedatabase>
 		<sourcexml>mart_update_delete.xml</sourcexml>
 	</testcase>
 	
-	<testcase name="update_delete_column" category="TestDeleteColumnUpdate" ignore="false" subset="true">
+	<testcase name="update_delete_column" category="TestDeleteColumnUpdate" ignore="true" subset="true">
 		<usergroup>anonymous</usergroup>
 		<basexml>update_delete_column.xml</basexml>
 		<updatedataset name="mmusculus_gene_vega"/>
