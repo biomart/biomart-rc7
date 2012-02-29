@@ -405,7 +405,7 @@
 	</testcase>
 	
 	<!-- relational mart link test -->
-	<testcase name="link_relational_mart"  category="TestLink" ignore="true" subset="true">
+	<testcase name="link_relational_mart"  category="TestLink" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<connection type="URL">
 			<url host="http://bm-test.res.oicr.on.ca" port="9002" path="/biomart/martservice">
@@ -477,7 +477,7 @@
 		<sourcexml>mart_update_delete.xml</sourcexml>
 	</testcase>
 	
-	<testcase name="update_delete_column" category="TestDeleteColumnUpdate" ignore="true" subset="true">
+	<testcase name="update_delete_column" category="TestDeleteColumnUpdate" ignore="false" subset="true">
 		<usergroup>anonymous</usergroup>
 		<basexml>update_delete_column.xml</basexml>
 		<updatedataset name="mmusculus_gene_vega"/>
