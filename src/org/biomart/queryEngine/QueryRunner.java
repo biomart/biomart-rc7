@@ -10,6 +10,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -141,6 +142,12 @@ public final class QueryRunner implements OutputConstants {
         List <SubQuery> subQueries = this.query.queryPlanMap.get(pair_1.getKey().toString());
         for(SubQuery subQuery : subQueries) {
             ArrayList<SubQuery> impOnly_sqObjs = subQuery.getImportableOnlySubQueries();
+            // remove duplicated entries in sub query list
+            HashSet hs = new HashSet();
+            hs.addAll(impOnly_sqObjs);
+            impOnly_sqObjs.clear();
+            impOnly_sqObjs.addAll(hs);
+            
             for(SubQuery impOnly_subQuery : impOnly_sqObjs){
                 Log.debug("EXECUTING (Importable Only SubQuery: "+ impOnly_subQuery.getDataset().getName() +" ) of dataset : " + subQuery.getDataset().getName());
                 impOnly_subQuery.caching = true;
