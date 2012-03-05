@@ -1241,10 +1241,24 @@ public class McMenus implements ActionListener {
 			//clean
 			
 		}else if(e.getActionCommand().equals("exit")){
-			if(MartController.getInstance().isRegistryChanged()){
-				if(this.requestSavePortal())
+			//save setting
+			Settings.save();
+			if(MartController.getInstance().isRegistryChanged()) {
+				int n = JOptionPane.showConfirmDialog(
+					    null,
+					    "Registry has been modified. Save changes?",
+					    "Question", 
+					    JOptionPane.YES_NO_CANCEL_OPTION);
+				if(n==0) {
+					//yes
+					McMenus.getInstance().requestSavePortal();
 					Runtime.getRuntime().exit(0);
-			}else{
+				}else if(n==2) {
+					//cancel do nothing
+				}else {
+					Runtime.getRuntime().exit(0);
+				}
+			}else {
 				Runtime.getRuntime().exit(0);
 			}
 			
