@@ -450,7 +450,7 @@ public final class SubQuery {
      * @param portablePosition
      * @param imp
      */
-    public void updateQuery(List<List<String>> temp_results, int portablePosition, QueryElement imp) {
+    public void updateQuery(List<List<String>> temp_results, int portablePosition, QueryElement imp, Boolean imp_only_sq) {
     	String quoteChar = "";
     	if (this.getDbType() == DBType.POSTGRES || getDbType() == DBType.ORACLE)
     		quoteChar = "\"";
@@ -458,7 +458,8 @@ public final class SubQuery {
 			int portableLength = imp.getElementList().size();
 			//need to call this to guarantee that this.originalQueryString is set for the next line
             this.getQuery();
-			StringBuilder updatedQuery = new StringBuilder(this.originalQueryString);
+			Log.debug("Query string before update: " + (imp_only_sq ? this.queryString : this.originalQueryString));
+			StringBuilder updatedQuery = new StringBuilder(imp_only_sq ? this.queryString : this.originalQueryString);
 			HashSet<List<String>> indexValues = new HashSet<List<String>>();
 			HashSet<String> values = new HashSet<String>();
 
@@ -469,6 +470,7 @@ public final class SubQuery {
             // link index is only working on EXACTLY ONE attribute, 
             // not attributeList. Even for attributeLists, its operates on first attribute only
             for (List<String> tuple : indexValues) {
+				Log.debug("portable value: " + tuple.get(0));
 				values.add(tuple.get(0));
 			}
 
@@ -613,6 +615,7 @@ public final class SubQuery {
 				}
 			}
 			this.queryString = updatedQuery.toString();
+			Log.debug("UpdatedQuery string: " + this.queryString);
 		}
 	}
 

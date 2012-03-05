@@ -146,7 +146,7 @@ public final class QueryRunnerThread implements Callable {
                                 // query running
                                 // all results, no batching,
                                 Log.debug("UPDATING with 'Importable ONLY' subqueries...");
-                                sqObj.updateQuery(impOnly_sqObj.getResults(1, 999999999), exp.getPortablePosition(), imp);
+                                sqObj.updateQuery(impOnly_sqObj.getResults(1, 999999999), exp.getPortablePosition(), imp, true);
                             }
                         }
                     }
@@ -156,7 +156,7 @@ public final class QueryRunnerThread implements Callable {
                         Log.debug("UPDATING regular join subqueries...");
                         Integer exportable_position = this.getExportablePositionInResults(exporting_ds, sqObj.getDataset().getName(), current_sq - 1);
                         if (exportable_position != null) {
-                            sqObj.updateQuery(interimRT, exportable_position, imp);
+                            sqObj.updateQuery(interimRT, exportable_position, imp, false);
                             // keep them safe, will need during merging
                             exp_position = exportable_position;
                             importable = imp;
