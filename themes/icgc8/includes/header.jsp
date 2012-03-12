@@ -33,7 +33,7 @@
                     <li class="leaf Home"><a href="/">Home</a></li>
                     <li class="leaf first Overview" id="menu-item-custom-id-1"><a href="http://www.icgc.org/" target="biomart_out" title="" class="">ICGC Home</a></li>
                     <li class="leaf Publication-Policy"><a href="http://www.icgc.org/icgc/goals-structure-policies-guidelines/e3-publication-policy" target="biomart_out">Publication Policy</a></li>
-                    <li class="leaf Data Summary"><a href="/pages/summary/" target="_self">Data Summary</a></li>
+                    <li class="leaf Dataset Summary"><a href="/pages/summary/" target="_self">Dataset Summary</a></li>
                     <li class="leaf Download"><a href="ftp://data.dcc.icgc.org" target="biomart_out">Download Data</a></li>
                     <!--                    <li class="leaf Documentation"><a href="/pages/docs/" target="_self">Documentation</a></li> -->
 
