@@ -2,17 +2,17 @@
 <JSChart>
     <dataset type="pie">
         <data unit="Blood" value="426"/>
-        <data unit="Brain" value="737"/>
+        <data unit="Brain" value="668"/>
         <data unit="Breast" value="516"/>
         <data unit="Colon" value="203"/>
         <data unit="Kidney" value="112"/>
-        <data unit="Liver" value="377"/>
+        <data unit="Liver" value="159"/>
         <data unit="Lung" value="267"/>
         <data unit="Ovary" value="509"/>
-        <data unit="Pancreas" value="496"/>
+        <data unit="Pancreas" value="295"/>
         <data unit="Rectum" value="69"/>
         <data unit="Skin" value="1"/>
-        <data unit="Stomach" value="162"/>
+        <data unit="Stomach" value="152"/>
         <data unit="Uterus" value="70"/>
     </dataset>
     <colorset>
