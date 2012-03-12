@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <JSChart>
     <dataset type="pie">
-        <data unit="Blood" value="297"/>
-        <data unit="Brain" value="566"/>
-        <data unit="Breast" value="430"/>
+        <data unit="Blood" value="427"/>
+        <data unit="Brain" value="691"/>
+        <data unit="Breast" value="530"/>
         <data unit="Colon" value="244"/>
         <data unit="Kidney" value="196"/>
-        <data unit="Liver" value="25"/>
+        <data unit="Liver" value="200"/>
         <data unit="Lung" value="292"/>
         <data unit="Ovary" value="524"/>
-        <data unit="Pancreas" value="154"/>
+        <data unit="Pancreas" value="230"/>
         <data unit="Rectum" value="69"/>
         <data unit="Skin" value="1"/>
         <data unit="Stomach" value="93"/>
