@@ -17,6 +17,8 @@
   <c:import url="/_head.jsp?path=../../" context="/"/>
 
   <link type="text/css" href="css/summary-table.css" rel="stylesheet" />
+  <link type="text/css" href="css/svg-style.css" rel="stylesheet" />
+  <script type="text/javascript" src="/pages/js/d3.v2.min.js"></script>
 </head>
 <!--[if lt IE 7 ]> <body class="biomart layout1 main ie6 "> <![endif]--> 
 <!--[if IE 7 ]>    <body class="biomart layout1 main ie7 "> <![endif]--> 
@@ -37,7 +39,37 @@
         Dataset Summary
         </h3>
 
+
+
+<div class="ui-widget-content ui-tabs martform level-1 clearfix ui-widget ui-corner-all" id="default">
+    <ul class="container-tabs ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+        <li class="item-1 ui-state-default ui-corner-top ui-corner-top ui-tabs-selected ui-state-active">
+            <a href="#dccdata-container" rel="noindex nofollow">Data Portal Contents</a>
+        </li>
+        <li class="item-2 ui-state-default ui-corner-top ui-corner-top">
+            <a href="#rawdata-container" rel="noindex nofollow">Raw Data Availability</a>
+        </li>
+        <li class="item-3 ui-state-default ui-corner-top ui-corner-top">
+            <a href="#donors-container" rel="noindex nofollow">Cumulative Donors</a>
+        </li>
+    </ul>
+    <div id="dccdata-container" class="subcontainer ui-widget-content ui-corner-bottom item-1 ui-tabs-panel clearfix">
         <jsp:include page="_summary.html" />
+    </div>
+    <div id="rawdata-container" class="subcontainer ui-widget-content ui-corner-bottom item-2 ui-tabs-panel clearfix ui-tabs-hide">
+        <jsp:include page="_summary-raw_data.html" />
+    </div>
+    <div id="donors-container" class="subcontainer ui-widget-content ui-corner-bottom item-3 ui-tabs-panel clearfix ui-tabs-hide">
+        <jsp:include page="_summary-cumulative_donors.html" />
+    </div>
+    <script>
+$(document).ready(function() {
+    $(function() {$('#default').tabs()})
+});
+    </script>
+</div>
+
+
 
       <div id="biomart-content-footer" class="clearfix">
         <p class="version">Powered by <a href="http://www.biomart.org/" title="Visit biomart.org">BioMart</a></p>
