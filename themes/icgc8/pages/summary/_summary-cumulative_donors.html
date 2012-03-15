@@ -1,15 +1,7 @@
       <div style='width: 960px; text-align: center;'><h3>ICGC Data Portal Cumulative Donor Count for Member Projects</h3></div>
-        <div id='testdiv' style='width: 960px'>
+        <div id='donorplotdiv' style='width: 960px'>
         </div>
-<!--
-        <div id='testdivb' style='width: 960px; display: hidden;'>
-            <div style='width: 100%; text-align: center;'><h4>TCGA projects</h4></div>
-        </div>
--->
       </div>
-
-
-
 
     <script type="text/javascript">
 var p = [20, 50, 30, 20],
@@ -19,7 +11,7 @@ var p = [20, 50, 30, 20],
     y = d3.scale.linear().range([h, 0]),
     z = d3.scale.ordinal().range(["red","tomato","darkorange","gold", "yellow","forestgreen","green","mediumseagreen","blue","darkslateblue","blueviolet", "indigo"]),
     
-    labelsa = d3.scale.ordinal().range([
+    labels = d3.scale.ordinal().range([
             "Chronic Lymphocytic Leukemia (CNIO, ES)",
             "Myeloproliferative Disorders (WTSI, UK)",
             "Pediatric Brain Tumors (DKFZ, DE)",
@@ -44,13 +36,12 @@ var p = [20, 50, 30, 20],
             "Rectum Adenocarcinoma (TCGA, US)",
             "Stomach Adenocarcinoma (TCGA, US)", 
             "Uterine Corpus Endometrioid Carcinoma (TCGA, US)"
-
             ]),
     
     parse = d3.time.format("%m/%Y").parse,
     format = d3.time.format("%b");
 
-var svg = d3.select("#testdiv").append("svg")
+var svg = d3.select("#donorplotdiv").append("svg")
     .attr("width", w)
     .attr("height", h)
     .append("g")
@@ -58,7 +49,7 @@ var svg = d3.select("#testdiv").append("svg")
 
 d3.csv("icgc.csv", function(icgc) {
 
-    var icgcdataa = d3.layout.stack()([
+    var icgcdata = d3.layout.stack()([
             "esCLL", 
             "sangerMDS",
             "dePedbrain",
@@ -91,23 +82,17 @@ d3.csv("icgc.csv", function(icgc) {
     });
   }));
                     
-var icgcdatab = d3.layout.stack()(["tcgaBRCA","tcgaCOAD","tcgaGBM","tcgaKIRC","tcgaKIRP","tcgaLAML","tcgaLUAD","tcgaLUSC","tcgaOV","tcgaREAD","tcgaSTAD","tcgaUCEC"].map(function(dcol) {
-    return icgc.map(function(d) {
-      return {x: parse(d.date), y: +d[dcol]};
-    });
-  }));
-
 
   // Compute the x-domain (by date) and y-domain (by top).
-  x.domain([icgcdataa[0][0].x, icgcdataa[0][icgcdataa[0].length - 1].x]);
-  y.domain([0, d3.max(icgcdataa[icgcdataa.length - 1], function(d) { return d.y0 + d.y; })]);
+  x.domain([icgcdata[0][0].x, icgcdata[0][icgcdata[0].length - 1].x]);
+  y.domain([0, d3.max(icgcdata[icgcdata.length - 1], function(d) { return d.y0 + d.y; })]);
 
   // Add an area for each cause.
   svg.selectAll("path.area")
-      .data(icgcdataa)
+      .data(icgcdata)
     .enter().append("path")
         .attr("class", "area")
-        .attr("title", function(d, i) { return labelsa(i); })
+        .attr("title", function(d, i) { return labels(i); })
       .style("fill", function(d, i) { return z(i); })
       .attr("d", d3.svg.area()
       .x(function(d) { return x(d.x); })
@@ -116,7 +101,7 @@ var icgcdatab = d3.layout.stack()(["tcgaBRCA","tcgaCOAD","tcgaGBM","tcgaKIRC","t
 
   // Add a line for each cause.
   svg.selectAll("path.line")
-      .data(icgcdataa)
+      .data(icgcdata)
     .enter().append("path")
       .attr("class", "line")
       .style("stroke", function(d, i) { return d3.rgb(z(i)).darker(); })
