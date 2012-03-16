@@ -75,7 +75,7 @@
                     url: queryurl,
                     success: function(data){
                         $('#dialogbox').html("<pre>"+data+"</pre>");
-                        $('#dialogbox').dialog();
+                        $('#dialogbox').dialog({ width: 600});
                   }
                 });
                 return false;
