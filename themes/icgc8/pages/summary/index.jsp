@@ -62,10 +62,25 @@
     <div id="donors-container" class="subcontainer ui-widget-content ui-corner-bottom item-3 ui-tabs-panel clearfix ui-tabs-hide">
         <jsp:include page="_summary-cumulative_donors.html" />
     </div>
+
+    <div id='dialogbox' style='display: none;'></div>    
     <script>
-$(document).ready(function() {
-    $(function() {$('#default').tabs()})
-});
+
+    $(document).ready(function() {
+        $(function() {$('#default').tabs()});
+        $(function() {
+            $("a.rawdatalink").click(function(){
+                var queryurl = $(this).attr('href');
+                $.ajax({
+                    url: queryurl,
+                    success: function(data){
+                        $('#dialogbox').html("<pre>"+data+"</pre>");
+                        $('#dialogbox').dialog();
+                  }
+                });
+                return false;
+            });
+    });
     </script>
 </div>
 
