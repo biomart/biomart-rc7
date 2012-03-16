@@ -80,6 +80,7 @@
                 });
                 return false;
             });
+        });
     });
     </script>
 </div>
