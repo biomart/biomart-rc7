@@ -1,4 +1,4 @@
-This is an import from BioMart RC6 SVN repository.
+This is an import from BioMart RC7 SVN repository.
 
 Building BioMart
 ----------------
