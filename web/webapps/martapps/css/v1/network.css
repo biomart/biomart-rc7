@@ -1,0 +1,17 @@
+
+text.network-shadow {
+        stroke: #fff;
+        stroke-width: 3px;
+        stroke-opacity: .8;
+}
+
+.network-edge {
+        stroke: #666;
+        stroke-width: 2px;
+ }
+
+.network-bubble {
+        stroke-width: 3;
+        stroke: #fff;
+        cursor: move;
+}
