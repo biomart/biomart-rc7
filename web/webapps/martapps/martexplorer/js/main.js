@@ -116,7 +116,9 @@ $.namespace('biomart.martexplorer', function(self) {
                             downloadXml: getXml('TSV', -1, true, QUERY_CLIENT),
                             martObj: biomart._state.queryMart,
                             dataAggregation: 'none',
-                            displayType: 'table'
+                            // HARDCODE 'network' INSTEAD OF 'table' JUST FOR NOW
+                            displayType: 'network'
+                            ////////////////////////////////////////////////////
                         }, QUERY_RESULTS_OPTIONS));
                     $.publish('biomart.loaded');
                 }
