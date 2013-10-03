@@ -9,3 +9,5 @@
 # /src/org/biomart/common/resources/
 /src/org/biomart/common/resources/.Resources.java.swp
 manifest.mf
+
+.DS_Store
