@@ -117,7 +117,7 @@ $.namespace('biomart.martexplorer', function(self) {
                             martObj: biomart._state.queryMart,
                             dataAggregation: 'none',
                             // HARDCODE 'network' INSTEAD OF 'table' JUST FOR NOW
-                            displayType: 'network'
+                            displayType: title.toLowerCase() === 'network analysis' ? 'network' : 'table'
                             ////////////////////////////////////////////////////
                         }, QUERY_RESULTS_OPTIONS));
                     $.publish('biomart.loaded');
