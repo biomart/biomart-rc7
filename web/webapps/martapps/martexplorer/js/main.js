@@ -107,10 +107,11 @@ $.namespace('biomart.martexplorer', function(self) {
                 },
 
                 function(element) {
+                    var title = biomart.utils.hasGroupedMarts() ? biomart._state.mart[0].group : biomart._state.mart.displayName
                     _elements.contentWrapper.slideUp();
                     _elements.toolbar.slideUp();
                     _elements.results.resultsPanel('run', 
-                        biomart.utils.hasGroupedMarts() ? biomart._state.mart[0].group : biomart._state.mart.displayName,
+                        title,
                         $.extend({
                             queries: getXml('TSVX', QUERY_LIMIT, true, QUERY_CLIENT),
                             downloadXml: getXml('TSV', -1, true, QUERY_CLIENT),
