@@ -107,17 +107,18 @@ $.namespace('biomart.martexplorer', function(self) {
                 },
 
                 function(element) {
+                    var title = biomart.utils.hasGroupedMarts() ? biomart._state.mart[0].group : biomart._state.mart.displayName
                     _elements.contentWrapper.slideUp();
                     _elements.toolbar.slideUp();
                     _elements.results.resultsPanel('run', 
-                        biomart.utils.hasGroupedMarts() ? biomart._state.mart[0].group : biomart._state.mart.displayName,
+                        title,
                         $.extend({
                             queries: getXml('TSVX', QUERY_LIMIT, true, QUERY_CLIENT),
                             downloadXml: getXml('TSV', -1, true, QUERY_CLIENT),
                             martObj: biomart._state.queryMart,
                             dataAggregation: 'none',
                             // HARDCODE 'network' INSTEAD OF 'table' JUST FOR NOW
-                            displayType: 'network'
+                            displayType: title.toLowerCase() === 'network analysis' ? 'network' : 'table'
                             ////////////////////////////////////////////////////
                         }, QUERY_RESULTS_OPTIONS));
                     $.publish('biomart.loaded');
