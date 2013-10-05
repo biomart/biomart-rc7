@@ -6,8 +6,8 @@ text.network-shadow {
 }
 
 .network-edge {
-        stroke: #666;
-        stroke-width: 2px;
+        stroke: #333;
+        stroke-width: 1px;
  }
 
 .network-bubble {
