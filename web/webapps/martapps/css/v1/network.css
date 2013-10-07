@@ -1,3 +1,17 @@
+text.network-shadow, text.network-text {
+        font-family: verdana, times new roman, tahoma;
+        font-size: 0.73em;
+        text-anchor: start;
+}
+
+text.network-text {
+        stroke: #999;
+        stroke-width: 1px;
+}
+
+text.network-text:hover {
+        stroke: #B3705D;
+}
 
 text.network-shadow {
         stroke: #fff;
@@ -6,12 +20,13 @@ text.network-shadow {
 }
 
 .network-edge {
-        stroke: #666;
-        stroke-width: 2px;
+        stroke: #333;
+        stroke-width: 1px;
  }
 
 .network-bubble {
         stroke-width: 3;
         stroke: #fff;
+        fill: #0A6AF7;
         cursor: move;
 }
