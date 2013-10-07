@@ -439,7 +439,7 @@ nt.draw = function (writee) {
                 this._makeNE(this._nodeBuffer[i])
 
         this._nodeBuffer = []
-        this._visualization = makeGraph(this._svg, this._nodes, this._edges, config)
+        this._visualization = graph(this._svg, this._nodes, this._edges, config)
 }
 
 nt.clear = function () {
