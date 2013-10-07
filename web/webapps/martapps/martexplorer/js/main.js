@@ -396,10 +396,22 @@ $.namespace('biomart.martexplorer', function(self) {
                              displayName = item.displayName;
                         }
 
+                        // -------- iwan
+                        var len_max = 50;
+                        var arr_elem_num = 6;
+                        var title = "";
+                        if (value.length>len_max) {
+                            var arr = value.split(",");
+                            if (arr.length>arr_elem_num) {
+                                title = value;
+                                value = arr.slice(0,arr_elem_num).join(",")+", ... ("+(arr.length-arr_elem_num)+" more)";
+                            }
+                        }
+
                         li
                             .html([
                                 '<span class="key">', displayName, '</span>: ',
-                                '<span class="value">', value, '</span>',
+                                '<span class="value" title="', title, '">', value, '</span>',
                                 '<span class="ui-icon ui-icon-circle-close" title="Remove"/>',
                                 '<span class="ui-icon ui-icon-circle-arrow-w" title="View in container"/>'
                             ].join(''));
