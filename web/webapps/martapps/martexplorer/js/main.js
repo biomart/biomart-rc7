@@ -8,7 +8,7 @@
  * The workflow starts from the biomart.martexplorer.init function, and ends with _stepCallback function.
  *
  * The _stepCallback function has an array (bound by closure) that maps to each of the four steps.
- * Each step callback contains its own specific logic (e.g. Results requires >= 1 attributes, or else 
+ * Each step callback contains its own specific logic (e.g. Results requires >= 1 attributes, or else
  * goes back to Output step)
  *
  * _elements hold all jQuery DOM elements that are used multiple times
@@ -18,7 +18,7 @@
 
 $.namespace('biomart.martexplorer', function(self) {
     var QUERY_CLIENT = 'webbrowser',
-        QUERY_LIMIT = 1000,
+        QUERY_LIMIT = -1,
         ANIMATION_TIME = 100,
         BLOCK_OPTIONS  = {
             message: '<span class="loading" style="margin: 3px auto"></span>',
@@ -110,7 +110,7 @@ $.namespace('biomart.martexplorer', function(self) {
                     var title = biomart.utils.hasGroupedMarts() ? biomart._state.mart[0].group : biomart._state.mart.displayName
                     _elements.contentWrapper.slideUp();
                     _elements.toolbar.slideUp();
-                    _elements.results.resultsPanel('run', 
+                    _elements.results.resultsPanel('run',
                         title,
                         $.extend({
                             queries: getXml('TSVX', QUERY_LIMIT, true, QUERY_CLIENT),
@@ -134,9 +134,9 @@ $.namespace('biomart.martexplorer', function(self) {
 
     biomart._state = {
         queryMart: {datasets:null, attributes:{}, filters:{}},
-        activeStep: 1    
+        activeStep: 1
     };
-    
+
     // Invalid filters will show as disabled controls
     biomart.renderer.renderInvalid = true;
 
@@ -321,7 +321,7 @@ $.namespace('biomart.martexplorer', function(self) {
         _elements.attributeContent.scrollTop(0);
         $.publish('biomart.change', 'step', num);
     };
-    
+
     self.invalidateResults = function() {
     };
 
@@ -335,11 +335,11 @@ $.namespace('biomart.martexplorer', function(self) {
             self.step(parseInt(biomart.params.step));
         }
     };
-    
+
     self.updateSummary = function(type) {
         var item, value, containerName;
         switch (type) {
-            case 'mart': 
+            case 'mart':
                 item = arguments[1];
                 _elements.summaryMart.html(['<li>', biomart.utils.hasGroupedMarts() ?  item[0].group : item.displayName, '</li>'].join(''));
                 break;
@@ -357,7 +357,7 @@ $.namespace('biomart.martexplorer', function(self) {
                         .append(['<li class="empty">', _('empty_value'), '</li>'].join(''));
                 } else {
                     for (var i=0, ds; ds=item[i]; i++) {
-                        $(['<li class="', ds.name, '">', 
+                        $(['<li class="', ds.name, '">',
                             ds.displayName,
                         '</li>'].join(''))
                             .appendTo(_elements.summaryDatasets)
@@ -434,8 +434,8 @@ $.namespace('biomart.martexplorer', function(self) {
                 } else {
                     if (arguments[2] /* add */) {
                         if (!_elements.summaryAttributes.children('li.' + biomart.renderer.makeClassName(item.name)).length) {
-                            $(['<li data-container="', containerName, '" class="', biomart.renderer.makeClassName(item.name), '">', 
-                                    item.displayName, 
+                            $(['<li data-container="', containerName, '" class="', biomart.renderer.makeClassName(item.name), '">',
+                                    item.displayName,
                                     '<span class="ui-icon ui-icon-circle-close" title="Remove"/>',
                                     '<span class="ui-icon ui-icon-circle-arrow-w" title="View in container"/>',
                                 '</li>'].join(''))
@@ -594,7 +594,7 @@ $.namespace('biomart.martexplorer', function(self) {
         _elements.stepInfo.bind('click.martexplorer', function() {
             var $this = $(this);
             if (!$this.hasClass('ui-state-disabled')) {
-                updateParam('step', $this.attr('data-step-number')); 
+                updateParam('step', $this.attr('data-step-number'));
             }
         });
         _elements.newButton.bind('click.martexplorer', function() {
@@ -679,7 +679,7 @@ $.namespace('biomart.martexplorer', function(self) {
 
                 if ($.isArray(value)) valid = !!value[0] && !!value[1];
                 else valid = !!value;
-                
+
                 if (valid) {
                     $div.addClass('ui-active');
                     setQueryFilter(item, value);
@@ -688,7 +688,7 @@ $.namespace('biomart.martexplorer', function(self) {
                     removeQueryFilter(item);
                 }
             });
-        
+
         // attributes changed
         _elements.attributeContent
             .delegate('.attribute-container', 'addattribute', function(ev) {
@@ -852,7 +852,7 @@ $.namespace('biomart.martexplorer', function(self) {
         updateAttributeParam();
         $.publish('biomart.change', 'attributes', item, true);
     }
-    
+
     function removeQueryAttribute(item) {
         delete biomart._state.queryMart.attributes[item.name];
         updateAttributeParam();
@@ -894,12 +894,12 @@ $.namespace('biomart.martexplorer', function(self) {
             if (!isMapped) {
                 multiple = biomart._state.mart.operation == biomart.OPERATION.MULTI_SELECT;
             }
-            
+
             if (_elements.datasetSelect) {
                 _elements.datasetSelect.prettybox('destroy').remove();
             }
 
-            _elements.datasetSelect = $(['<select ', multiple ? 'multiple size="10"' : '', ' class="datasets" id="', 
+            _elements.datasetSelect = $(['<select ', multiple ? 'multiple size="10"' : '', ' class="datasets" id="',
                 biomart.uuid() , '"/>'].join('')).appendTo(_elements.datasetSelectBox);
 
             if (!isMapped) {
@@ -908,8 +908,8 @@ $.namespace('biomart.martexplorer', function(self) {
                         d.mart = biomart._state.mart;
                         selected = (dsArr.length && $.inArray(d.name, dsArr) != -1) || (!dsArr.length && i==0);
                         $([
-                            '<option value="', d.name, '"', selected ? ' selected="selected"' : '', '>', 
-                                d.displayName, 
+                            '<option value="', d.name, '"', selected ? ' selected="selected"' : '', '>',
+                                d.displayName,
                             '</option>'
                         ].join('')).data('item', d).appendTo(_elements.datasetSelect);
                     }
@@ -963,7 +963,7 @@ $.namespace('biomart.martexplorer', function(self) {
     function loadFilters(callback) {
         var params = {
             datasets: biomart._state.queryMart.datasets.join(','),
-            withfilters: true, 
+            withfilters: true,
             withattributes: false
         };
 
@@ -981,7 +981,7 @@ $.namespace('biomart.martexplorer', function(self) {
 
                 root.title = biomart._state.mart.displayName,
                 root.attr = {
-                    'class': 'mart ' + biomart._state.mart.name, 
+                    'class': 'mart ' + biomart._state.mart.name,
                     mart: biomart._state.mart.name
                 };
                 root.state = 'open';
@@ -1046,8 +1046,8 @@ $.namespace('biomart.martexplorer', function(self) {
 
     function drawFilterContainer(element, container, level) {
         biomart.renderer.container({
-            tagName:'div', 
-            item: container, 
+            tagName:'div',
+            item: container,
             mode: biomart.renderer.FILTERS,
             selectedFilters: biomart._state.queryMart.filters,
             appendTo: element
@@ -1056,8 +1056,8 @@ $.namespace('biomart.martexplorer', function(self) {
 
     function loadAttributes(callback) {
         var params = {
-            datasets: biomart._state.queryMart.datasets.join(','), 
-            withfilters: false, 
+            datasets: biomart._state.queryMart.datasets.join(','),
+            withfilters: false,
             withattributes: true
         };
 
@@ -1074,7 +1074,7 @@ $.namespace('biomart.martexplorer', function(self) {
 
                 root.title = biomart._state.mart.displayName,
                 root.attr = {
-                    'class': 'mart ' + biomart._state.mart.name, 
+                    'class': 'mart ' + biomart._state.mart.name,
                     mart: biomart._state.mart.name
                 };
                 root.state = 'open';
@@ -1119,7 +1119,7 @@ $.namespace('biomart.martexplorer', function(self) {
                             }
                         });
                     }
-                          
+
                 // Small hack to use setTimeout because otherwise the proper styles don't get added for some reason
                 // Bug in jstree maybe?
                 setTimeout(function() {
@@ -1139,11 +1139,11 @@ $.namespace('biomart.martexplorer', function(self) {
 
     function drawAttributeContainer(element, container, level, extraClassNames) {
         biomart.renderer.container({
-            tagName:'div', 
-            item: container, 
+            tagName:'div',
+            item: container,
             mode: biomart.renderer.ATTRIBUTES,
             extraClassNames: extraClassNames || '',
-            selectedAttributes: biomart.params.attributes ? biomart.params.attributes.split(',') : [], 
+            selectedAttributes: biomart.params.attributes ? biomart.params.attributes.split(',') : [],
             onAttributeSelect: function(item) {
                 biomart._state.queryMart.attributes[item.name] = {name:item.name};
                 $.publish('biomart.change', 'attributes', item, true);
@@ -1162,7 +1162,7 @@ $.namespace('biomart.martexplorer', function(self) {
                             var list = panel.find('.attribute-container.ui-active'),
                                 n = list.length;
                             while (n--) {
-                                removeQueryAttribute(list.eq(n).data('item')); 
+                                removeQueryAttribute(list.eq(n).data('item'));
                             }
                         });
                 }
