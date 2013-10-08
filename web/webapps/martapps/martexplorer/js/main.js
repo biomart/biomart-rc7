@@ -18,7 +18,7 @@
 
 $.namespace('biomart.martexplorer', function(self) {
     var QUERY_CLIENT = 'webbrowser',
-        QUERY_LIMIT = -1,
+        QUERY_LIMIT = 1000,
         ANIMATION_TIME = 100,
         BLOCK_OPTIONS  = {
             message: '<span class="loading" style="margin: 3px auto"></span>',
@@ -107,18 +107,23 @@ $.namespace('biomart.martexplorer', function(self) {
                 },
 
                 function(element) {
-                    var title = biomart.utils.hasGroupedMarts() ? biomart._state.mart[0].group : biomart._state.mart.displayName
+                    var title = biomart.utils.hasGroupedMarts() ? biomart._state.mart[0].group : biomart._state.mart.displayName;
+                    var renderer = 'table', limit = QUERY_LIMIT
+                    if (title.toLowerCase() === 'network analysis') {
+                        renderer = 'network';
+                        limit = -1
+                    }
                     _elements.contentWrapper.slideUp();
                     _elements.toolbar.slideUp();
                     _elements.results.resultsPanel('run',
                         title,
                         $.extend({
-                            queries: getXml('TSVX', QUERY_LIMIT, true, QUERY_CLIENT),
+                            queries: getXml('TSVX', limit, true, QUERY_CLIENT),
                             downloadXml: getXml('TSV', -1, true, QUERY_CLIENT),
                             martObj: biomart._state.queryMart,
                             dataAggregation: 'none',
                             // HARDCODE 'network' INSTEAD OF 'table' JUST FOR NOW
-                            displayType: title.toLowerCase() === 'network analysis' ? 'network' : 'table'
+                            displayType: renderer
                             ////////////////////////////////////////////////////
                         }, QUERY_RESULTS_OPTIONS));
                     $.publish('biomart.loaded');
