@@ -1,7 +1,7 @@
 (function($) {
     $.widget('ui.datacontroller', {
         options: {
-            // Larger buffer for IE (performance) 
+            // Larger buffer for IE (performance)
             bufferSize: 60
         },
         _rendererOptions: [
@@ -55,6 +55,15 @@
             self._writee._resultsCache = [];
         },
 
+        _init: function () {
+            var self = this,
+                o = self.options;
+            if (o.headers)
+                self._headers = true
+            if (o.type) self._renderer = biomart.renderer.get(o.type);
+            else self._renderer =  biomart.renderer.get('table');
+        },
+
         _headers: false,
 
         _startRegex: /^#\s*(.*)/,
@@ -80,8 +89,8 @@
                     }
                     self._caption = false;
                 }
-            } 
-            
+            }
+
             if (!self._caption) {
                 if (self._headers) {
                     // headers
@@ -166,7 +175,7 @@
                 curr = cache[i];
                 if (i > self._end) break;
                 rows.push(curr);
-            } 
+            }
 
             self._renderer.clear();
             self._renderer.parse(rows, self._writee);
