@@ -13,4 +13,4 @@ Run Tests
 
 Run test ant file:
 
-    ant -f build_text.xml test
+    ant -f build_test.xml test
