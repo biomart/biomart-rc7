@@ -401,17 +401,15 @@ $.namespace('biomart.martexplorer', function(self) {
                              displayName = item.displayName;
                         }
 
-                        // -------- iwan
+                        // -------->> iwan
                         var len_max = 50;
-                        var arr_elem_num = 6;
                         var title = "";
                         if (value.length>len_max) {
-                            var arr = value.split(",");
-                            if (arr.length>arr_elem_num) {
-                                title = value;
-                                value = arr.slice(0,arr_elem_num).join(",")+", ... ("+(arr.length-arr_elem_num)+" more)";
-                            }
+                            var items = value.split(",").length;
+                            title = value;
+                            value = items + " " + (items==1 ? 'item' : 'items') + " in the list";
                         }
+                        // <<-------- iwan
 
                         li
                             .html([
