@@ -406,9 +406,12 @@ nt.printHeader = function(header, writee) {
         var item, tabNum
 
         tabNum = $tabsCont.children().size() + 1
+        if (tabNum === 1) writee.tabs() //
+
         item = 'item-'+ tabNum
-        $tabsCont.append('<li><a href="#'+ item +'" >Network'+ tabNum +'</a></li>')
-        writee.append('<div id="'+ item +'" class="subcontainer"></div>')
+        writee.tabs('add', '#'+ item, Object.keys(biomart._state.queryMart.attributes)[tabNum-1]) //
+        // $tabsCont.append('<li><a href="#'+ item +'" >Network'+ tabNum +'</a></li>')
+        // writee.append('<div id="'+ item +'" class="subcontainer"></div>')
         this._svg = d3.select($('#'+ item)[0])
                 .append('svg:svg')
                 .attr({
@@ -428,7 +431,7 @@ nt.printHeader = function(header, writee) {
                 }
         }, this)
 
-        $tabsCont.tabs()
+        // writee.tabs()
 }
 
 nt.draw = function (writee) {
