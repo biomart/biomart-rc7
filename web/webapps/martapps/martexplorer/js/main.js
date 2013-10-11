@@ -147,10 +147,14 @@ $.namespace('biomart.martexplorer', function(self) {
                                     }, QUERY_RESULTS_OPTIONS));
                             },
                             send: function () {
-                                if (this.queries.length)
+                                if (this.queries.length) {
                                     this.issue(this.queries.shift());
-                                $.unsubscribeAll('network.completed')
-                                $.subscribe('network.completed', this, 'send')
+                                    $.unsubscribeAll('network.completed');
+                                    $.subscribe('network.completed', this, 'send');
+                                } else {
+                                    // Unsubscribe the last handler
+                                    $.unsubscribeAll('network.completed');
+                                }
                             }
                         }
 
