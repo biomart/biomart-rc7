@@ -1,3 +1,13 @@
+/* Remove rules applied by .biomart .data li */
+.network-tabs li.ui-state-default {
+        width: auto;
+        margin: auto;
+}
+
+.network-tabs li.ui-state-default a {
+        font-size: 1.2em;
+}
+
 text.network-shadow, text.network-text {
         font-family: verdana, times new roman, tahoma;
         font-size: 0.73em;
