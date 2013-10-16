@@ -138,7 +138,7 @@ $.namespace('biomart.martexplorer', function(self) {
                                     title,
                                     $.extend({
                                         queries: q,
-                                        // downloadXml: getXml('TSV', -1, true, QUERY_CLIENT),
+                                        downloadXml: getXmlDefault('TSV', -1, true, QUERY_CLIENT),
                                         martObj: biomart._state.queryMart,
                                         dataAggregation: 'none',
                                         // HARDCODE 'network' INSTEAD OF 'table' FOR NOW
