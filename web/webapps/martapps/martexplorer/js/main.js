@@ -8,7 +8,7 @@
  * The workflow starts from the biomart.martexplorer.init function, and ends with _stepCallback function.
  *
  * The _stepCallback function has an array (bound by closure) that maps to each of the four steps.
- * Each step callback contains its own specific logic (e.g. Results requires >= 1 attributes, or else 
+ * Each step callback contains its own specific logic (e.g. Results requires >= 1 attributes, or else
  * goes back to Output step)
  *
  * _elements hold all jQuery DOM elements that are used multiple times
@@ -107,18 +107,63 @@ $.namespace('biomart.martexplorer', function(self) {
                 },
 
                 function(element) {
-                    _elements.contentWrapper.slideUp();
-                    _elements.toolbar.slideUp();
-                    _elements.results.resultsPanel('run', 
-                        biomart.utils.hasGroupedMarts() ? biomart._state.mart[0].group : biomart._state.mart.displayName,
-                        $.extend({
-                            queries: getXml('TSVX', QUERY_LIMIT, true, QUERY_CLIENT),
-                            downloadXml: getXml('TSV', -1, true, QUERY_CLIENT),
-                            martObj: biomart._state.queryMart,
-                            dataAggregation: 'none',
-                            displayType: 'table'
-                        }, QUERY_RESULTS_OPTIONS));
-                    $.publish('biomart.loaded');
+                    var title = biomart.utils.hasGroupedMarts() ? biomart._state.mart[0].group : biomart._state.mart.displayName;
+                    var renderer = 'table', limit = QUERY_LIMIT, callback = defaultRenderer;
+                    if (title.toLowerCase() === 'network analysis') {
+                        renderer = 'network';
+                        callback = customRenderers;
+                        limit = -1;
+                    }
+
+                    callback.call(this, element)
+
+                    function defaultRenderer (element) {
+                        _elements.contentWrapper.slideUp();
+                        _elements.toolbar.slideUp();
+                        _elements.results.resultsPanel('run', title,
+                            $.extend({
+                                queries: getXmlDefault('TSVX', QUERY_LIMIT, true, QUERY_CLIENT),
+                                downloadXml: getXmlDefault('TSV', -1, true, QUERY_CLIENT),
+                                martObj: biomart._state.queryMart,
+                                dataAggregation: 'none',
+                                displayType: renderer
+                            }, QUERY_RESULTS_OPTIONS));
+                        $.publish('biomart.loaded');
+                    }
+
+                    function customRenderers (element) {
+                        var qHandler = {
+                            issue: function (q) {
+                                _elements.results.resultsPanel('run',
+                                    title,
+                                    $.extend({
+                                        queries: q,
+                                        downloadXml: getXmlDefault('TSV', -1, true, QUERY_CLIENT),
+                                        martObj: biomart._state.queryMart,
+                                        dataAggregation: 'none',
+                                        // HARDCODE 'network' INSTEAD OF 'table' FOR NOW
+                                        displayType: renderer
+                                        ////////////////////////////////////////////////////
+                                    }, QUERY_RESULTS_OPTIONS));
+                            },
+                            send: function () {
+                                if (this.queries.length) {
+                                    this.issue(this.queries.shift());
+                                    $.unsubscribeAll('network.completed');
+                                    $.subscribe('network.completed', this, 'send');
+                                } else {
+                                    // Unsubscribe the last handler
+                                    $.unsubscribeAll('network.completed');
+                                }
+                            }
+                        }
+
+                        qHandler.queries = getXmlSplitted('TSVX', limit, true, QUERY_CLIENT)
+                        _elements.contentWrapper.slideUp();
+                        _elements.toolbar.slideUp();
+                        qHandler.send()
+                        $.publish('biomart.loaded');
+                    }
                 }
             ];
 
@@ -131,9 +176,9 @@ $.namespace('biomart.martexplorer', function(self) {
 
     biomart._state = {
         queryMart: {datasets:null, attributes:{}, filters:{}},
-        activeStep: 1    
+        activeStep: 1
     };
-    
+
     // Invalid filters will show as disabled controls
     biomart.renderer.renderInvalid = true;
 
@@ -318,7 +363,7 @@ $.namespace('biomart.martexplorer', function(self) {
         _elements.attributeContent.scrollTop(0);
         $.publish('biomart.change', 'step', num);
     };
-    
+
     self.invalidateResults = function() {
     };
 
@@ -332,11 +377,11 @@ $.namespace('biomart.martexplorer', function(self) {
             self.step(parseInt(biomart.params.step));
         }
     };
-    
+
     self.updateSummary = function(type) {
         var item, value, containerName;
         switch (type) {
-            case 'mart': 
+            case 'mart':
                 item = arguments[1];
                 _elements.summaryMart.html(['<li>', biomart.utils.hasGroupedMarts() ?  item[0].group : item.displayName, '</li>'].join(''));
                 break;
@@ -354,7 +399,7 @@ $.namespace('biomart.martexplorer', function(self) {
                         .append(['<li class="empty">', _('empty_value'), '</li>'].join(''));
                 } else {
                     for (var i=0, ds; ds=item[i]; i++) {
-                        $(['<li class="', ds.name, '">', 
+                        $(['<li class="', ds.name, '">',
                             ds.displayName,
                         '</li>'].join(''))
                             .appendTo(_elements.summaryDatasets)
@@ -393,10 +438,20 @@ $.namespace('biomart.martexplorer', function(self) {
                              displayName = item.displayName;
                         }
 
+                        // -------->> iwan
+                        var len_max = 50;
+                        var title = "";
+                        if (value.length>len_max) {
+                            var items = value.split(",").length;
+                            title = value;
+                            value = items + " " + (items==1 ? 'item' : 'items') + " in the list";
+                        }
+                        // <<-------- iwan
+
                         li
                             .html([
                                 '<span class="key">', displayName, '</span>: ',
-                                '<span class="value">', value, '</span>',
+                                '<span class="value" title="', title, '">', value, '</span>',
                                 '<span class="ui-icon ui-icon-circle-close" title="Remove"/>',
                                 '<span class="ui-icon ui-icon-circle-arrow-w" title="View in container"/>'
                             ].join(''));
@@ -419,8 +474,8 @@ $.namespace('biomart.martexplorer', function(self) {
                 } else {
                     if (arguments[2] /* add */) {
                         if (!_elements.summaryAttributes.children('li.' + biomart.renderer.makeClassName(item.name)).length) {
-                            $(['<li data-container="', containerName, '" class="', biomart.renderer.makeClassName(item.name), '">', 
-                                    item.displayName, 
+                            $(['<li data-container="', containerName, '" class="', biomart.renderer.makeClassName(item.name), '">',
+                                    item.displayName,
                                     '<span class="ui-icon ui-icon-circle-close" title="Remove"/>',
                                     '<span class="ui-icon ui-icon-circle-arrow-w" title="View in container"/>',
                                 '</li>'].join(''))
@@ -519,7 +574,7 @@ $.namespace('biomart.martexplorer', function(self) {
                 },
                 'Toggle quote-escape': function() {
                     var limit = parseInt(_elements.exportLimit.val()) || -1,
-                        xml = getXml('TSV', limit, true, ''),
+                        xml = getXmlDefault('TSV', limit, true, ''),
                         $this = $(this);
                     if (!$this.data('escaped')) {
                         xml = xml.replace(/"/g, '\\"');
@@ -579,7 +634,7 @@ $.namespace('biomart.martexplorer', function(self) {
         _elements.stepInfo.bind('click.martexplorer', function() {
             var $this = $(this);
             if (!$this.hasClass('ui-state-disabled')) {
-                updateParam('step', $this.attr('data-step-number')); 
+                updateParam('step', $this.attr('data-step-number'));
             }
         });
         _elements.newButton.bind('click.martexplorer', function() {
@@ -664,7 +719,7 @@ $.namespace('biomart.martexplorer', function(self) {
 
                 if ($.isArray(value)) valid = !!value[0] && !!value[1];
                 else valid = !!value;
-                
+
                 if (valid) {
                     $div.addClass('ui-active');
                     setQueryFilter(item, value);
@@ -673,7 +728,7 @@ $.namespace('biomart.martexplorer', function(self) {
                     removeQueryFilter(item);
                 }
             });
-        
+
         // attributes changed
         _elements.attributeContent
             .delegate('.attribute-container', 'addattribute', function(ev) {
@@ -691,7 +746,7 @@ $.namespace('biomart.martexplorer', function(self) {
         // View XML function
         _elements.viewXmlLink.bind('click.martexplorer', function() {
             var limit = parseInt(_elements.exportLimit.val()) || -1,
-                xml = getXml('TSV', limit, true, '');
+                xml = getXmlDefault('TSV', limit, true, '');
             _elements.viewXml.children('textarea').val(xml);
             _elements.viewXml.data('escaped', false).dialog('open');
         });
@@ -837,7 +892,7 @@ $.namespace('biomart.martexplorer', function(self) {
         updateAttributeParam();
         $.publish('biomart.change', 'attributes', item, true);
     }
-    
+
     function removeQueryAttribute(item) {
         delete biomart._state.queryMart.attributes[item.name];
         updateAttributeParam();
@@ -879,12 +934,12 @@ $.namespace('biomart.martexplorer', function(self) {
             if (!isMapped) {
                 multiple = biomart._state.mart.operation == biomart.OPERATION.MULTI_SELECT;
             }
-            
+
             if (_elements.datasetSelect) {
                 _elements.datasetSelect.prettybox('destroy').remove();
             }
 
-            _elements.datasetSelect = $(['<select ', multiple ? 'multiple size="10"' : '', ' class="datasets" id="', 
+            _elements.datasetSelect = $(['<select ', multiple ? 'multiple size="10"' : '', ' class="datasets" id="',
                 biomart.uuid() , '"/>'].join('')).appendTo(_elements.datasetSelectBox);
 
             if (!isMapped) {
@@ -893,8 +948,8 @@ $.namespace('biomart.martexplorer', function(self) {
                         d.mart = biomart._state.mart;
                         selected = (dsArr.length && $.inArray(d.name, dsArr) != -1) || (!dsArr.length && i==0);
                         $([
-                            '<option value="', d.name, '"', selected ? ' selected="selected"' : '', '>', 
-                                d.displayName, 
+                            '<option value="', d.name, '"', selected ? ' selected="selected"' : '', '>',
+                                d.displayName,
                             '</option>'
                         ].join('')).data('item', d).appendTo(_elements.datasetSelect);
                     }
@@ -948,7 +1003,7 @@ $.namespace('biomart.martexplorer', function(self) {
     function loadFilters(callback) {
         var params = {
             datasets: biomart._state.queryMart.datasets.join(','),
-            withfilters: true, 
+            withfilters: true,
             withattributes: false
         };
 
@@ -966,7 +1021,7 @@ $.namespace('biomart.martexplorer', function(self) {
 
                 root.title = biomart._state.mart.displayName,
                 root.attr = {
-                    'class': 'mart ' + biomart._state.mart.name, 
+                    'class': 'mart ' + biomart._state.mart.name,
                     mart: biomart._state.mart.name
                 };
                 root.state = 'open';
@@ -1031,8 +1086,8 @@ $.namespace('biomart.martexplorer', function(self) {
 
     function drawFilterContainer(element, container, level) {
         biomart.renderer.container({
-            tagName:'div', 
-            item: container, 
+            tagName:'div',
+            item: container,
             mode: biomart.renderer.FILTERS,
             selectedFilters: biomart._state.queryMart.filters,
             appendTo: element
@@ -1041,8 +1096,8 @@ $.namespace('biomart.martexplorer', function(self) {
 
     function loadAttributes(callback) {
         var params = {
-            datasets: biomart._state.queryMart.datasets.join(','), 
-            withfilters: false, 
+            datasets: biomart._state.queryMart.datasets.join(','),
+            withfilters: false,
             withattributes: true
         };
 
@@ -1059,7 +1114,7 @@ $.namespace('biomart.martexplorer', function(self) {
 
                 root.title = biomart._state.mart.displayName,
                 root.attr = {
-                    'class': 'mart ' + biomart._state.mart.name, 
+                    'class': 'mart ' + biomart._state.mart.name,
                     mart: biomart._state.mart.name
                 };
                 root.state = 'open';
@@ -1104,7 +1159,7 @@ $.namespace('biomart.martexplorer', function(self) {
                             }
                         });
                     }
-                          
+
                 // Small hack to use setTimeout because otherwise the proper styles don't get added for some reason
                 // Bug in jstree maybe?
                 setTimeout(function() {
@@ -1124,11 +1179,11 @@ $.namespace('biomart.martexplorer', function(self) {
 
     function drawAttributeContainer(element, container, level, extraClassNames) {
         biomart.renderer.container({
-            tagName:'div', 
-            item: container, 
+            tagName:'div',
+            item: container,
             mode: biomart.renderer.ATTRIBUTES,
             extraClassNames: extraClassNames || '',
-            selectedAttributes: biomart.params.attributes ? biomart.params.attributes.split(',') : [], 
+            selectedAttributes: biomart.params.attributes ? biomart.params.attributes.split(',') : [],
             onAttributeSelect: function(item) {
                 biomart._state.queryMart.attributes[item.name] = {name:item.name};
                 $.publish('biomart.change', 'attributes', item, true);
@@ -1147,7 +1202,7 @@ $.namespace('biomart.martexplorer', function(self) {
                             var list = panel.find('.attribute-container.ui-active'),
                                 n = list.length;
                             while (n--) {
-                                removeQueryAttribute(list.eq(n).data('item')); 
+                                removeQueryAttribute(list.eq(n).data('item'));
                             }
                         });
                 }
@@ -1156,7 +1211,7 @@ $.namespace('biomart.martexplorer', function(self) {
         });
     }
 
-    function getXml(renderer, limit, client) {
+    function getXmlDefault(renderer, limit, client) {
         var mart = {datasets: [], attributes: {}, filters: {}};
 
         mart.config = biomart._state.queryMart.config;
@@ -1191,6 +1246,52 @@ $.namespace('biomart.martexplorer', function(self) {
         });
 
         return biomart.query.compile('XML', mart, renderer, limit, true, client);
+    }
+
+    function getXmlSplitted(renderer, limit, client) {
+        var mart = {datasets: [], attributes: {}, filters: {}};
+
+        mart.config = biomart._state.queryMart.config;
+
+        // Grab selections from summary panel and generate XML
+        _elements.summaryDatasets.children().each(function() {
+            var item = $(this).data('item');
+            if (item)
+                mart.datasets.push($(this).data('item').name);
+        });
+        _elements.summaryFilters.children(':not(.removing)').each(function() {
+            var $this = $(this),
+                item = $this.data('item'),
+                value = $this.data('value'),
+                name;
+
+            if (item) {
+                if ($.isArray(value)) {
+                    name = value[0];
+                    value = value[1];
+                } else {
+                    name = item.name;
+                }
+                mart.filters[name] = {name: name, value: value};
+            }
+        });
+        _elements.summaryAttributes.children(':not(.removing)').each(function() {
+            var item = $(this).data('item');
+            if (item) {
+                mart.attributes[item.name] = {name: item.name};
+            }
+        });
+
+        var compiledQueries = [],
+            newMart = JSON.parse(JSON.stringify(mart))
+        // Split this query: one query for each attribute list
+        for (var attr in mart.attributes) {
+            newMart.attributes = {};
+            newMart.attributes[attr] = mart.attributes[attr];
+            compiledQueries.push(biomart.query.compile('XML', newMart, renderer, limit, true, client));
+        }
+
+        return compiledQueries
     }
 
     function showFilterContainer(containerName, filterName) {

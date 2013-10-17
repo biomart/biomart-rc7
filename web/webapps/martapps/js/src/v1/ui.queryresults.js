@@ -1,13 +1,13 @@
 (function($) {
-/* 
- * Query Results 
+/*
+ * Query Results
  *
  * Can either display a simple table (one query -> one table) or
  * can also display aggregate results table (multiple queries -> one table)
  *
  * Other display types are defined in js/renderer.js, but aggregation only works for 'table'
  *
- * NB: In order for aggregate tables to work, some hacks are needed for 
+ * NB: In order for aggregate tables to work, some hacks are needed for
  *        each attribute list to know which dataset(s) they belong to. See
  *     martreport/js/main.js: loadData() and prepareXML() for details.
  */
@@ -39,6 +39,18 @@ var QueryResults = {
 
         self._originalClassNames = self.element.attr('className');
 
+        if (options.footer) {
+            self._info = $('<p class="info"/>').insertBefore(self.element);
+            self._addedDomElements.push(self._info);
+        }
+
+        self.element.addClass('ui-queryResults');
+    }, // create
+
+    _init: function () {
+        var self = this,
+            options = self.options;
+
         if (options.displayOptions.paginateBy) {
             options.paginateBy = options.displayOptions.paginateBy;
         }
@@ -48,7 +60,7 @@ var QueryResults = {
             options.queries = options.queries.replace(/limit=".+?"/, 'limit="-1"');
         }
 
-        // No sorting or pagination for nontable types 
+        // No sorting or pagination for nontable types
         if (options.displayType != 'table') {
             options.sorting = false;
             options.paginateBy = false;
@@ -58,11 +70,6 @@ var QueryResults = {
         if (!options.queries && !options.data) {
             self.element.html('Query or data is not valid').addClass('error');
              return;
-        }
-
-        if (options.footer) {
-            self._info = $('<p class="info"/>').insertBefore(self.element);
-            self._addedDomElements.push(self._info);
         }
 
         // Figure out rendering function, and default it if not valid
@@ -83,9 +90,7 @@ var QueryResults = {
                     self.sort(asc, index);
                 });
         }
-
-        self.element.addClass('ui-queryResults');
-    }, // create
+    },
 
     _addedDomElements: [],
 
@@ -120,14 +125,14 @@ var QueryResults = {
             $td = $element.find('td.sort').removeClass('sorted desc asc').eq(index),
             cache = $element._resultsCache,
             originalCache = cache.slice();
-        
+
         $td.addClass(['sorted ', asc ? 'asc' : 'desc'].join(''));
 
         self.element.datacontroller('highlight', index);
-        
+
         $element._originalCache = originalCache;
         $element._resultsCache.sort(function(left, right) {
-        	
+
             var a = left[index].replace(self._htmlRegex, '').toUpperCase(),
                 b = right[index].replace(self._htmlRegex, '').toUpperCase();
             var datatype = self.options.colDataTypes[index];
@@ -189,7 +194,7 @@ var QueryResults = {
                 queries = options.queries,
                 iframe = options.iframe,
                 loading = options.loading || $('<span class="loading with-msg" style="display: none"/>').insertBefore(element),
-                sourceOptions = { 
+                sourceOptions = {
                     url: BIOMART_CONFIG.service.url + 'results',
                     timeout: options.timeout,
                     data: {
@@ -241,7 +246,7 @@ var QueryResults = {
                             element.html(['<p class="empty">', _('no_results'), '</p>'].join(''));
                         }
 
-                        loading.animate({opacity:'hide'}, 1000, function() { 
+                        loading.animate({opacity:'hide'}, 1000, function() {
                             $(this).remove();
                             if (options.done) options.done(total);
                         });
@@ -249,7 +254,7 @@ var QueryResults = {
                     headers: true
                 });
 
-            loading.animate({opacity: 'show'}, 200); 
+            loading.animate({opacity: 'show'}, 200);
             self._addedDomElements.push(loading);
 
             if (options.paginateBy) {
@@ -318,7 +323,7 @@ var QueryResults = {
 
                 self.element.datacontroller('writee', table);
                 self.element._resultsCache = [];
-                
+
             element.one('queue.done.aggregate', function() {
                 if (self._error) {
                     self.element.before([
@@ -330,7 +335,7 @@ var QueryResults = {
                 if (options.loading) options.loading.animate({opacity:'hide'}, 1000, function() { $(this).remove() });
                 if (options.done) options.done();
             });
-                
+
             // Delegate function for showing more details
             element.delegate('a[rel=more]', 'click.queryresults.count', function(ev) {
                 var $target = $(ev.target),
@@ -342,7 +347,7 @@ var QueryResults = {
                     dialogClass: 'details',
                     width: Math.min(800, results[0].length * 100),
                     height: Math.min(400, results.length * 60 + 40),
-                    open: function() { 
+                    open: function() {
                         $(this)
                             .queryResults({
                                 data: results,
@@ -424,7 +429,7 @@ var QueryResults = {
 
                                 cell = aggr.children('td.'+curr.attr.name).eq(0);
 
-                                // count on the first column then calculate ratio using second column as total 
+                                // count on the first column then calculate ratio using second column as total
                                 if (biomart.errorRegex.test(row[0])) {
                                     self._error = true;
                                     element.datacontroller('error');
@@ -478,7 +483,7 @@ var QueryResults = {
                 element.find('span.throbber').each(function() {
                     var $this = $(this),
                         cell = $this.parent(),
-                        seen = cell.data('seen'), 
+                        seen = cell.data('seen'),
                         total = parseInt(cell.data('total')),
                         totalName = cell.data('totalName'),
                         count,
@@ -513,7 +518,7 @@ var QueryResults = {
                 loading = options.loading || $('<span class="loading with-msg" style="display: none"/>').insertBefore(element),
                 cache = [],
                 truncateLongText = options.displayType == 'table',
-                sourceOptions = { 
+                sourceOptions = {
                     url: BIOMART_CONFIG.service.url + 'results',
                     timeout: options.timeout,
                     data: {
@@ -581,10 +586,10 @@ var QueryResults = {
                                 values = curr.values.join(', ');
                             }
 
-                            results.push([ 
-                                curr.key, 
+                            results.push([
+                                curr.key,
                                 values,
-                                num, 
+                                num,
                                 seen.length
                             ]);
                         }
@@ -603,7 +608,7 @@ var QueryResults = {
                     headers: true
                 });
 
-            loading.animate({opacity: 'show'}, 200); 
+            loading.animate({opacity: 'show'}, 200);
 
             if (iframe) {
                 sourceOptions.iframe = iframe;
@@ -645,7 +650,7 @@ var QueryResults = {
                 rowMap = {},
                 headerIndex = 0, headers = true,
                 truncateLongText = options.displayType == 'table',
-                sourceOptions = { 
+                sourceOptions = {
                     url: BIOMART_CONFIG.service.url + 'results',
                     timeout: options.timeout,
                     data: {
@@ -695,9 +700,9 @@ var QueryResults = {
 
                                     insertIndex = headerMap[label];
 
-                                    curr[insertIndex] = options.displayOptions.useRaw ? 
-                                        {count:count, total:total} : 
-                                        ['<span class="icon check" data-count="', 
+                                    curr[insertIndex] = options.displayOptions.useRaw ?
+                                        {count:count, total:total} :
+                                        ['<span class="icon check" data-count="',
                                                 count, '" data-total="', total, '"/>'].join('');
                                 }
                                 return false; // don't show streaming data
@@ -746,7 +751,7 @@ var QueryResults = {
                     headers: true
                 });
 
-            loading.animate({opacity: 'show'}, 200); 
+            loading.animate({opacity: 'show'}, 200);
 
             if (iframe) {
                 sourceOptions.iframe = iframe;

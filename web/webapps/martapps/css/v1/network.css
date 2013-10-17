@@ -1,0 +1,42 @@
+/* Remove rules applied by .biomart .data li */
+.network-tabs li.ui-state-default {
+        width: auto;
+        margin: auto;
+}
+
+.network-tabs li.ui-state-default a {
+        font-size: 1.2em;
+}
+
+text.network-shadow, text.network-text {
+        font-family: verdana, times new roman, tahoma;
+        font-size: 0.73em;
+        text-anchor: start;
+}
+
+text.network-text {
+        stroke: #999;
+        stroke-width: 1px;
+}
+
+text.network-text:hover {
+        stroke: #B3705D;
+}
+
+text.network-shadow {
+        stroke: #fff;
+        stroke-width: 3px;
+        stroke-opacity: .8;
+}
+
+.network-edge {
+        stroke: #333;
+        stroke-width: 1px;
+ }
+
+.network-bubble {
+        stroke-width: 3;
+        stroke: #fff;
+        fill: #0A6AF7;
+        cursor: move;
+}

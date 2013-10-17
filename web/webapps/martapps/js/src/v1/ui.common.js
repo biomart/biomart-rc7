@@ -1,6 +1,6 @@
 (function($) {
 /* Minimizer
- * Apply this to a an element to have toggle show/hide for the .next() element 
+ * Apply this to a an element to have toggle show/hide for the .next() element
  */
 $.widget('ui.minimizer', {
     options: {
@@ -9,7 +9,7 @@ $.widget('ui.minimizer', {
     },
 
     _classNames: ['ui-icon-triangle-1-e', 'ui-icon-triangle-1-s'],
-    
+
     _create: function() {
         var self = this,
             element = this.element,
@@ -113,7 +113,7 @@ $.fn.uploadify = function() {
             queue = new biomart.Queue(subgroup, 'upload');
 
         new AjaxUpload(upload, {
-                action: BIOMART_CONFIG.service.url + 'file/wrap?callback=biomart.temp', 
+                action: BIOMART_CONFIG.service.url + 'file/wrap?callback=biomart.temp',
                 autoSubmit: true,
                 onSubmit : function(file, ext){
                     subgroup.block({
@@ -130,7 +130,7 @@ $.fn.uploadify = function() {
                     biomart.temp = function(text) {
                         textarea.val(text).trigger('change');
                     };
-                    try { 
+                    try {
                         eval(response);
                     } catch (e) {
                         textarea.text('Error parsing file');
@@ -141,9 +141,9 @@ $.fn.uploadify = function() {
     });
 };
 
-/* 
+/*
  * Prettybox
- * 
+ *
  * Converts a select box into a combo box with autocomplete
  */
 $.widget('ui.prettybox', {
@@ -193,9 +193,9 @@ $.widget('ui.prettybox', {
                 delay: 10,
                 close: function(e, ui) {
                     var $this = $(this);
-                    $this.data('justClosed', true); 
+                    $this.data('justClosed', true);
                     setTimeout(function() {
-                        $this.data('justClosed', false); 
+                        $this.data('justClosed', false);
                     }, 500);
                 },
                 select: function(e, ui) {
@@ -219,7 +219,7 @@ $.widget('ui.prettybox', {
 
                         $('<li class="' + ui.item.id + '">' + ui.item.value + '</li>')
                             .addClass('ui-corner-all ui-state-default')
-                            .hover(function() { $(this).addClass('ui-state-hover') }, 
+                            .hover(function() { $(this).addClass('ui-state-hover') },
                                 function() { $(this).removeClass('ui-state-hover') })
                             .appendTo(selected);
 
@@ -230,7 +230,7 @@ $.widget('ui.prettybox', {
                 },
                 minLength: 0
             })
-            .bind('focus.prettybox', function() { 
+            .bind('focus.prettybox', function() {
                 var $this = $(this),
                     old = $this.val(),
                     valid = $this.data('valid'),
@@ -248,7 +248,7 @@ $.widget('ui.prettybox', {
 
                 if (!$ac_menu.is(':visible')) {
                     $this.autocomplete('search', '');
-                }       
+                }
             })
             .unbind('blur.autocomplete')
             .bind('blur.autocomplete', function() {
@@ -658,17 +658,17 @@ $.widget('ui.paginate', {
                 .appendTo(self._paginator);
         }
 
-        // Next 
+        // Next
         $('<a href="#"/>')
             .addClass('next')
             .html([_('next', biomart.CAPITALIZE), ' &raquo;'].join(''))
             .appendTo(self._paginator);
-        
+
         if (options.infoElement) {
             var html = [];
 
             html.push([
-                '<span>', _('displaying results', biomart.CAPITALIZE), ' <strong class="start">', options.start, 
+                '<span>', _('displaying results', biomart.CAPITALIZE), ' <strong class="start">', options.start,
                 '</strong>-<strong class="end">', options.end, '</strong></span>'
             ].join(''));
 
@@ -689,7 +689,7 @@ $.widget('ui.paginate', {
     next: function() {
         this._scrollHide(true, function(self) {
             self._skip += self.options.pageSize;
-            self._updateNav.apply(self, 
+            self._updateNav.apply(self,
                 self.element.datacontroller('paginate', self._skip, self.options.pageSize)
             );
             self._scrollShow();
@@ -699,7 +699,7 @@ $.widget('ui.paginate', {
     previous: function() {
         this._scrollHide(false, function(self) {
             self._skip -= self.options.pageSize;
-            self._updateNav.apply(self, 
+            self._updateNav.apply(self,
                 self.element.datacontroller('paginate', self._skip, self.options.pageSize)
             );
             self._scrollShow();
@@ -715,7 +715,7 @@ $.widget('ui.paginate', {
         } else {
             this._scrollHide(skip > this._skip, function(self) {
                 self._skip = skip;
-                self._updateNav.apply(self, 
+                self._updateNav.apply(self,
                     self.element.datacontroller('paginate', self._skip, self.options.pageSize)
                 );
                 self._scrollShow();
@@ -735,7 +735,7 @@ $.widget('ui.paginate', {
                     });
                     if (callback) callback();
                 }.partial(this)
-            });        
+            });
     },
 
     _scrollShow: function(callback) {
@@ -748,7 +748,7 @@ $.widget('ui.paginate', {
                     self.element.parent().css('overflow', '');
                     callback || function(){}
                 }
-            });        
+            });
     },
 
     _updateNav: function(total, start, end) {
@@ -842,8 +842,8 @@ $.widget('ui.singlecontainer', {
             var $e = $(e).addClass('ui-singlecontainer-item').appendTo(self._wrap),
                 item = $e.data('item');
             $([
-                '<li>', 
-                    '<a href="#', e.id, '" title="', item.description || item.displayName, '">', 
+                '<li>',
+                    '<a href="#', e.id, '" title="', item.description || item.displayName, '">',
                         item.displayName,
                     '</a>',
                 '</li>'
@@ -870,7 +870,7 @@ $.widget('ui.singlecontainer', {
         $.Widget.prototype.destroy.apply(this, arguments);
         var self = this;
         self._wrap.tabs('destoy');
-        self._items.each(function(i, e) { 
+        self._items.each(function(i, e) {
             var $e = $(e).removeClass('ui-singlecontainer-item');
             $e.children('.ui-widget-header').show();
             $e.appendTo(self.element);
@@ -955,7 +955,7 @@ $.widget('ui.resultsPanel', {
                     var title = self._title.replace('&raquo;', '-');
                     $.cookie('GALAXY_URL', null, { path: '/' });
                     $form
-                        .append( $('<input type="hidden" name="URL" value="' + location.protocol + '//' + location.host + BIOMART_CONFIG.service.url + 'results/?query=' + 
+                        .append( $('<input type="hidden" name="URL" value="' + location.protocol + '//' + location.host + BIOMART_CONFIG.service.url + 'results/?query=' +
                                 encodeURIComponent(self._downloadXml) + '"/>') )
                         .append( $('<input type="hidden" name="name" value="' + title + '"/>') )
                         .append( $('<input type="hidden" name="type" value="text"/>') )
@@ -1080,30 +1080,24 @@ $.widget('ui.resultsPanel', {
         var self = this;
         self._title = title;
         self._content.removeClass('hidden');
-        self._wrapper.addClass('wide', 50, function() {
-            self._content
-                .slideDown({
-                    duration: 50, 
-                    complete: function() {
-                        self.element.trigger('show');
-                        self.element.find('h3').html(title);
+        self._wrapper.addClass('wide');
+        self._content.slideDown()
+        self.element.trigger('show');
+        self.element.find('h3').html(title);
 
-                        self._info.hide();
+        self._info.hide();
 
-                        self._downloadXml = options.downloadXml;
-                        self._martObj = options.martObj;
+        self._downloadXml = options.downloadXml;
+        self._martObj = options.martObj;
 
-                        // self._updateCounts(options.downloadXml);
+        // self._updateCounts(options.downloadXml);
 
-                        self._data.empty().queryResults($.extend({
-                            animationTime: 50,
-                            header: true,
-                            footer: true,
-                            iframe: self.element.find('iframe.streaming')
-                        }, options));
-                    }
-                });
-        });
+        self._data.queryResults($.extend({
+            animationTime: 50,
+            header: true,
+            footer: true,
+            iframe: self.element.find('iframe.streaming')
+        }, options));
     },
 
     edit: function() {
