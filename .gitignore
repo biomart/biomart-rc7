@@ -11,3 +11,6 @@
 manifest.mf
 
 .DS_Store
+nohup.out
+.*
+*.xml
