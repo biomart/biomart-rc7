@@ -1,13 +1,12 @@
 ;(function (d3) {
-
 "use strict";
 
-
+// var _ = window._.noConflict()
 biomart.networkRendererConfig = {
         graph: {
                 nodeClassName: 'network-bubble',
                 edgeClassName: 'network-edge',
-                radius: 5
+                radius: 11
         },
 
         force: {
@@ -20,7 +19,8 @@ biomart.networkRendererConfig = {
                         return 50
                 },
                 charge: -300,
-                gravity: 0.175, // 0.06
+                gravity: 0.06, // 0.175
+                threshold: 0.008
         },
 
         text: {
@@ -32,6 +32,10 @@ biomart.networkRendererConfig = {
                 }
         }
 }
+
+// biomart.networkRendererConfig.force.linkDistance = 20
+biomart.networkRendererConfig.force.charge = 0
+biomart.networkRendererConfig.force.gravity = 0
 
 function textCallback (_, config) {
         var keys = ['font-family', 'font-size', 'stroke', 'stroke-width', 'text-anchor']
@@ -80,6 +84,10 @@ function hyperlinks (svg, data, config) {
         return a
 }
 
+function makeText (svg, nodes, config) {
+        return hyperlinks(svg, nodes, config).selectAll('g')
+}
+
 // ## Force
 //
 // *    nodes  - `Array`
@@ -100,21 +108,25 @@ var Force = (function (d3) {
                         .nodes(nodes)
                         .links(edges)
                         .size(config.size)
+                        .theta(config.theta || 2)
                         .gravity(config.gravity)
                         .linkDistance(config.linkDistance) // px
                         // .linkStrength(cs.linkStrength)
                         .charge(config.charge)
 
                 force.on("tick", config.tick)
-                force.start()
 
                 return force
         }
 
         return make
 
-})(d3)
+})(d3);
 
+function makeForce (nodes, edges, config) {
+        // Create the layout and place the bubbles and links.
+        return Force(nodes, edges, config)
+}
 // ## Graph
 //
 // *    svg     - `Object` d3 selection of an svg.
@@ -195,87 +207,222 @@ var Graph = (function (d3) {
 
         return graph
 
-})(d3)
+})(d3);
+/**
+ * @param config - Object configuration for the graph only
+**/
 function makeGraph (svg, nodes, edges, config) {
         // Draw the graph chart without positioning the elements, and return
         // bubbles and links: { bubbles: ..., links: ... }
-        var graphChart = Graph(svg, nodes, edges, config.graph)
+        var graphChart = Graph(svg, nodes, edges, config)
         graphChart.bubbles.on('mouseover', function () {
-                d3.select(this)
-                        .transition()
-                        .attr('r', r * 2) })
+                        this.__radius__ || (this.__radius__ = +this.getAttribute('r'))
+                        d3.select(this)
+                                .transition()
+                                .attr('r', this.__radius__ * 2) })
                 .on('mouseout', function () {
                         d3.select(this)
                                 .transition()
-                                .attr('r', config.graph.radius)
+                                .attr('r', this.__radius__)
                 })
 
-        var text
+        return graphChart
+}
 
-        if (config.text) {
-                text = hyperlinks(svg, nodes, config.text).selectAll('g')
-        }
 
+
+// function makeNetwork (svg, nodes, edges, config) {
+
+//         var drag = force.drag().on('dragstart', dragstart)
+
+//         graphChart.bubbles.call(drag)
+
+//         setTimeout(function () {
+//                 force.stop()
+//                 graphChart.bubbles.data().forEach(function (d) { d.fixed = true })
+//         }, 1e4)
+
+//         return {
+//                 graph: graphChart,
+//                 force: force,
+//                 text: text
+//         }
+// }
+function tick2 (attrs) {
+        var config = attrs.config
+        var bubbles = attrs.bubbles
+        var links = attrs.links
+        var hubIdx = attrs.hubIndexes
+        var adj = attrs.adj
+        var nodes = bubbles.data()
+        var maxDomain = 20000
+        var colorScale = d3.scale.linear().domain([0, maxDomain]).range(['#ff0000', '#00ffff'])
+        var width = config.force.size[0]
+        var height = config.force.size[1]
+        var hubFromColor = {}
         var r = typeof config.graph.radius === 'number'
                 ? config.graph.radius
-                : d3.max(nodes, config.graph.radius)
+                : d3.max(bubbles.data(), config.graph.radius)
 
-        // Layout configuration
-        config.force.tick = function() {
-                var forceSize = force.size()
-
-                graphChart.links.attr({
-                        x1: function(d) { return d.source.x },
-                        y1: function(d) { return d.source.y },
-                        x2: function(d) { return d.target.x },
-                        y2: function(d) { return d.target.y } })
-
-                graphChart.bubbles
-                        .attr('transform', function (d) {
-                                d.x = Math.max(r, Math.min(forceSize[0] - r, d.x))
-                                d.y = Math.max(r, Math.min(forceSize[1] - r, d.y))
-                                return 'translate(' + d.x + ',' + d.y + ')' })
-
-                config.text && text.attr('transform', function (d) {
-                        return 'translate('+ (d.x + 10) +','+ d.y +')' })
+        // BFS
+        function searchColor(root, adj, nodes) {
+                var queue = [root], q, len, qAdj, i, a
+                while (queue.length) {
+                        q = queue.pop()
+                        q._visited = true
+                        i = nodes.indexOf(q)
+                        // edges out of q
+                        if (adj[i]) {
+                                qAdj = adj[i]
+                        } else {
+                                // edges in q
+                                qAdj = []
+                                for (var j = 0; j < adj.length; ++j) {
+                                        if (adj[j] && adj[j][i])
+                                                qAdj[j] = 1
+                                }
+                        }
+                        for (a = 0, len = qAdj.length; a < len; ++a) {
+                                if (qAdj[a] && 'color' in nodes[a]) {
+                                        q.color = nodes[a].color
+                                        break
+                                } else {
+                                        if (!('_visited' in nodes[a]) && queue.indexOf(a) < 0)
+                                                queue.push(a)
+                                }
+                        }
+                }
+                // If no color was given, assign random color.
+                // With the current hub selection algorithm, this can happen when there
+                // are strongly connected components with few edges.
+                if (!('color' in root)) {
+                        markHub(root)
+                        hubIdx.push(nodes.indexOf(root))
+                }
         }
 
-        function dragstart (d) {
-                d.fixed = true
+        function markHub (node) {
+                var color = colorScale(Math.random() * maxDomain)
+                node.color = color
+                node.isHub = true
+                hubFromColor[color] = node
         }
 
-        // Create the layout and place the bubbles and links.
-        var force = Force(nodes, edges, config.force)
+        hubIdx.forEach(function (idx) {
+                markHub(nodes[idx])
+        })
 
-        var drag = force.drag().on('dragstart', dragstart)
+        // Give colors to nodes based on clusters
+        nodes.forEach(function (node) {
+                searchColor(node, adj, nodes)
+        })
 
-        graphChart.bubbles.call(drag)
+        bubbles.each(function (d) {
+                var $this = d3.select(this)
+                if (d.isHub) {
+                        $this.style('stroke', d3.rgb(d.color).darker())
+                        $this.style('stroke-width', 3)
+                }
+                $this.style('fill', d.color)
+        })
 
-        setTimeout(function () {
-                force.stop()
-                graphChart.bubbles.data().forEach(function (d) { d.fixed = true })
-        }, 1e4)
+        // Modified version of http://bl.ocks.org/mbostock/1748247
+        // Move d to be adjacent to the cluster node.
+        function clusterHelper(alpha) {
+                var radius = config.graph.radius
+                return function(d) {
+                        var l, r, x, y, k = 1.5, node = hubFromColor[d.color]
 
-        return {
-                graph: graphChart,
-                force: force,
-                text: text
+                        // For cluster nodes, apply custom gravity.
+                        if (d === node) {
+                                node = {x: width / 2, y: height / 2, radius: -radius}
+                                k = .5 * Math.sqrt(radius)
+                        }
+
+                        // I need them gt zero or they'll have the same value while deciding the bubble position.
+                        // Same position causes problems with further recomputation of this func.
+                        // if ((x = d.x - node.x) < 0) x = node.x - d.x
+                        // if ((y = d.y - node.y) < 0) y = node.y - d.y
+                        x = d.x - node.x
+                        y = d.y - node.y
+                        // distance between this node and the hub
+                        l = Math.sqrt(x * x + y * y)
+                        r = radius + ('radius' in node ? node.radius : radius)
+                        // if distance !== from sum of the two radius, that is, if they aren't touching
+                        if (l != r) {
+                                l = (l - r) / l * alpha * k
+                                // move this node towards the hub of some amount
+                                d.x -= x *= l
+                                d.y -= y *= l
+                                node.x += x
+                                node.y += y
+                        }
+                }
+        }
+
+        // Resolves collisions between d and all other circles.
+        function collide(alpha) {
+                var quadtree = d3.geom.quadtree(nodes)
+                var radius = config.graph.radius
+                var padding = 25
+                return function(d) {
+                        var r = 2 * radius + padding
+                        var nx1 = d.x - r
+                        var nx2 = d.x + r
+                        var ny1 = d.y - r
+                        var ny2 = d.y + r
+                        quadtree.visit(function(quad, x1, y1, x2, y2) {
+                                if (quad.point && (quad.point !== d)) {
+                                        var x = d.x - quad.point.x
+                                        var y = d.y - quad.point.y
+                                        var l = Math.sqrt(x * x + y * y)
+                                        var r = 2 * radius + (d.color !== quad.point.color) * padding
+                                        if (l < r) {
+                                                l = (l - r) / l * alpha
+                                                d.x -= x *= l
+                                                d.y -= y *= l
+                                                quad.point.x += x
+                                                quad.point.y += y
+                                        }
+                                }
+                                return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1
+                        })
+                }
+        }
+
+        return function(evt) {
+                bubbles
+                        .each(clusterHelper(10 * evt.alpha * evt.alpha))
+                        .each(collide(.5))
         }
 }
 
-
-function resizeHandler () {
-        var w, h
-        if (this._svg && !this._svg.empty()) {
-                w = $(window).width()
-                h = $(window).height()
-                this._svg.attr({
-                        width: w,
-                        height: h
-                })
-                this._visualization.force.size([w, h])
-        }
+/**
+ * @param config - Object must have properties for the configuration of `graph`, `force`
+**/
+// adj, bubbles, links, config
+function cluster (attrs) {
+        attrs.config.force.tick = tick2(attrs)
 }
+
+function hubIndexes(edges) {
+        var freq = [], m, hubIdxs = []
+        var degs = function (edge) {
+                freq[edge.source] = freq[edge.source] ? freq[edge.source] + 1 : 1
+                freq[edge.target] = freq[edge.target] ? freq[edge.target] + 1 : 1
+        }
+
+        edges.forEach(degs)
+        m = d3.quantile(freq.slice(0).sort(), 0.999)
+        freq.forEach(function (f, i) {
+                if (f > m)
+                        hubIdxs.push(i)
+        })
+
+        return hubIdxs
+}
+
+
 
 function resize (listener, interval) {
     var resizeTimeout
@@ -291,31 +438,40 @@ function resize (listener, interval) {
 }
 
 
+
 // ============================================================================
 // NOTE!!
 //
 // Just for now ignore renderInvalid Option!
 // ============================================================================
 var nt = biomart.renderer.results.network = Object.create(biomart.renderer.results.plain)
+
+// The wrap container is a div.
+// This element is created inside oldGetElement
 nt.tagName = 'div'
 
-var oldGelElement = nt.getElement
+var oldGetElement = nt.getElement
 
 nt.getElement = function () {
+        // If already present there isn't need to do anything else here
         if ($('#network-list').size())
                 return $('#network-list')
 
-        var $elem = oldGelElement.call(this)
-        $elem.append('<ul id="network-list" class="container-tabs"></ul>')
+        // Create the container
+        var $elem = oldGetElement.call(this)
+        // This is the actual tab list
+        $elem.append('<ul id="network-list" class="network-tabs"></ul>')
         return $elem
 }
 
 nt._init = function () {
         this._nodes = []
         this._edges = []
-        this._svg = this._visualization = null
+        this._svg = null
         this._cache = []
-        this._nodeBuffer = []
+        this._rowBuffer = []
+        // matrix
+        this._adj = []
 }
 
 // row: array of fields
@@ -343,46 +499,49 @@ nt._makeNodes = function (row) {
         return [n0, n1]
 }
 
-nt._makeNE = function (row) {
-        var nodePair = this._makeNodes(row)
-
-        // Before pushing check if nodes are already in the list
-        var node0Value = this.node0.value(nodePair[0])
-        var node1Value = this.node1.value(nodePair[1])
-        var alreadyPresent0 = null
-        var alreadyPresent1 = null
-
-        this._nodes.some(function (node) {
-                if (this.node0.value(node) === node0Value) {
-                        alreadyPresent0 = node
-                        return true
-                }
-        }, this)
-
-        this._nodes.some(function (node) {
-                if (this.node1.value(node) === node1Value) {
-                        alreadyPresent1 = node
-                        return true
-                }
-        }, this)
-
-        // If one of them is not in the node list
-        if (!alreadyPresent0) {
-                this._nodes.push(nodePair[0])
+function findIndex(collection, cb) {
+        for (var i = 0, len = collection.length; i < len; ++i) {
+                if (cb(collection[i]))
+                        return i
         }
-        if (!alreadyPresent1) {
-                this._nodes.push(nodePair[1])
-        }
-
-        // Because it could not be a repeated record
-        this._edges.push({ source: alreadyPresent0 || nodePair[0],
-                           target: alreadyPresent1 || nodePair[1] })
+        return -1
 }
 
-// results.network.tagName ?
+nt._makeNE = function (row) {
+        var nodePair = this._makeNodes(row)
+        var val0Func = this.node0.value, val1Func = this.node1.value
+        var node0Val = val0Func(nodePair[0]), node1Val = val1Func(nodePair[1])
+
+        var index0 = findIndex(this._nodes, function (n) {
+                return val0Func(n) === node0Val
+        })
+        var index1 = findIndex(this._nodes, function (n) {
+                return val1Func(n) === node1Val
+        })
+
+        if (index0 < 0)
+                index0 = this._nodes.push(nodePair[0]) - 1
+        if (index1 < 0)
+                index1 = this._nodes.push(nodePair[1]) - 1
+        if (! this._adj[index0])
+                this._adj[index0] = []
+
+        this._adj[index0][index1] = 1
+}
+
+function instanceEdges (adj, nodes, edges) {
+        for (var i = 0, n = adj.length; i < n; ++i) {
+                if (adj[i])
+                        for (var j = 0, m = adj[i].length; j < m; ++j) {
+                                if (adj[i][j])
+                                        edges.push({ source: i, target: j })
+                        }
+        }
+}
+
 // rows : array of arrays
 nt.parse = function (rows, writee) {
-       rows.forEach(function (row) {
+        rows.forEach(function (row) {
                 if (row[1].trim() === '') {
                         this._cache.push(row)
                 } else {
@@ -392,34 +551,39 @@ nt.parse = function (rows, writee) {
 
                         this._cache.push(row)
 
-                        Array.prototype.push.apply(this._nodeBuffer, this._cache)
+                        Array.prototype.push.apply(this._rowBuffer, this._cache)
                         this._cache = []
                 }
-       }, this)
+        }, this)
 }
 
-// Intercept the header
 nt.printHeader = function(header, writee) {
         this._init()
-
+        var w = $(window).width()
+        var h = $(window).height()
         var $tabsCont = writee.find('#network-list')
-        var item, tabNum
+        var item, tabNum, svg
 
         tabNum = $tabsCont.children().size() + 1
         if (tabNum === 1) writee.tabs() //
 
         item = 'item-'+ tabNum
-        writee.tabs('add', '#'+ item, Object.keys(biomart._state.queryMart.attributes)[tabNum-1]) //
-        // $tabsCont.append('<li><a href="#'+ item +'" >Network'+ tabNum +'</a></li>')
-        // writee.append('<div id="'+ item +'" class="subcontainer"></div>')
-        this._svg = d3.select($('#'+ item)[0])
+        // For each attribute list create a tab
+        writee.tabs('add', '#'+ item, Object.keys(biomart._state.queryMart.attributes)[tabNum-1])
+        // Playground for the new network
+        this._svg = svg = d3.select($('#'+ item)[0])
                 .append('svg:svg')
-                .attr({
-                        width: $(window).width(),
-                        height: $(window).height(),
-                        'id': 'network-svg' })
+                .attr({ width: w, height: h })
+                .append('g')
+                .call(d3.behavior.zoom().scaleExtent([0, 20]).on('zoom', function () {
+                        svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")") }))
+                .append('g')
 
-        resize(resizeHandler.bind(this))
+        svg.append("rect")
+                .style('fill', 'none')
+                .style('pointer-events', 'all')
+                .attr("width", w)
+                .attr("height", h);
 
         this.header = header
         this.header.forEach(function (nodeId, idx) {
@@ -430,14 +594,36 @@ nt.printHeader = function(header, writee) {
                         }
                 }
         }, this)
-
-        // writee.tabs()
 }
 
 nt.draw = function (writee) {
         var config = biomart.networkRendererConfig
+
+        this._drawNetwork(config)
+
+        this._init()
+        $.publish('network.completed')
+}
+
+function initPosition (nodes, width, height) {
+        nodes.forEach(function (node) {
+                node.x = Math.random() * width
+                node.y = Math.random() * height
+        })
+}
+
+nt._drawNetwork = function (config) {
+        var w = $(window).width()
+        var h = $(window).height()
+        var clusterParams
+        var graph
+        var force
+        var drag
+        var text
+        var drawText = 'text' in config
         var self = this
-        config.text.text = config.graph['id'] = function (d) {
+
+        config.graph['id'] = function (d) {
                 var node = null
                 if (self.node0.key in d)
                         node = 'node0'
@@ -446,51 +632,86 @@ nt.draw = function (writee) {
                 return self[node].value(d)
         }
 
-        config.force.size = [$(window).width(), $(window).height()]
+        config.force.size = [w, h]
 
-        for (var i = 0, nLen = this._nodeBuffer.length; i < nLen; ++i)
-                this._makeNE(this._nodeBuffer[i])
+        for (var i = 0, nLen = this._rowBuffer.length; i < nLen; ++i)
+                this._makeNE(this._rowBuffer[i])
 
-        this._nodeBuffer = []
-        this._visualization = makeGraph(this._svg, this._nodes, this._edges, config)
-        this._init()
-        $.publish('network.completed')
+        this._rowBuffer = []
+        instanceEdges(this._adj, this._nodes, this._edges)
+
+        graph = makeGraph(this._svg, this._nodes, this._edges, config.graph)
+        initPosition(this._nodes, w, h)
+        clusterParams = {
+                adj: this._adj,
+                bubbles: graph.bubbles,
+                links: graph.links,
+                config: config,
+                hubIndexes: hubIndexes(this._edges)
+        }
+
+        if (drawText) {
+                config.text.text = config.graph['id']
+                text = makeText(this._svg, this._nodes, config.text)
+        }
+
+        // `cluster` defines the right force configuration: e.g. charge, tick
+        cluster(clusterParams)
+
+        // Now we can create the force layout. This actually starts the symulation.
+        force = makeForce(this._nodes, this._edges, config.force)
+
+        resize(function () {
+                if (self._svg && !self._svg.empty()) {
+                        self._svg.attr({
+                                width: w,
+                                height: h
+                        })
+                        force.size([w, h])
+                }
+        })
+
+        // Make the simulation in background and then draw on the screen
+        force.start()
+        console.time('simulation ticks')
+        for (var safe = 0; safe < 2000 && force.alpha() > config.force.threshold; ++safe)
+                force.tick()
+        console.timeEnd('simulation ticks')
+
+        graph.bubbles
+                .attr('transform', function (d) {
+                        // d.x = Math.max(r, Math.min(width - r, d.x))
+                        // d.y = Math.max(r, Math.min(height - r, d.y))
+                        return 'translate(' + d.x + ',' + d.y + ')'
+                })
+
+        graph.links
+                .attr({
+                        x1: function(d) { return d.source.x },
+                        y1: function(d) { return d.source.y },
+                        x2: function(d) { return d.target.x },
+                        y2: function(d) { return d.target.y }
+                })
+
+        if (drawText) {
+                text.attr('transform', function (d) {
+                        return 'translate('+ (d.x + 5) +','+ d.y +')'
+                })
+        }
+
+        // drag = force.drag().on('dragstart', function (d) { return d.fixed = true })
+        // graph.bubbles.call(drag)
 }
 
 nt.clear = function () {
-        // Should I delete them?
-        // this._nodes = []
-        // this._edges = []
-        // // this.header = this.node0 = this.node1 = null
-        // if (this._svg) this._svg.remove()
-        // this._svg = null
-        // this._visualization = null
+        console.log('network-renderer#clear: not implemented yet.')
 }
 
 nt.destroy = function () {
-        // this.clear()
-        this._svg && this._svg.remove()
-        this._nodes = this._edges = this._svg = this._visualization = this._nodeBuffer = this._cache = null
+        if (this._svg) {
+                d3.select(this._svg.node().nearestViewportElement).remove()
+        }
+        this._nodes = this._edges = this._svg = this._rowBuffer = this._cache = this._adj = null
 }
-
-// nt._makeNodes = function (row) {
-//         return this.schema.nodes.map(function (node) {
-//                 var o = {}, attrIdxs = node.attrIdxs, idx
-//                 for (var i = 0, len = attrIdxs.length; i < len; ++i) {
-//                         idx = attrIdxs[i]
-//                         o[this.header[idx]] = row[idx]
-//                 }
-//                 return o
-//         }, this)
-// }
-// {
-//         nodes: [
-//                 {
-//                         // indexes of columns that belong to this node
-//                         attrIdxs: []
-//                 },
-//                 ...
-//         ]
-// }
 
 })(d3);
