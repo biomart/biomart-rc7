@@ -19,8 +19,11 @@ biomart.networkRendererConfig = {
                         return 50
                 },
                 charge: -300,
-                gravity: 0.06, // 0.175
-                threshold: 0.008
+                gravity: 0.01, // 0.175
+                threshold: 0.005,
+                cluster: {
+                        padding: 60
+                }
         },
 
         text: {
@@ -34,8 +37,11 @@ biomart.networkRendererConfig = {
 }
 
 // biomart.networkRendererConfig.force.linkDistance = 20
-biomart.networkRendererConfig.force.charge = 0
-biomart.networkRendererConfig.force.gravity = 0
+biomart.networkRendererConfig.force.charge = function (d) {
+        // return d.isHub ? 10 * d.weight * d.x/1000 : -10 * d.weight * d.x/1000
+        return d.isHub ? 4 * d.weight : -2 * d.weigth
+}
+
 
 function textCallback (_, config) {
         var keys = ['font-family', 'font-size', 'stroke', 'stroke-width', 'text-anchor']
@@ -229,25 +235,6 @@ function makeGraph (svg, nodes, edges, config) {
         return graphChart
 }
 
-
-
-// function makeNetwork (svg, nodes, edges, config) {
-
-//         var drag = force.drag().on('dragstart', dragstart)
-
-//         graphChart.bubbles.call(drag)
-
-//         setTimeout(function () {
-//                 force.stop()
-//                 graphChart.bubbles.data().forEach(function (d) { d.fixed = true })
-//         }, 1e4)
-
-//         return {
-//                 graph: graphChart,
-//                 force: force,
-//                 text: text
-//         }
-// }
 function tick2 (attrs) {
         var config = attrs.config
         var bubbles = attrs.bubbles
@@ -317,15 +304,6 @@ function tick2 (attrs) {
                 searchColor(node, adj, nodes)
         })
 
-        bubbles.each(function (d) {
-                var $this = d3.select(this)
-                if (d.isHub) {
-                        $this.style('stroke', d3.rgb(d.color).darker())
-                        $this.style('stroke-width', 3)
-                }
-                $this.style('fill', d.color)
-        })
-
         // Modified version of http://bl.ocks.org/mbostock/1748247
         // Move d to be adjacent to the cluster node.
         function clusterHelper(alpha) {
@@ -364,7 +342,7 @@ function tick2 (attrs) {
         function collide(alpha) {
                 var quadtree = d3.geom.quadtree(nodes)
                 var radius = config.graph.radius
-                var padding = 25
+                var padding = config.force.cluster.padding
                 return function(d) {
                         var r = 2 * radius + padding
                         var nx1 = d.x - r
@@ -580,10 +558,11 @@ nt.printHeader = function(header, writee) {
                 .append('g')
 
         svg.append("rect")
-                .style('fill', 'none')
-                .style('pointer-events', 'all')
-                .attr("width", w)
-                .attr("height", h);
+                .attr('class', 'zoom-container')
+                .attr('x', -2.5 * w)
+                .attr('y', -4 * h)
+                .attr("width", w * 5)
+                .attr("height", h * 8)
 
         this.header = header
         this.header.forEach(function (nodeId, idx) {
@@ -620,8 +599,12 @@ nt._drawNetwork = function (config) {
         var force
         var drag
         var text
+        var hubIdxs
+        var hubs = []
         var drawText = 'text' in config
         var self = this
+
+        self.timers = []
 
         config.graph['id'] = function (d) {
                 var node = null
@@ -641,13 +624,19 @@ nt._drawNetwork = function (config) {
         instanceEdges(this._adj, this._nodes, this._edges)
 
         graph = makeGraph(this._svg, this._nodes, this._edges, config.graph)
+
+        hubIdxs = hubIndexes(this._edges)
         initPosition(this._nodes, w, h)
+        // for (var i = 0; i < hubIdxs.length; ++i)
+        //         hubs.push(this._nodes[hubIdxs[i]])
+        // initPosition(hubs, w / 4, h / 4)
+
         clusterParams = {
                 adj: this._adj,
                 bubbles: graph.bubbles,
                 links: graph.links,
                 config: config,
-                hubIndexes: hubIndexes(this._edges)
+                hubIndexes: hubIdxs
         }
 
         if (drawText) {
@@ -671,36 +660,104 @@ nt._drawNetwork = function (config) {
                 }
         })
 
+        function loop (thr, iter) {
+                var t
+                if (iter < 1000 && force.alpha() > thr) {
+                        force.tick()
+                        t = setTimeout(function () {
+                                loop(thr, ++iter)
+                        }, 1)
+                        self._addTimer(t)
+                } else {
+                        endSimulation()
+                }
+        }
         // Make the simulation in background and then draw on the screen
         force.start()
         console.time('simulation ticks')
-        for (var safe = 0; safe < 2000 && force.alpha() > config.force.threshold; ++safe)
-                force.tick()
-        console.timeEnd('simulation ticks')
+        loop(config.force.threshold, 0)
+        // for (var safe = 0; safe < 2000 && force.alpha() > config.force.threshold; ++safe)
+        //         force.tick()
+        // console.timeEnd('simulation ticks')
+        // force.stop()
 
-        graph.bubbles
-                .attr('transform', function (d) {
-                        // d.x = Math.max(r, Math.min(width - r, d.x))
-                        // d.y = Math.max(r, Math.min(height - r, d.y))
-                        return 'translate(' + d.x + ',' + d.y + ')'
-                })
+        var oneTick = function (graph, text) {
+                graph.bubbles
+                        .attr('transform', function (d) {
+                                d.fixed = true
+                                d3.select(this).style('fill', d3.rgb(d.color).darker(d.weight/3))
+                                return 'translate(' + d.x + ',' + d.y + ')'
+                        })
 
-        graph.links
-                .attr({
-                        x1: function(d) { return d.source.x },
-                        y1: function(d) { return d.source.y },
-                        x2: function(d) { return d.target.x },
-                        y2: function(d) { return d.target.y }
-                })
+                graph.links
+                        .attr({
+                                x1: function(d) { return d.source.x },
+                                y1: function(d) { return d.source.y },
+                                x2: function(d) { return d.target.x },
+                                y2: function(d) { return d.target.y }
+                        })
 
-        if (drawText) {
-                text.attr('transform', function (d) {
-                        return 'translate('+ (d.x + 5) +','+ d.y +')'
-                })
+                if (text) {
+                        text.attr('transform', function (d) {
+                                return 'translate('+ (d.x + 5) +','+ d.y +')'
+                        })
+                }
+
+                oneTick = function () {
+                        graph.bubbles
+                                .attr('transform', function (d) {
+                                        return 'translate(' + d.x + ',' + d.y + ')'
+                                })
+
+                        graph.links
+                                .attr({
+                                        x1: function(d) { return d.source.x },
+                                        y1: function(d) { return d.source.y },
+                                        x2: function(d) { return d.target.x },
+                                        y2: function(d) { return d.target.y }
+                                })
+
+                        if (text) {
+                                text.attr('transform', function (d) {
+                                        return 'translate('+ (d.x + 5) +','+ d.y +')'
+                                })
+                        }
+                }
         }
 
-        // drag = force.drag().on('dragstart', function (d) { return d.fixed = true })
-        // graph.bubbles.call(drag)
+        function showNetwork () {
+                oneTick(graph, text)
+                setEventHandlers()
+        }
+
+        function setEventHandlers() {
+                force.on('tick', function () { oneTick(graph, text) })
+
+                drag = force.drag().on('dragstart', function (d) {
+                        force.stop()
+                        d3.event.sourceEvent.stopPropagation()
+                        d.fixed = true
+                })
+                graph.bubbles.call(drag)
+        }
+
+        function endSimulation () {
+                console.timeEnd('simulation ticks')
+                force.stop()
+                showNetwork()
+        }
+}
+
+nt._addTimer = function (t) {
+        this.timers || (this.timers = [])
+        this.timers.push(t)
+}
+
+nt._clearTimers = function () {
+        this.timers.forEach(function (t) {
+                clearTimeout(t)
+        })
+        self.timers = []
 }
 
 nt.clear = function () {
@@ -708,6 +765,7 @@ nt.clear = function () {
 }
 
 nt.destroy = function () {
+        this._clearTimers()
         if (this._svg) {
                 d3.select(this._svg.node().nearestViewportElement).remove()
         }

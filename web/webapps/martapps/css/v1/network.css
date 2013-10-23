@@ -40,3 +40,10 @@ text.network-shadow {
         fill: #0A6AF7;
         cursor: move;
 }
+
+.zoom-container {
+        fill: none;
+        pointer-events: all;
+        stroke-width: 2;
+        stroke: #999999;
+}
