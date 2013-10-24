@@ -15,6 +15,9 @@ import org.biomart.queryEngine.Query;
 import org.biomart.common.exceptions.BioMartQueryException;
 import org.jdom.Document;
 
+
+import org.biomart.common.resources.Log;
+
 /**
  *
  * @author jhsu
@@ -68,7 +71,7 @@ public class ProcessorImpl implements ProcessorInterface, OutputConstants {
         this.query = query;
     }
 
-    @Override 
+    @Override
     public void setOutputStream(OutputStream out) {
         this.out = out;
     }
@@ -163,6 +166,7 @@ public class ProcessorImpl implements ProcessorInterface, OutputConstants {
         for (int i=0; i<fields.length; i++) {
             fieldNames[i] = fields[i].getName();
         }
+        Log.info("ProcessorImpl#getFieldNames. Fields: "+ ArrayUtils.toString(fieldNames));
         return fieldNames;
     }
 
