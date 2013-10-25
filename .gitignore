@@ -12,3 +12,5 @@ manifest.mf
 
 .DS_Store
 nohup.out
+.classpath
+.project

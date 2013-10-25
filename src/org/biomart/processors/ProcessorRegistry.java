@@ -53,6 +53,7 @@ public class ProcessorRegistry {
         register("SPARQLXML", SPARQLXML.class);
         register("CSV", CSV.class);
         register("JSON", JSON.class);
+        register("NETWORK", Network.class);
 
         final FileFilter directoryFilter = new FileFilter() {
             @Override public boolean accept(File file) {
