@@ -166,6 +166,13 @@ var Graph = (function (d3) {
                         .append('svg:line')
                         .attr(attrs)
 
+                lines.each(function (d) {
+                        var w = 'value' in d ? d.value * 100 : 1
+                        if (w > 10) w = 10
+                        if (w < 1) w = 1
+                        d3.select(this).style('stroke-width', w)
+                })
+
                 // Exit
                 update.exit()
                         .remove()
@@ -450,9 +457,34 @@ nt._init = function () {
         this._rowBuffer = []
         // matrix
         this._adj = []
+        this._max = 0
 }
 
 // row: array of fields
+nt._makeNodes = function (row) {
+        var n0 = {}, n1 = {}
+        var col0 = row[0], col1 = row[1]
+        var k0 = this.node0.key, k1 = this.node1.key
+        // If it's a link
+        if (col0.indexOf('<a') >= 0) {
+                col0 = $(col0)
+                n0[k0] = col0.text()
+                n0._link = col0.attr('href')
+        } else {
+                n0[k0] = col0
+        }
+
+        if (col1.indexOf('<a') >= 0) {
+                col1 = $(col1)
+                n1[k1] = col1.text()
+                n1._link = col1.attr('href')
+        } else {
+                n1[k1] = col1
+        }
+
+        return [n0, n1]
+}
+
 nt._makeNodes = function (row) {
         var n0 = {}, n1 = {}
         var col0 = row[0], col1 = row[1]
@@ -505,6 +537,32 @@ nt._makeNE = function (row) {
                 this._adj[index0] = []
 
         this._adj[index0][index1] = 1
+}
+
+nt._makeNE = function (row) {
+        var value = +row[2]
+        var nodePair = this._makeNodes(row)
+        var val0Func = this.node0.value, val1Func = this.node1.value
+        var node0Val = val0Func(nodePair[0]), node1Val = val1Func(nodePair[1])
+
+        var index0 = findIndex(this._nodes, function (n) {
+                return val0Func(n) === node0Val
+        })
+        var index1 = findIndex(this._nodes, function (n) {
+                return val1Func(n) === node1Val
+        })
+
+        if (index0 < 0)
+                index0 = this._nodes.push(nodePair[0]) - 1
+        if (index1 < 0)
+                index1 = this._nodes.push(nodePair[1]) - 1
+        if (! this._adj[index0])
+                this._adj[index0] = []
+
+        this._adj[index0][index1] = 1
+        if (value > this._max)
+                this._max = value
+        this._edges.push({source: this._nodes[index0], target: this._nodes[index1], value: value})
 }
 
 function instanceEdges (adj, nodes, edges) {
@@ -621,7 +679,8 @@ nt._drawNetwork = function (config) {
                 this._makeNE(this._rowBuffer[i])
 
         this._rowBuffer = []
-        instanceEdges(this._adj, this._nodes, this._edges)
+        if (! this._edges.length)
+                instanceEdges(this._adj, this._nodes, this._edges)
 
         graph = makeGraph(this._svg, this._nodes, this._edges, config.graph)
 
@@ -769,6 +828,7 @@ nt.destroy = function () {
         if (this._svg) {
                 d3.select(this._svg.node().nearestViewportElement).remove()
         }
+        this._max = 0
         this._nodes = this._edges = this._svg = this._rowBuffer = this._cache = this._adj = null
 }
 

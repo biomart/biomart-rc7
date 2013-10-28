@@ -2,12 +2,13 @@ package org.biomart.processors;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.RandomStringUtils;
-
+import org.biomart.common.exceptions.BioMartQueryException;
 import org.biomart.common.resources.Log;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
@@ -64,8 +65,13 @@ public class Network extends ProcessorImpl {
         final Random rand = new Random();
         final String annotations = "abcdefghilmo";
 
-        public DummyNetworkFunc() {}
-        public DummyNetworkFunc(String[] attrs) {}
+        public DummyNetworkFunc() {
+
+        }
+
+        public DummyNetworkFunc(String[] attrs) {
+            this();
+        }
 
         // private String makeAnnotationList() {
         //         String[] annotationList;
@@ -82,9 +88,21 @@ public class Network extends ProcessorImpl {
         // }
 
         @Override
+        /**
+         * NOTE
+         *
+         * To make the IframeOutputStream (which is the only stream used with
+         * requests by the front-end since it's hardcoded within it)
+         * happy we MUST send atleast 50 lines, otherwise it won't work properly.
+         *
+         * I'm appending a newline at each line because write(NEWLINE) seems
+         * not working well (as it's used inside the DefaultWriteFunction).
+         */
         public Boolean apply(String[] row) {
+            // Log.info("NetworkProcessor::DummyNetworkFunc#apply called");
             if (!served) {
                 String[][] rows = new String[][] {
+                    {"gene1", "gene2", "weight"},
                     {"ENSG00000003756", "ENSG00000005075", "7.5E-3"},
                     {"ENSG00000002822", "ENSG00000007168", "9.2E-3"},
                     {"ENSG00000005249", "ENSG00000007168", "9.7E-3"},
@@ -131,15 +149,34 @@ public class Network extends ProcessorImpl {
                     {"ENSG00000015285", "ENSG00000043462", "8.3E-1"},
                     {"ENSG00000005249", "ENSG00000046651", "1.6E-2"},
                     {"ENSG00000007168", "ENSG00000046651", "9.7E-3"},
-                    {"ENSG00000037042", "ENSG00000046651", "1.6E-2"}
+                    {"ENSG00000037042", "ENSG00000046651", "1.6E-2"},
+                    {"ENSG00000088986", "ENSG00000116127", "1.6E-2"},
+                    {"ENSG00000101004", "ENSG00000116127", "1.6E-2"},
+                    {"ENSG00000101367", "ENSG00000116127", "9.5E-3"},
+                    {"ENSG00000101624", "ENSG00000116127", "1.6E-2"},
+                    {"ENSG00000101639", "ENSG00000116127", "1.6E-2"},
+                    {"ENSG00000103540", "ENSG00000116127", "1.6E-2"},
+                    {"ENSG00000103995", "ENSG00000116127", "1.6E-2"},
+                    {"ENSG00000105568", "ENSG00000116127", "9.2E-3"},
+                    {"ENSG00000106477", "ENSG00000116127", "1.6E-2"},
+                    {"ENSG00000108953", "ENSG00000116127", "1.6E-2"}
                 };
 
-
-                Network.DefaultWriteFunction writer =
-                    Network.this.new DefaultWriteFunction();
-
+                String line;
+                int count = 0;
                 for (String[] r : rows) {
-                    writer.apply(r);
+                    line =  Joiner.on('\t').join(r) + "\n";
+                    try {
+                        out.write(line.getBytes());
+                        // out.write(NEWLINE);
+
+                        // Force output to be written to client's stream
+                        if (++count % 5 == 0) {
+                            out.flush();
+                        }
+                    } catch (IOException e) {
+                        throw new BioMartQueryException("Problem writing to OutputStream", e);
+                    }
                 }
 
                 served = true;

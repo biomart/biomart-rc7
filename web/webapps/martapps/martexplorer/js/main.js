@@ -138,7 +138,7 @@ $.namespace('biomart.martexplorer', function(self) {
                                     title,
                                     $.extend({
                                         queries: q,
-                                        downloadXml: getXmlDefault('TSV', -1, true, QUERY_CLIENT),
+                                        downloadXml: getXmlDefault('NETWORK', -1, true, QUERY_CLIENT),
                                         martObj: biomart._state.queryMart,
                                         dataAggregation: 'none',
                                         // HARDCODE 'network' INSTEAD OF 'table' FOR NOW
@@ -158,7 +158,7 @@ $.namespace('biomart.martexplorer', function(self) {
                             }
                         }
 
-                        qHandler.queries = getXmlSplitted('TSVX', limit, true, QUERY_CLIENT)
+                        qHandler.queries = getXmlSplitted('NETWORK', limit, true, QUERY_CLIENT)
                         _elements.contentWrapper.slideUp();
                         _elements.toolbar.slideUp();
                         qHandler.send()
