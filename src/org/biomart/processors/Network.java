@@ -95,7 +95,7 @@ public class Network extends ProcessorImpl {
         
         @Override
         public Boolean apply(String[] row) {
-            String line = Joiner.on('\t').join(row);
+            String line = Joiner.on(DELIMITER).join(row);
             try {
                 out.write(line.getBytes());
                 out.write(LINEFEED.getBytes());
