@@ -60,6 +60,8 @@ public class Network extends ProcessorImpl {
 
 
     protected final class DummyNetworkFunc implements Function<String[],Boolean> {
+        private static final int FLUSH_INTERVAL = 5;
+        private int count = 0;
         Boolean served = false;
 
         final Random rand = new Random();
@@ -87,103 +89,28 @@ public class Network extends ProcessorImpl {
         //         Joiner.on('$').join(annotationList)
         // }
 
+        
+        
+
+        
         @Override
-        /**
-         * NOTE
-         *
-         * To make the IframeOutputStream (which is the only stream used with
-         * requests by the front-end since it's hardcoded within it)
-         * happy we MUST send atleast 50 lines, otherwise it won't work properly.
-         *
-         * I'm appending a newline at each line because write(NEWLINE) seems
-         * not working well (as it's used inside the DefaultWriteFunction).
-         */
         public Boolean apply(String[] row) {
-            // Log.info("NetworkProcessor::DummyNetworkFunc#apply called");
-            if (!served) {
-                String[][] rows = new String[][] {
-                    {"gene1", "gene2", "weight"},
-                    {"ENSG00000003756", "ENSG00000005075", "7.5E-3"},
-                    {"ENSG00000002822", "ENSG00000007168", "9.2E-3"},
-                    {"ENSG00000005249", "ENSG00000007168", "9.7E-3"},
-                    {"ENSG00000004897", "ENSG00000008018", "1.9E-2"},
-                    {"ENSG00000005339", "ENSG00000008838", "1.9E-2"},
-                    {"ENSG00000006125", "ENSG00000010610", "7.5E-2"},
-                    {"ENSG00000006607", "ENSG00000010810", "7.2E-2"},
-                    {"ENSG00000005075", "ENSG00000011007", "1.4E-2"},
-                    {"ENSG00000003756", "ENSG00000011304", "1.1E-2"},
-                    {"ENSG00000005075", "ENSG00000011304", "7.5E-3"},
-                    {"ENSG00000005075", "ENSG00000012061", "1.4E-2"},
-                    {"ENSG00000008018", "ENSG00000013275", "1.8E-2"},
-                    {"ENSG00000008441", "ENSG00000013503", "7.6E-2"},
-                    {"ENSG00000006634", "ENSG00000014138", "2.9E-2"},
-                    {"ENSG00000002330", "ENSG00000015475", "2.5E-1"},
-                    {"ENSG00000005075", "ENSG00000020426", "6.6E-3"},
-                    {"ENSG00000011007", "ENSG00000020426", "1.9E-2"},
-                    {"ENSG00000012061", "ENSG00000020426", "1.9E-2"},
-                    {"ENSG00000004779", "ENSG00000023228", "2.3E-2"},
-                    {"ENSG00000013503", "ENSG00000023608", "4.2E-2"},
-                    {"ENSG00000001084", "ENSG00000023909", "1E0"},
-                    {"ENSG00000002822", "ENSG00000030066", "8.9E-3"},
-                    {"ENSG00000007168", "ENSG00000030066", "5.7E-3"},
-                    {"ENSG00000015475", "ENSG00000030110", "6.3E-1"},
-                    {"ENSG00000002822", "ENSG00000031691", "1.2E-2"},
-                    {"ENSG00000007168", "ENSG00000031691", "7.8E-3"},
-                    {"ENSG00000030066", "ENSG00000031691", "7.6E-3"},
-                    {"ENSG00000014138", "ENSG00000035928", "4E-2"},
-                    {"ENSG00000005249", "ENSG00000037042", "1.6E-2"},
-                    {"ENSG00000007168", "ENSG00000037042", "9.4E-3"},
-                    {"ENSG00000005007", "ENSG00000037241", "1.4E-2"},
-                    {"ENSG00000021852", "ENSG00000039537", "1.7E-1"},
-                    {"ENSG00000002822", "ENSG00000040275", "1.4E-2"},
-                    {"ENSG00000007168", "ENSG00000040275", "9.2E-3"},
-                    {"ENSG00000030066", "ENSG00000040275", "8.9E-3"},
-                    {"ENSG00000031691", "ENSG00000040275", "1.2E-2"},
-                    {"ENSG00000004897", "ENSG00000041357", "1.9E-2"},
-                    {"ENSG00000008018", "ENSG00000041357", "1.7E-2"},
-                    {"ENSG00000013275", "ENSG00000041357", "1.8E-2"},
-                    {"ENSG00000005339", "ENSG00000042429", "1.9E-2"},
-                    {"ENSG00000008838", "ENSG00000042429", "1.9E-2"},
-                    {"ENSG00000006125", "ENSG00000042753", "5.1E-2"},
-                    {"ENSG00000010610", "ENSG00000042753", "7.8E-2"},
-                    {"ENSG00000015285", "ENSG00000043462", "8.3E-1"},
-                    {"ENSG00000005249", "ENSG00000046651", "1.6E-2"},
-                    {"ENSG00000007168", "ENSG00000046651", "9.7E-3"},
-                    {"ENSG00000037042", "ENSG00000046651", "1.6E-2"},
-                    {"ENSG00000088986", "ENSG00000116127", "1.6E-2"},
-                    {"ENSG00000101004", "ENSG00000116127", "1.6E-2"},
-                    {"ENSG00000101367", "ENSG00000116127", "9.5E-3"},
-                    {"ENSG00000101624", "ENSG00000116127", "1.6E-2"},
-                    {"ENSG00000101639", "ENSG00000116127", "1.6E-2"},
-                    {"ENSG00000103540", "ENSG00000116127", "1.6E-2"},
-                    {"ENSG00000103995", "ENSG00000116127", "1.6E-2"},
-                    {"ENSG00000105568", "ENSG00000116127", "9.2E-3"},
-                    {"ENSG00000106477", "ENSG00000116127", "1.6E-2"},
-                    {"ENSG00000108953", "ENSG00000116127", "1.6E-2"}
-                };
+            String line = Joiner.on(DELIMITER).join(row);
+            try {
+                out.write(line.getBytes());
+                out.write(LINEFEED.getBytes());
+                Log.debug("Line: "+count+" "+Joiner.on('/').join(row));
 
-                String line;
-                int count = 0;
-                for (String[] r : rows) {
-                    line =  Joiner.on('\t').join(r) + "\n";
-                    try {
-                        out.write(line.getBytes());
-                        // out.write(NEWLINE);
-
-                        // Force output to be written to client's stream
-                        if (++count % 5 == 0) {
-                            out.flush();
-                        }
-                    } catch (IOException e) {
-                        throw new BioMartQueryException("Problem writing to OutputStream", e);
-                    }
+                // Force output to be written to client's stream
+                if (++count % FLUSH_INTERVAL == 0) {
+                    out.flush();
                 }
-
-                served = true;
+            } catch (IOException e) {
+                throw new BioMartQueryException("Problem writing to OutputStream", e);
             }
-
-            return false;
+            return false; // Let QueryRunner decide when to stop
         }
+
     }
 
 
