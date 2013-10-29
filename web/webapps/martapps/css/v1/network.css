@@ -11,7 +11,7 @@
 text.network-shadow, text.network-text {
         font-family: verdana, times new roman, tahoma;
         font-size: 0.73em;
-        text-anchor: start;
+        text-anchor: middle;
 }
 
 text.network-text {

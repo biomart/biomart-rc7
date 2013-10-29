@@ -6,7 +6,9 @@ biomart.networkRendererConfig = {
         graph: {
                 nodeClassName: 'network-bubble',
                 edgeClassName: 'network-edge',
-                radius: 11
+                radius: function (d) {
+                        return 10 + d.radius
+                }
         },
 
         force: {
@@ -168,7 +170,7 @@ var Graph = (function (d3) {
 
                 lines.each(function (d) {
                         var w = 'value' in d ? d.value * 100 : 1
-                        if (w > 10) w = 10
+                        if (w > 7) w = 7
                         if (w < 1) w = 1
                         d3.select(this).style('stroke-width', w)
                 })
@@ -254,7 +256,7 @@ function tick2 (attrs) {
         var width = config.force.size[0]
         var height = config.force.size[1]
         var hubFromColor = {}
-        var r = typeof config.graph.radius === 'number'
+        var maxRadius = typeof config.graph.radius === 'number'
                 ? config.graph.radius
                 : d3.max(bubbles.data(), config.graph.radius)
 
@@ -314,14 +316,13 @@ function tick2 (attrs) {
         // Modified version of http://bl.ocks.org/mbostock/1748247
         // Move d to be adjacent to the cluster node.
         function clusterHelper(alpha) {
-                var radius = config.graph.radius
                 return function(d) {
                         var l, r, x, y, k = 1.5, node = hubFromColor[d.color]
 
                         // For cluster nodes, apply custom gravity.
                         if (d === node) {
-                                node = {x: width / 2, y: height / 2, radius: -radius}
-                                k = .5 * Math.sqrt(radius)
+                                node = {x: width / 2, y: height / 2, radius: -d.radius}
+                                k = .5 * Math.sqrt(d.radius)
                         }
 
                         // I need them gt zero or they'll have the same value while deciding the bubble position.
@@ -332,7 +333,7 @@ function tick2 (attrs) {
                         y = d.y - node.y
                         // distance between this node and the hub
                         l = Math.sqrt(x * x + y * y)
-                        r = radius + ('radius' in node ? node.radius : radius)
+                        r = node.radius + d.radius //('radius' in node ? node.radius : radius)
                         // if distance !== from sum of the two radius, that is, if they aren't touching
                         if (l != r) {
                                 l = (l - r) / l * alpha * k
@@ -348,10 +349,9 @@ function tick2 (attrs) {
         // Resolves collisions between d and all other circles.
         function collide(alpha) {
                 var quadtree = d3.geom.quadtree(nodes)
-                var radius = config.graph.radius
                 var padding = config.force.cluster.padding
                 return function(d) {
-                        var r = 2 * radius + padding
+                        var r = d.radius + maxRadius + padding
                         var nx1 = d.x - r
                         var nx2 = d.x + r
                         var ny1 = d.y - r
@@ -361,7 +361,7 @@ function tick2 (attrs) {
                                         var x = d.x - quad.point.x
                                         var y = d.y - quad.point.y
                                         var l = Math.sqrt(x * x + y * y)
-                                        var r = 2 * radius + (d.color !== quad.point.color) * padding
+                                        var r = d.radius + quad.point.radius + (d.color !== quad.point.color) * padding
                                         if (l < r) {
                                                 l = (l - r) / l * alpha
                                                 d.x -= x *= l
@@ -562,6 +562,11 @@ nt._makeNE = function (row) {
         this._adj[index0][index1] = 1
         if (value > this._max)
                 this._max = value
+
+        var n0 = this._nodes[index0]
+        var n1 = this._nodes[index1]
+        n0.radius = 'radius' in n0 ? n0.radius + 5 : 5
+        n1.radius = 'radius' in n1 ? n1.radius + 5 : 5
         this._edges.push({source: this._nodes[index0], target: this._nodes[index1], value: value})
 }
 
