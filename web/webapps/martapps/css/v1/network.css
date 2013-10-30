@@ -9,13 +9,16 @@
 }
 
 text.network-shadow, text.network-text {
-        font-family: verdana, times new roman, tahoma;
-        font-size: 0.73em;
+        /*font-family: sans-serif, verdana, times new roman, tahoma;*/
+        font-size: 1.2em;
+        letter-spacing: 0.15em;
         text-anchor: middle;
+        shape-rendering: geometricPrecision;
 }
 
 text.network-text {
-        stroke: #999;
+        stroke: #fff;
+        fill: #fff;
         stroke-width: 1px;
 }
 
@@ -24,9 +27,8 @@ text.network-text:hover {
 }
 
 text.network-shadow {
-        stroke: #fff;
-        stroke-width: 3px;
-        stroke-opacity: .8;
+        stroke: #000;
+        stroke-width: 5px;
 }
 
 .network-edge {
