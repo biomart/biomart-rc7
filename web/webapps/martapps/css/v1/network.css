@@ -10,8 +10,8 @@
 
 text.network-shadow, text.network-text {
         /*font-family: sans-serif, verdana, times new roman, tahoma;*/
-        font-size: 1.2em;
-        letter-spacing: 0.15em;
+        font-size: 0.95em;
+        letter-spacing: 0.12em;
         text-anchor: middle;
         shape-rendering: geometricPrecision;
 }
