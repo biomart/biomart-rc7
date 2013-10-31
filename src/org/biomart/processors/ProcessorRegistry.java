@@ -54,6 +54,7 @@ public class ProcessorRegistry {
         register("CSV", CSV.class);
         register("JSON", JSON.class);
         register("NETWORK", Network.class);
+        register("ENRICHMENT", Enrichment.class);
 
         final FileFilter directoryFilter = new FileFilter() {
             @Override public boolean accept(File file) {
