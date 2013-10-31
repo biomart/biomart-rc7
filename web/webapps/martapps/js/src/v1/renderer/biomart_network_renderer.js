@@ -7,7 +7,7 @@ biomart.networkRendererConfig = {
                 nodeClassName: 'network-bubble',
                 edgeClassName: 'network-edge',
                 radius: function (d) {
-                        return 10 + d.radius
+                        return 5 + d.radius
                 }
         },
 
@@ -21,7 +21,7 @@ biomart.networkRendererConfig = {
                         return 50
                 },
                 charge: -300,
-                gravity: 0.01, // 0.175
+                gravity: 0.1, // 0.175
                 threshold: 0.005,
                 cluster: {
                         padding: 60
@@ -41,7 +41,7 @@ biomart.networkRendererConfig = {
 // biomart.networkRendererConfig.force.linkDistance = 20
 biomart.networkRendererConfig.force.charge = function (d) {
         // return d.isHub ? 10 * d.weight * d.x/1000 : -10 * d.weight * d.x/1000
-        return d.isHub ? 4 * d.weight : -2 * d.weigth
+        return d.isHub ? -5 * d.weight : -300 * d.weigth
 }
 
 
@@ -333,7 +333,7 @@ function tick2 (attrs) {
                         y = d.y - node.y
                         // distance between this node and the hub
                         l = Math.sqrt(x * x + y * y)
-                        r = node.radius + d.radius //('radius' in node ? node.radius : radius)
+                        r = 2 * (node.radius + d.radius) //('radius' in node ? node.radius : radius)
                         // if distance !== from sum of the two radius, that is, if they aren't touching
                         if (l != r) {
                                 l = (l - r) / l * alpha * k
@@ -351,7 +351,7 @@ function tick2 (attrs) {
                 var quadtree = d3.geom.quadtree(nodes)
                 var padding = config.force.cluster.padding
                 return function(d) {
-                        var r = d.radius + maxRadius + padding
+                        var r = 2 * (d.radius + maxRadius) + padding
                         var nx1 = d.x - r
                         var nx2 = d.x + r
                         var ny1 = d.y - r
@@ -361,7 +361,7 @@ function tick2 (attrs) {
                                         var x = d.x - quad.point.x
                                         var y = d.y - quad.point.y
                                         var l = Math.sqrt(x * x + y * y)
-                                        var r = d.radius + quad.point.radius + (d.color !== quad.point.color) * padding
+                                        var r = 2 * (d.radius + quad.point.radius) + (d.color !== quad.point.color) * padding + padding
                                         if (l < r) {
                                                 l = (l - r) / l * alpha
                                                 d.x -= x *= l
@@ -565,8 +565,8 @@ nt._makeNE = function (row) {
 
         var n0 = this._nodes[index0]
         var n1 = this._nodes[index1]
-        n0.radius = 'radius' in n0 ? n0.radius + 5 : 5
-        n1.radius = 'radius' in n1 ? n1.radius + 5 : 5
+        n0.radius = 'radius' in n0 ? n0.radius + 3 : 3
+        n1.radius = 'radius' in n1 ? n1.radius + 3 : 3
         this._edges.push({source: this._nodes[index0], target: this._nodes[index1], value: value})
 }
 
