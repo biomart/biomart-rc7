@@ -133,7 +133,7 @@ $.namespace('biomart.martexplorer', function(self) {
                     function customRenderers (element) {
                         var qHandler = {
                             processor: null,
-                            renderer: 'network',
+                            renderer: null,
                             issue: function (q) {
                                 _elements.results.resultsPanel('run',
                                     title,
@@ -150,11 +150,11 @@ $.namespace('biomart.martexplorer', function(self) {
                             send: function () {
                                 if (this.queries.length) {
                                     this.issue(this.queries.shift());
-                                    $.unsubscribeAll('network.completed');
-                                    $.subscribe('network.completed', this, 'send');
+                                    $.unsubscribeAll(this.renderer + ".completed");
+                                    $.subscribe(this.renderer + ".completed", this, 'send');
                                 } else {
                                     // Unsubscribe the last handler
-                                    $.unsubscribeAll('network.completed');
+                                    $.unsubscribeAll(this.renderer + ".completed");
                                 }
                             }
                         }
@@ -162,9 +162,11 @@ $.namespace('biomart.martexplorer', function(self) {
                         switch (title.toLowerCase()) {
                             case "enrichment analysis":
                                 qHandler.processor = "ENRICHMENT";
+                                qHandler.renderer = "enrichment";
                                 break;
                             case "network analysis":
                                 qHandler.processor = "NETWORK";
+                                qHandler.renderer = "network";
                                 break;
                         };
 
