@@ -35,6 +35,81 @@ biomart.enrichmentRendererConfig = {
 }
 
 
+
+
+var Table = (function (d3) {
+        "use strict"
+
+        function Table (config) {
+                this.init(config)
+        }
+
+        Table.prototype = {
+                init: function (config) {
+                        this.config = config
+                        this.numCol = config.numCol
+                        this.header = config.header
+                        this.table = this.body = null
+                        config.className || (config.className = "report-tb")
+                        this._makeTable(config.wrapper)
+                },
+
+                _makeTable: function (wrapper) {
+                        // make table
+                        var t = this.table = _make("table", null, this.config.className)
+                        var h
+
+                        // append header
+                        t.appendChild(h = _make("thead"))
+                        // header is of one row
+                        h.appendChild(_makeRow(this.header))
+
+                        t.appendChild(this.body = _make("tbody"))
+
+                        wrapper.appendChild(this.table)
+                },
+
+                addRow: function (content) {
+                        var r = _makeRow(content, this.numCol)
+                        this.body.appendChild(r)
+                        return r
+                },
+
+                clear: function () {
+                        this.table.removeChild(this.body)
+                        this.body = null
+                },
+
+                destroy: function () {
+                        this.table.parentNode.removeChild(this.table)
+                        this.table = this.body = this.header = this.config = null
+                }
+        }
+
+        function _makeRow (content, c) {
+                var i = 0, len = c || content.length, r = _make("tr")
+                for (; i < len; ++i) {
+                        r.appendChild(_makeCol(content[i]))
+                }
+                return r
+        }
+
+
+        function _makeCol (text) {
+                var t = _make("td")
+                t.textContent = text
+                return t
+        }
+
+        function _make (el, idName, className) {
+                var e = document.createElement(el)
+                if (idName) e.id = idName
+                if (className) e.className = className
+                return e
+        }
+
+        return Table
+}) (d3)
 function textCallback (_, config) {
         var keys = ['font-family', 'font-size', 'stroke', 'stroke-width', 'text-anchor']
         var attrs = {}
@@ -435,7 +510,11 @@ nt.getElement = function () {
         // Create the container
         var $elem = oldGetElement.call(this)
         // This is the actual tab list
-        $elem.append('<ul id="network-list" class="network-tabs"></ul>')
+
+        var $tabWrap = $('<div class="network-tabs-wrapper">')
+        $tabWrap.append('<ul id="network-list" class="network-tabs"></ul>')
+        $elem.append($tabWrap)
+        $elem.append('<div id="network-report-table" class="network-report-table"></div>')
         return $elem
 }
 
@@ -449,18 +528,6 @@ nt._init = function () {
         this._adj = []
         this._max = 0
 }
-
-// function equal (o1, o2) {
-//         var ks1 = Object.keys(o1), ks2 = Object.keys(o2), len, k1, k2
-//         if ((len = ks1.length) != ks2.length)
-//                 return false
-//         for (var i = 0; i < len; ++i) {
-//                 k1 = o1[ks1[i]]
-//                 k2 = o2[ks2[i]]
-//                 if (typeof k1 === 'object')
-//                 if (k1 != k2)
-//         }
-// }
 
 function annotation (keys, values) {
         var a = { typeId: 'annotation' }
@@ -599,7 +666,7 @@ nt.printHeader = function(header, writee) {
         // Playground for the new network
         this._svg = svg = d3.select($('#'+ item)[0])
                 .append('svg:svg')
-                .attr({ width: w, height: h })
+                .attr({ width: "100%", height: "100%" })
                 .append('g')
                 .call(d3.behavior.zoom().scaleExtent([0, 20]).on('zoom', function () {
                         svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")") }))
@@ -657,8 +724,16 @@ nt._drawNetwork = function (config) {
 
         config.force.size = [w, h]
 
-        for (var i = 0, nLen = this._rowBuffer.length; i < nLen; ++i)
+        this.table = new Table({
+                wrapper: $("#"+ "network-report-table")[0],
+                header: this.header.slice(0, -1),
+                numCol: 2
+        })
+
+        for (var i = 0, nLen = this._rowBuffer.length; i < nLen; ++i) {
                 this._makeNE(this._rowBuffer[i])
+                this.table.addRow(this._rowBuffer[i])
+        }
 
         this._rowBuffer = []
         if (! this._edges.length)
@@ -691,15 +766,15 @@ nt._drawNetwork = function (config) {
         // Now we can create the force layout. This actually starts the symulation.
         force = makeForce(this._nodes, [], config.force)
 
-        resize(function () {
-                if (self._svg && !self._svg.empty()) {
-                        self._svg.attr({
-                                width: w,
-                                height: h
-                        })
-                        force.size([w, h])
-                }
-        })
+        // resize(function () {
+        //         if (self._svg && !self._svg.empty()) {
+        //                 self._svg.attr({
+        //                         width: w,
+        //                         height: h
+        //                 })
+        //                 force.size([w, h])
+        //         }
+        // })
 
         function loop (thr, iter) {
                 var t
@@ -810,8 +885,8 @@ nt.destroy = function () {
         if (this._svg) {
                 d3.select(this._svg.node().nearestViewportElement).remove()
         }
-        this._max = 0
-        this._nodes = this._edges = this._svg = this._rowBuffer = this._cache = this._adj = null
+        this.table.destroy()
+        this._nodes = this.table = this._edges = this._svg = this._rowBuffer = this._cache = this._adj = null
 }
 
 })(d3);

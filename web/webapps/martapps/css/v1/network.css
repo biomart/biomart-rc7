@@ -10,8 +10,8 @@
 
 text.network-shadow, text.network-text {
         /*font-family: sans-serif, verdana, times new roman, tahoma;*/
-        font-size: 0.95em;
-        letter-spacing: 0.12em;
+        font-size: 1em;
+        letter-spacing: 0.14em;
         text-anchor: middle;
         shape-rendering: geometricPrecision;
 }
@@ -48,4 +48,17 @@ text.network-shadow {
         pointer-events: all;
         stroke-width: 2;
         stroke: #999999;
+}
+
+.network-report-table, .network-tabs-wrapper {
+        display: inline-block;
+        vertical-align: top;
+}
+
+.network-report-table {
+        width: 20% !important;
+}
+
+.network-tabs-wrapper {
+        width: 80%;
 }
