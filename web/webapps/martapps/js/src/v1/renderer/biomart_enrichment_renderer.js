@@ -47,11 +47,14 @@ var Table = (function (d3) {
         Table.prototype = {
                 init: function (config) {
                         this.config = config
+                        this.tooltip = config.tooltip
                         this.numCol = config.numCol
                         this.header = config.header
-                        this.table = this.body = null
-                        config.className || (config.className = "report-tb")
+                        this.table = this.body = this.tp = null
+                        config.className || (config.className = "rtb")
                         this._makeTable(config.wrapper)
+                        if (typeof this.tooltip === "function")
+                                this.makeTooltip()
                 },
 
                 _makeTable: function (wrapper) {
@@ -71,18 +74,48 @@ var Table = (function (d3) {
 
                 addRow: function (content) {
                         var r = _makeRow(content, this.numCol)
+                        r.__data__ = content
                         this.body.appendChild(r)
                         return r
                 },
 
+                makeTooltip: function () {
+                        this.tp = _make("div", "rtb-tooltip", "rtp-tooltip-hidden")
+                        this.table.parentNode.appendChild(this.tp)
+                        this.body.addEventListener("mouseover", tpMouseover(this.tooltip))
+                        this.body.addEventListener("mouseout", tpMouseout)
+                },
+
                 clear: function () {
                         this.table.removeChild(this.body)
-                        this.body = null
+                        this.tp && this.tp.parentNode.removeChild(this.tp)
+                        this.body = this.tp = null
                 },
 
                 destroy: function () {
                         this.table.parentNode.removeChild(this.table)
-                        this.table = this.body = this.header = this.config = null
+                        this.tp && this.tp.parentNode.removeChild(this.tp)
+                        this.table = this.body = this.header = this.config = this.tp = null
+                }
+        }
+
+        function tpMouseout (e) {
+                if (e.target.tagName.toLowerCase() !== "td")
+                        return
+                var t = document.getElementById("rtb-tooltip")
+                // t.innerHTML = ''
+                t.className = 'rtb-tooltip-hidden'
+                t.setAttribute("style", "")
+        }
+
+        function tpMouseover (cb) {
+                return function (e) {
+                        if (e.target.tagName.toLowerCase() !== "td")
+                                return
+                        var t = document.getElementById("rtb-tooltip")
+                        t.innerHTML = cb(e.target.parentNode.__data__)
+                        t.className = "rtb-tooltip"
+                        t.setAttribute("style", "position:fixed;top:"+e.pageY+"px;left:"+e.pageX+"px;")
                 }
         }
 
@@ -727,7 +760,14 @@ nt._drawNetwork = function (config) {
         this.table = new Table({
                 wrapper: $("#"+ "network-report-table")[0],
                 header: this.header.slice(0, -1),
-                numCol: 2
+                numCol: 2,
+                tooltip: function (data) {
+                        var i = 0, d = data[2].split(","), len = d.length, b = ""
+                        for (; i < len; ++i) {
+                                b += d[i]+"<br>"
+                        }
+                        return b
+                }
         })
 
         for (var i = 0, nLen = this._rowBuffer.length; i < nLen; ++i) {
