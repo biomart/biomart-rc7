@@ -109,8 +109,12 @@ $.namespace('biomart.martexplorer', function(self) {
                 function(element) {
                     var title = biomart.utils.hasGroupedMarts() ? biomart._state.mart[0].group : biomart._state.mart.displayName;
                     var callback = defaultRenderer;
+                    var newEntries = {
+                        "enrichment analysis": 1,
+                        "network analysis": 1
+                    }
 
-                    if (title.toLowerCase() !== 'table') {
+                    if (title.toLowerCase() in newEntries) {
                         callback = customRenderers;
                     }
 
