@@ -50,17 +50,17 @@ text.network-shadow {
         stroke: #999999;
 }
 
-.network-report-table, .network-tabs-wrapper {
+.network-report-table, .network-wrapper {
         display: inline-block;
         vertical-align: top;
 }
 
 .network-report-table {
-        width: 20% !important;
+        width: 15% !important;
 }
 
-.network-tabs-wrapper {
-        width: 80%;
+.network-wrapper {
+        width: 85%;
 }
 
 .rtb-tooltip {

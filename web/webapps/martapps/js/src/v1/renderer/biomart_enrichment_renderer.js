@@ -40,6 +40,8 @@ biomart.enrichmentRendererConfig = {
 var Table = (function (d3) {
         "use strict"
 
+        var toString = Object.prototype.toString
+
         function Table (config) {
                 this.init(config)
         }
@@ -50,11 +52,13 @@ var Table = (function (d3) {
                         this.tooltip = config.tooltip
                         this.numCol = config.numCol
                         this.header = config.header
-                        this.table = this.body = this.tp = null
+                        this.table = this.body = this.tp = this.tooltip = null
                         config.className || (config.className = "rtb")
                         this._makeTable(config.wrapper)
-                        if (typeof this.tooltip === "function")
+                        if (_isFunction(config.tooltip)) {
+                                this.tooltip = config.tooltip
                                 this.makeTooltip()
+                        }
                 },
 
                 _makeTable: function (wrapper) {
@@ -66,9 +70,7 @@ var Table = (function (d3) {
                         t.appendChild(h = _make("thead"))
                         // header is of one row
                         h.appendChild(_makeRow(this.header))
-
                         t.appendChild(this.body = _make("tbody"))
-
                         wrapper.appendChild(this.table)
                 },
 
@@ -99,6 +101,10 @@ var Table = (function (d3) {
                 }
         }
 
+        function _isFunction (obj) {
+                return toString.call(obj) === "[object Function]"
+        }
+
         function tpMouseout (e) {
                 if (e.target.tagName.toLowerCase() !== "td")
                         return
@@ -113,6 +119,7 @@ var Table = (function (d3) {
                         if (e.target.tagName.toLowerCase() !== "td")
                                 return
                         var t = document.getElementById("rtb-tooltip")
+                        // data attached to the row
                         t.innerHTML = cb(e.target.parentNode.__data__)
                         t.className = "rtb-tooltip"
                         t.setAttribute("style", "position:fixed;top:"+e.pageY+"px;left:"+e.pageX+"px;")
@@ -544,10 +551,10 @@ nt.getElement = function () {
         var $elem = oldGetElement.call(this)
         // This is the actual tab list
 
-        var $tabWrap = $('<div class="network-tabs-wrapper">')
-        $tabWrap.append('<ul id="network-list" class="network-tabs"></ul>')
-        $elem.append($tabWrap)
-        $elem.append('<div id="network-report-table" class="network-report-table"></div>')
+        // var $tabWrap = $('<div class="network-tabs-wrapper">')
+        $elem.append('<ul id="network-list" class="network-tabs"></ul>')
+        // $elem.append($tabWrap)
+        // $elem.append('<div id="network-report-table" class="network-report-table"></div>')
         return $elem
 }
 
@@ -688,18 +695,19 @@ nt.printHeader = function(header, writee) {
         var w = $(window).width()
         var h = $(window).height()
         var $tabsCont = writee.find('#network-list')
-        var item, tabNum, svg
+        var item, domItem, tabNum, svg
 
         tabNum = $tabsCont.children().size() + 1
         if (tabNum === 1) writee.tabs() //
 
-        item = 'item-'+ tabNum
+        item = '#item-'+ tabNum
         // For each attribute list create a tab
-        writee.tabs('add', '#'+ item, Object.keys(biomart._state.queryMart.attributes)[tabNum-1])
+        writee.tabs('add', item, Object.keys(biomart._state.queryMart.attributes)[tabNum-1])
         // Playground for the new network
-        this._svg = svg = d3.select($('#'+ item)[0])
+        this._svg = svg = d3.select(domItem = $(item)[0])
                 .append('svg:svg')
-                .attr({ width: "100%", height: "100%" })
+                .attr({ width: "100%", height: "100%",
+                        class: "network-wrapper" })
                 .append('g')
                 .call(d3.behavior.zoom().scaleExtent([0, 20]).on('zoom', function () {
                         svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")") }))
@@ -713,6 +721,7 @@ nt.printHeader = function(header, writee) {
                 .attr("height", h * 8)
 
         this.header = header
+        this._makeTable(domItem)
 }
 
 nt.draw = function (writee) {
@@ -728,6 +737,23 @@ function initPosition (nodes, width, height) {
         nodes.forEach(function (node) {
                 node.x = Math.random() * width
                 node.y = Math.random() * height
+        })
+}
+
+nt._makeTable = function (wrapper) {
+        // $elem.append('<div id="network-report-table" class="network-report-table"></div>')
+        this.table = new Table({
+                wrapper: wrapper,
+                className: "network-report-table",
+                header: this.header.slice(0, -1),
+                numCol: 2,
+                tooltip: function (data) {
+                        var i = 0, d = data[2].split(","), len = d.length, b = ""
+                        for (; i < len; ++i) {
+                                b += d[i]+"<br>"
+                        }
+                        return b
+                }
         })
 }
 
@@ -756,19 +782,6 @@ nt._drawNetwork = function (config) {
         // }
 
         config.force.size = [w, h]
-
-        this.table = new Table({
-                wrapper: $("#"+ "network-report-table")[0],
-                header: this.header.slice(0, -1),
-                numCol: 2,
-                tooltip: function (data) {
-                        var i = 0, d = data[2].split(","), len = d.length, b = ""
-                        for (; i < len; ++i) {
-                                b += d[i]+"<br>"
-                        }
-                        return b
-                }
-        })
 
         for (var i = 0, nLen = this._rowBuffer.length; i < nLen; ++i) {
                 this._makeNE(this._rowBuffer[i])
