@@ -63,6 +63,21 @@ public class Container extends LiteMartConfiguratorObject implements Serializabl
 				if(attribute.getObjectStatus()!=ValidationStatus.VALID)
 					continue;
 				if(!attribute.isHidden() && attribute.inPartition(datasetList) && attribute.inUser(this.currentUser.getName(),datasetList)) {		
+					//hack
+					if(attribute.isAttributeList() && !allowPartialList) {
+						boolean included = true;
+						List<org.biomart.objects.objects.Attribute> subAttributes = attribute.getAttributeList();
+						for(org.biomart.objects.objects.Attribute subAttribute: subAttributes) {
+							if(!subAttribute.inPartition(datasetList)) {
+								included = false;
+								break;
+							}
+						}
+						if(!included) {
+							break;
+						}
+					}
+					//end of hack 
 					//create multiple one if it is partitioned
 					if(McUtils.hasPartitionBinding(attribute.getName())) {
 						List<String> ptRefList = McUtils.extractPartitionReferences(attribute.getName());

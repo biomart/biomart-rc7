@@ -125,7 +125,7 @@ public class PortalResource implements PortalService {
             @QueryParam("container") String container,
             @QueryParam("allowPartialList") @DefaultValue("true") Boolean allowPartialList) {
         Portal portal = getPortal();
-        return portal.getAttributes(datasets, config, container, allowPartialList);
+        return portal.getAttributes(datasets, config, container, false);
     }
 
     @Path("containers")
@@ -139,7 +139,7 @@ public class PortalResource implements PortalService {
             @QueryParam("withattributes") @DefaultValue("true") Boolean withAttributes,
             @QueryParam("withfilters") @DefaultValue("true") Boolean withFilters,
             @QueryParam("allowPartialList") @DefaultValue("true") Boolean allowPartialList) {
-        return getPortal().getContainers(datasets, config, withAttributes, withFilters, allowPartialList);
+        return getPortal().getContainers(datasets, config, withAttributes, withFilters,false);
     }
 
     @Path("linkables")
