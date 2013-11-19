@@ -1,6 +1,7 @@
 package org.biomart.api;
 
 import com.google.common.collect.Lists;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
@@ -10,8 +11,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
 import org.biomart.api.factory.MartRegistryFactory;
 import org.biomart.api.lite.Attribute;
 import org.biomart.api.lite.Container;
@@ -22,7 +25,7 @@ import org.biomart.api.lite.Mart;
 import org.biomart.api.lite.MartRegistry;
 import org.biomart.common.resources.Log;
 import org.biomart.configurator.model.object.FilterData;
-import org.biomart.queryEngine.QueryController;
+import org.biomart.queryEngine.QueryControllerProxy;
 
 public final class Portal {
     public final MartRegistry _registry;
@@ -218,7 +221,7 @@ public final class Portal {
 
     public void executeQuery(String xml, OutputStream out, boolean isCountQuery) {
         try {
-            new QueryController(xml, _registry.getFullRegistry(),
+            new QueryControllerProxy(xml, _registry.getFullRegistry(),
                     _user == null ? "" : _user, isCountQuery).runQuery(out);
         } catch (Exception e) {
             Log.error("Error during querying", e);
