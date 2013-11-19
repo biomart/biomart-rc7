@@ -31,7 +31,7 @@ public class PreprocessRegistry {
 		isInstalled = true;
 		
 		// Registration
-		register("Default", DefaultPreprocess.class);
+		register("DefaultPreprocess", DefaultPreprocess.class);
 	}
 	
 	public static Class get(String process) {

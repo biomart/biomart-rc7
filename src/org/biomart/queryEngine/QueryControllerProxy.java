@@ -47,7 +47,7 @@ public class QueryControllerProxy {
     		
     		
     		if (pp == null)
-    			throw new ValidationException("No default preprocessor found"); 		
+    			throw new ValidationException("QueryControllerProxy: No default preprocessor found"); 		
     }
 
     public QueryControllerProxy(String xml,
