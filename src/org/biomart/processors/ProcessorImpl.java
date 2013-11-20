@@ -177,6 +177,7 @@ public class ProcessorImpl implements ProcessorInterface, OutputConstants {
             fld.setAccessible(true);
             BaseField field = (BaseField)fld.get(this);
             field.setValue(value);
+            Log.debug("ProcessorImpl#setFieldValue set field value "+ name +" to "+ value);
         } catch (Exception e) {
             throw new ValidationException("Cannot set value for field " + name, e);
         }

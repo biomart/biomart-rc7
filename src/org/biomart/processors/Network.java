@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.biomart.processors.annotations.FieldInfo;
 import org.biomart.processors.fields.IntegerField;
 import org.biomart.queryEngine.Query;
 
@@ -25,6 +26,7 @@ public class Network extends ProcessorImpl {
 	static final HashMap<EntryKey, Double> h = new HashMap<EntryKey, Double>();
 	
     private SumFn cb;
+    @FieldInfo(clientDefined=true, required=true)
     private IntegerField nqueries = new IntegerField();
     private static int queryCount = 0;
     private boolean goodToGo = false, header = false;
@@ -47,7 +49,10 @@ public class Network extends ProcessorImpl {
     @Override
     public void done() {
         goodToGo = ++queryCount == nqueries.getValue().intValue();
-        Log.debug("Network#done invoked, queryCount = "+ queryCount + ". nqueries = "+ nqueries);
+        if (goodToGo)
+        		cb.send();
+        Log.debug("Network#done invoked, queryCount = "+ queryCount + ". nqueries = "+ nqueries.getValue());
+        Log.debug("Network#done goodToGo = "+ goodToGo);
     }
     
 
@@ -118,7 +123,7 @@ public class Network extends ProcessorImpl {
         		}
         }
         
-        private void send() {
+        public void send() {
         		Set<Map.Entry<EntryKey, Double>> set = h.entrySet();
         		Iterator<Map.Entry<EntryKey, Double>> it = set.iterator();
         		Map.Entry<EntryKey, Double> e = null;
@@ -130,7 +135,7 @@ public class Network extends ProcessorImpl {
         			k = e.getKey();
         			vstr = Double.toString(e.getValue());
         			try {
-        				out.write((k.toString(DELIMITER) + vstr).getBytes());
+        				out.write(Joiner.on(DELIMITER).join(k.g0, k.g1, vstr).getBytes());
         				out.write(NEWLINE);
 
         				if (++count % FLUSH_INTERVAL == 0)
@@ -151,7 +156,9 @@ public class Network extends ProcessorImpl {
         	
         	private void printHeader(String[] row) {
         		try {
+        			Log.debug("Network#printHeader: "+ Joiner.on(DELIMITER).join(row));
         			out.write(Joiner.on(DELIMITER).join(row).getBytes());
+        			out.write(NEWLINE);
         		} catch (IOException e) {
     				throw new BioMartQueryException("Problem writing to OutputStream", e);
     			}
