@@ -108,76 +108,37 @@ $.namespace('biomart.martexplorer', function(self) {
 
                 function(element) {
                     var title = biomart.utils.hasGroupedMarts() ? biomart._state.mart[0].group : biomart._state.mart.displayName;
-                    var callback = defaultRenderer;
-                    var newEntries = {
-                        "enrichment analysis": 1,
-                        "network analysis": 1
-                    }
+                    var renderer = "", processor = "", limit = -1;
 
-                    if (title.toLowerCase() in newEntries) {
-                        callback = customRenderers;
-                    }
+                    switch (title.toLowerCase()) {
+                        case "enrichment analysis":
+                            processor = "ENRICHMENT";
+                            renderer = "enrichment";
+                            break;
+                        case "network analysis":
+                            processor = "NETWORK";
+                            renderer = "network";
+                            break;
+                        default:
+                            processor = "TSVX";
+                            renderer = "table";
+                            limit = QUERY_LIMIT;
+                            break;
+                    };
 
-                    callback.call(this, element)
+                    defaultRenderer(element);
 
                     function defaultRenderer (element) {
                         _elements.contentWrapper.slideUp();
                         _elements.toolbar.slideUp();
                         _elements.results.resultsPanel('run', title,
                             $.extend({
-                                queries: getXmlDefault('TSVX', QUERY_LIMIT, true, QUERY_CLIENT),
-                                downloadXml: getXmlDefault('TSV', -1, true, QUERY_CLIENT),
+                                queries: getXmlDefault(processor, limit, true, QUERY_CLIENT),
+                                downloadXml: getXmlDefault(processor, limit, true, QUERY_CLIENT),
                                 martObj: biomart._state.queryMart,
                                 dataAggregation: 'none',
-                                displayType: 'table'
+                                displayType: renderer
                             }, QUERY_RESULTS_OPTIONS));
-                        $.publish('biomart.loaded');
-                    }
-
-                    function customRenderers (element) {
-                        var qHandler = {
-                            processor: null,
-                            renderer: null,
-                            issue: function (q) {
-                                _elements.results.resultsPanel('run',
-                                    title,
-                                    $.extend({
-                                        queries: q,
-                                        downloadXml: getXmlDefault(this.processor, -1, true, QUERY_CLIENT),
-                                        martObj: biomart._state.queryMart,
-                                        dataAggregation: 'none',
-                                        // HARDCODE 'network' INSTEAD OF 'table' FOR NOW
-                                        displayType: this.renderer
-                                        ////////////////////////////////////////////////////
-                                    }, QUERY_RESULTS_OPTIONS));
-                            },
-                            send: function () {
-                                if (this.queries.length) {
-                                    this.issue(this.queries.shift());
-                                    $.unsubscribeAll(this.renderer + ".completed");
-                                    $.subscribe(this.renderer + ".completed", this, 'send');
-                                } else {
-                                    // Unsubscribe the last handler
-                                    $.unsubscribeAll(this.renderer + ".completed");
-                                }
-                            }
-                        }
-
-                        switch (title.toLowerCase()) {
-                            case "enrichment analysis":
-                                qHandler.processor = "ENRICHMENT";
-                                qHandler.renderer = "enrichment";
-                                break;
-                            case "network analysis":
-                                qHandler.processor = "NETWORK";
-                                qHandler.renderer = "network";
-                                break;
-                        };
-
-                        qHandler.queries = getXmlSplitted(qHandler.processor, -1, true, QUERY_CLIENT)
-                        _elements.contentWrapper.slideUp();
-                        _elements.toolbar.slideUp();
-                        qHandler.send()
                         $.publish('biomart.loaded');
                     }
                 }
