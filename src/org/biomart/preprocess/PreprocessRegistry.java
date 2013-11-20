@@ -32,6 +32,7 @@ public class PreprocessRegistry {
 		
 		// Registration
 		register("DefaultPreprocess", DefaultPreprocess.class);
+		register("Network", QuerySplit.class);
 	}
 	
 	public static Class get(String process) {
