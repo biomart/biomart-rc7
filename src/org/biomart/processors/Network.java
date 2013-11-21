@@ -152,9 +152,13 @@ public class Network extends ProcessorImpl {
         		// Reset static fields
         		h.clear();
         		queryCount = 0;
+        		header = false;
         	}
         	
         	private void printHeader(String[] row) {
+        		// print only on the first query
+        		if (queryCount > 0) return;
+        		
         		try {
         			Log.debug("Network#printHeader: "+ Joiner.on(DELIMITER).join(row));
         			out.write(Joiner.on(DELIMITER).join(row).getBytes());
