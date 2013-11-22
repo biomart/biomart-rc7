@@ -136,7 +136,7 @@ public class Network extends ProcessorImpl {
         			vstr = Double.toString(e.getValue());
         			try {
         				out.write(Joiner.on(DELIMITER).join(k.g0, k.g1, vstr).getBytes());
-        				out.write(NEWLINE);
+        				out.write(NEWLINE_BYTES);
 
         				if (++count % FLUSH_INTERVAL == 0)
         					out.flush();
