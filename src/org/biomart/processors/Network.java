@@ -91,7 +91,7 @@ public class Network extends ProcessorImpl {
     protected final class SumFn implements Function<String[],Boolean> {
     		static final int FLUSH_INTERVAL = 50;
     		static final char DELIMITER = '\t';
-        int count = 0;
+        int count = 0, linesReceived = 0, linesSent = 0;
         
         public SumFn() {
         		super();
@@ -100,6 +100,7 @@ public class Network extends ProcessorImpl {
                 
         @Override
         public Boolean apply(String[] row) {
+        		linesReceived++;
         		if (!header) {
         			printHeader(row);
         			header = true;
@@ -124,6 +125,7 @@ public class Network extends ProcessorImpl {
         }
         
         public void send() {
+        		Log.debug("Network#send sending data...");
         		Set<Map.Entry<EntryKey, Double>> set = h.entrySet();
         		Iterator<Map.Entry<EntryKey, Double>> it = set.iterator();
         		Map.Entry<EntryKey, Double> e = null;
@@ -135,6 +137,7 @@ public class Network extends ProcessorImpl {
         			k = e.getKey();
         			vstr = Double.toString(e.getValue());
         			try {
+        				linesSent++;
         				out.write(Joiner.on(DELIMITER).join(k.g0, k.g1, vstr).getBytes());
         				out.write(NEWLINE_BYTES);
 
@@ -149,6 +152,7 @@ public class Network extends ProcessorImpl {
         }
         		
         	private void clear() {
+        		Log.debug("Network#clear lines: received: "+linesReceived+" sent "+linesSent);
         		// Reset static fields
         		h.clear();
         		queryCount = 0;
