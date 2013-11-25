@@ -162,7 +162,7 @@ public class Network extends ProcessorImpl {
         		try {
         			Log.debug("Network#printHeader: "+ Joiner.on(DELIMITER).join(row));
         			out.write(Joiner.on(DELIMITER).join(row).getBytes());
-        			out.write(NEWLINE);
+        			out.write(NEWLINE_BYTES);
         		} catch (IOException e) {
     				throw new BioMartQueryException("Problem writing to OutputStream", e);
     			}
