@@ -153,6 +153,11 @@
         <exclude name="**/src/**"/>
       </fileset>
     </copy>
+    <exec executable="cp">
+      <arg value="-Rp"/>
+      <arg value="${basedir}/preprocesses"/>
+      <arg value="${dist.dir}/"/>
+    </exec>
   </target>
   <target name="compile.icgc" depends="jar.start">
     <javac srcdir="${icgc.dir}" destdir="${build.classes}/icgc" deprecation="${build.deprecation}" depend="no" debug="true" source="1.6" includeantruntime="no">
@@ -213,7 +218,7 @@
     <mkdir dir="${build.lib}"/>
     <jar destfile="${build.lib}/jetty-session-ext.jar" basedir="${build.classes}/session/"/>
   </target>
-	
+
 	<target name="javadocs" depends="dist" description="generates javadoc and also UML Diagram">
 		<mkdir dir="${reports.dir}/javadoc"/>
 	        <javadoc sourcepath="${src.dir}" packagenames="org.biomart.*" destdir="${reports.dir}/javadoc"

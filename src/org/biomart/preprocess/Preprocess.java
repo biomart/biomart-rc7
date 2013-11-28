@@ -33,7 +33,7 @@ public abstract class Preprocess {
 	
 	public abstract void run(OutputStream out) throws TechnicalException, IOException;
 	
-	static protected Document parseXML(String xml) {
+	static public Document parseXML(String xml) {
 		InputStream in = null;
 		DocumentBuilder builder = null;
 		Document doc = null;
@@ -49,7 +49,7 @@ public abstract class Preprocess {
 		return doc;
 	}
 	
-	static protected String toXML(Document d) {
+	static public String toXML(Document d) {
 		try {
 			TransformerFactory tf = TransformerFactory.newInstance();
 			Transformer transformer = tf.newTransformer();
@@ -62,7 +62,7 @@ public abstract class Preprocess {
 		}
 	}
 	
-	static protected String getProcessor(Document doc) {
+	static public String getProcessor(Document doc) {
 		Element root = doc.getDocumentElement();
 		String processor = root.getAttribute("processor");
 		

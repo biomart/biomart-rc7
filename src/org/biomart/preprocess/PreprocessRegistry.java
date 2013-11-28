@@ -33,6 +33,7 @@ public class PreprocessRegistry {
 		// Registration
 		register("DefaultPreprocess", DefaultPreprocess.class);
 		register("Network", QuerySplit.class);
+		register("Enrichment", org.biomart.preprocess.enrichment.HGTEnrichment.class);
 	}
 	
 	public static Class get(String process) {
