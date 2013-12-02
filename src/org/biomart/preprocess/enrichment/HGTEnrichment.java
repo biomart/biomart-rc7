@@ -1,12 +1,19 @@
 package org.biomart.preprocess.enrichment;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 
+import org.biomart.common.exceptions.TechnicalException;
 import org.biomart.common.resources.Log;
+import org.biomart.preprocess.EnsembleTranslation;
 import org.biomart.preprocess.PreprocessParameters;
+import org.biomart.preprocess.utils.Utils;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 public class HGTEnrichment extends Enrichment {
 	static final String BACKGROUND_FILTER = "background";
@@ -28,10 +35,14 @@ public class HGTEnrichment extends Enrichment {
 			Log.error("HGTEnrichment::HGTEnrichment ", e);
 		}
 		
+		getProperties();
+		
+	}
+	
+	private void getProperties() {
 		playground = cfg.getProperty("enrichment.dir");
 		runner = cfg.getProperty("enrichment.runner");
 		annotation = cfg.getProperty("enrichment.annotation_file");
-		Log.debug(cfg);
 	}
 
 	@Override
@@ -42,21 +53,80 @@ public class HGTEnrichment extends Enrichment {
 
 	@Override
 	public void runEnrichment() {
-		String setBegin = ">fracchia", setEnd ="<fracchia", sets, bk;
+		Log.debug(this.getClass().getName() + "#runEnrichment invoked");
 		
-		Document d = parseXML(params.getXML());
+		Document d = Utils.parseXML(params.getXML());
+		
+		FileOutputStream setsStream = null, bkStream = null;
 		
 		try {
-			sets = getFilterContent(d, SETS_FILTER);
-			printInputs(
-					makeSet(setBegin, sets, setEnd),
-					makeBackground(getFilterContent(d, BACKGROUND_FILTER))
-			);
+			File workPath = new File(playground);
+			setsFile = File.createTempFile("sets", "", workPath);
+			backgroundFile = File.createTempFile("background", "", workPath);
+			setsStream  = new FileOutputStream(setsFile);
+			bkStream = new FileOutputStream(backgroundFile);
+		
+			Log.debug(this.getClass().getName() + " translating into Ensembles IDs...");
+			makeSets(d, setsStream);
+			makeBackground(d, bkStream);
+						
 			runProcess();
 			//getResults();
 		} catch (Exception e) {
 			Log.error("HGTEnrichment#runEnrichment ", e);
+		} finally {
+			try {
+				setsStream.close();
+				bkStream.close();
+			} catch (IOException e) {
+				// Seriously?
+				Log.error("HGTEnrichment#runEnrichment ", e);
+			}
 		}
+	}
+	
+	private void makeSets(Document doc, OutputStream o) throws TechnicalException, IOException {
+		o.write(">fracchia\n".getBytes());
+		Document d = removeAllButThisFilter(doc, "sets");
+		Log.debug(this.getClass().getName() + " starting translation for sets");
+		new EnsembleTranslation(this.params, d).run(o);
+		try {
+			o.write("<fracchia\n".getBytes());
+		} catch (IOException e) {
+			FileOutputStream fo = new FileOutputStream(setsFile);
+			fo.write("<fracchia\n".getBytes());
+			fo.close();
+		}
+	}
+	
+	private void makeBackground(Document doc, OutputStream o) throws TechnicalException, IOException {
+		Document d = removeAllButThisFilter(doc, "background");
+		Log.debug(this.getClass().getName() + " starting translation for background");
+		new EnsembleTranslation(this.params, d).run(o);	
+	}
+	
+	private Document removeAllButThisFilter(Document doc, String filter) {
+		// Remove other filter
+		Document d = Utils.copy(doc);
+		Element dataset = (Element)d.getElementsByTagName("Dataset")
+				.item(0), e, aFilter = null;
+		
+		Node[] filters = Utils.removeElement(d, "Filter");
+		
+		for (Node n : filters) {
+			e = (Element) n;
+			if (e.getAttribute("name").equalsIgnoreCase(filter)) {
+				e.setAttribute("name", "hgnc_symbol");
+				aFilter = e;
+				break;
+			}
+		}
+		if (aFilter == null) {
+			Log.error(this.getClass().getName() + " `sets` filter is nowhere to be found!");
+			return null;
+		}	
+		dataset.appendChild(aFilter);
+		return d;
 	}
 	
 	private String buildCommand() {
@@ -71,12 +141,14 @@ public class HGTEnrichment extends Enrichment {
 		Runtime rt = Runtime.getRuntime();
 		Process pr = null;
 		String cmd = buildCommand();
-		int counter = 0, maxWait = 60, result = -42;
+		int counter = 0, maxWait = 222222360, result = -42;
 		try {
 			Log.debug("HGTEnrichment#runProcess executing command "+cmd);
 			Log.debug("HGTEnrichment#runProcess inside dir "+ playground);
 			pr = rt.exec(cmd, null, new File(playground));
+			String className = this.getClass().getName();
 			while(true) {
+				Log.debug(className + " result = "+ result + " (default value), the process didn't finish yet...");
 				Thread.sleep(500);
 				try {
 					result = pr.exitValue();
@@ -93,8 +165,8 @@ public class HGTEnrichment extends Enrichment {
 		} catch (InterruptedException e) {
 			Log.error("HGTEnrichment#runProcess runner has been interrupted", e);
 		} finally {
-			if (setsFile != null) setsFile.delete();
-			if (backgroundFile != null) backgroundFile.delete();
+			//if (setsFile != null) setsFile.delete();
+			//if (backgroundFile != null) backgroundFile.delete();
 		}
 	}
 	

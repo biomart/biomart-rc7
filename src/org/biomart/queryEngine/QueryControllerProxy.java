@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Constructor;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -14,6 +13,7 @@ import org.biomart.common.exceptions.TechnicalException;
 import org.biomart.common.exceptions.ValidationException;
 import org.biomart.objects.objects.MartRegistry;
 import org.biomart.preprocess.Preprocess;
+import org.biomart.preprocess.PreprocessController;
 import org.biomart.preprocess.PreprocessParameters;
 import org.biomart.preprocess.PreprocessRegistry;
 import org.w3c.dom.Document;
@@ -98,27 +98,11 @@ public class QueryControllerProxy {
         return processor;
 	}
     
-    private Preprocess match(String name) {
-    		Class klass = PreprocessRegistry.get(name);
-    		
-    		if (klass == null) return null;
-    		
-    		return getPreprocessInstance(klass);
+    private Preprocess match(String name) {    	
+    		return PreprocessController.newPreprocess(name, params);
     }
     
-    private Preprocess getPreprocessInstance(Class klass) {
-    		Preprocess p = null;
-    		
-    		try {
-    			Constructor<Preprocess> ctor = 
-    				klass.getDeclaredConstructor(PreprocessParameters.class);
-    			p = (Preprocess)ctor.newInstance(params);
-    		} catch (Exception e) {
-                throw new ValidationException(e.getMessage(), e);
-    		}
-    		
-    		return p;
-    }
+
     
     
 }

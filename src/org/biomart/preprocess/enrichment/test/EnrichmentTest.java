@@ -10,6 +10,7 @@ import org.biomart.preprocess.Preprocess;
 import org.biomart.preprocess.PreprocessParameters;
 import org.biomart.preprocess.enrichment.Enrichment;
 import org.biomart.preprocess.enrichment.HGTEnrichment;
+import org.biomart.preprocess.utils.Utils;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -41,7 +42,7 @@ public class EnrichmentTest {
 			e.printStackTrace();
 		}
 		
-		query = Preprocess.parseXML(xml);
+		query = Utils.parseXML(xml);
 		PreprocessParameters pp = new PreprocessParameters(xml, null, null, null, false);
 		e = new HGTEnrichment(pp);
 	}

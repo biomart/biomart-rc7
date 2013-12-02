@@ -4,21 +4,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.biomart.common.resources.Log;
+import org.biomart.preprocess.factory.DefaultPreprocessFactory;
+import org.biomart.preprocess.factory.HGTEnrichmentPreprocessFactory;
+import org.biomart.preprocess.factory.NetworkPreprocessFactory;
+import org.biomart.preprocess.factory.PreprocessFactory;
 
 public class PreprocessRegistry {
-    private static Map<String,Class> lookup = new HashMap<String,Class>();
+    private static Map<String,Class<? extends PreprocessFactory>> lookup 
+    		= new HashMap<String,Class<? extends PreprocessFactory>>();
 
-	static boolean register(String process, Class klass) {
-		boolean r;
-		
-		if (r = Preprocess.class.isAssignableFrom(klass)) {
-            lookup.put(normalizeName(process), klass);
-            Log.info("Registered processor " + process);
-        } else {
-            Log.error("Registered classes must be Process type");
-        }
-		
-		return r;
+	static void register(String process, Class<? extends PreprocessFactory> klass) {
+        lookup.put(normalizeName(process), klass);
+        Log.info("Registered processor " + process);
 	}
 	
     private static boolean isInstalled = false;
@@ -31,12 +28,12 @@ public class PreprocessRegistry {
 		isInstalled = true;
 		
 		// Registration
-		register("DefaultPreprocess", DefaultPreprocess.class);
-		register("Network", QuerySplit.class);
-		register("Enrichment", org.biomart.preprocess.enrichment.HGTEnrichment.class);
+		register("DefaultPreprocess", DefaultPreprocessFactory.class);
+		register("Network", NetworkPreprocessFactory.class);
+		register("Enrichment", HGTEnrichmentPreprocessFactory.class);
 	}
 	
-	public static Class get(String process) {
+	public static Class<? extends PreprocessFactory> get(String process) {
         return lookup.get(normalizeName(process));
 	}
 	
