@@ -21,8 +21,8 @@ import org.w3c.dom.Node;
 import com.google.common.base.Joiner;
 
 public class HGTEnrichment extends Enrichment {
-	static final String BACKGROUND_FILTER = "background";
-	static final String SETS_FILTER = "sets";
+	static final String BACKGROUND_FILTER = "background_list";
+	static final String SETS_FILTER = "sets_list";
 	
 	Configuration cfg;
 	
@@ -66,8 +66,8 @@ public class HGTEnrichment extends Enrichment {
 		
 		try {
 			File workPath = new File(playground);
-			setsFile = File.createTempFile("sets", "", workPath);
-			backgroundFile = File.createTempFile("background", "", workPath);
+			setsFile = File.createTempFile(SETS_FILTER, "", workPath);
+			backgroundFile = File.createTempFile(BACKGROUND_FILTER, "", workPath);
 			setsStream  = new FileOutputStream(setsFile);
 			bkStream = new FileOutputStream(backgroundFile);
 		
@@ -129,7 +129,7 @@ public class HGTEnrichment extends Enrichment {
 	
 	private void makeSets(Document doc, OutputStream o) throws TechnicalException, IOException {
 		o.write(">fracchia\n".getBytes());
-		Document d = removeAllButThisFilter(doc, "sets");
+		Document d = removeAllButThisFilter(doc, SETS_FILTER);
 		Log.debug(this.getClass().getName() + " starting translation for sets");
 		new EnsembleTranslation(this.params, d).run(o);
 		try {
@@ -142,7 +142,7 @@ public class HGTEnrichment extends Enrichment {
 	}
 	
 	private void makeBackground(Document doc, OutputStream o) throws TechnicalException, IOException {
-		Document d = removeAllButThisFilter(doc, "background");
+		Document d = removeAllButThisFilter(doc, BACKGROUND_FILTER);
 		Log.debug(this.getClass().getName() + " starting translation for background");
 		new EnsembleTranslation(this.params, d).run(o);	
 	}
@@ -164,7 +164,7 @@ public class HGTEnrichment extends Enrichment {
 			}
 		}
 		if (aFilter == null) {
-			Log.error(this.getClass().getName() + " `sets` filter is nowhere to be found!");
+			Log.error(this.getClass().getName() + " "+ SETS_FILTER +" filter is nowhere to be found!");
 			return null;
 		}	
 		dataset.appendChild(aFilter);
