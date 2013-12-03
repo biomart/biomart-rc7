@@ -5,6 +5,7 @@ import java.io.OutputStream;
 
 import org.biomart.common.exceptions.TechnicalException;
 import org.biomart.common.resources.Log;
+import org.biomart.preprocess.utils.Utils;
 import org.biomart.queryEngine.QueryController;
 
 public class DefaultPreprocess extends Preprocess {
@@ -16,7 +17,7 @@ public class DefaultPreprocess extends Preprocess {
 		
 		Log.debug("DefaultPreprocess::DefaultPreprocess invoked");
 		
-		qc = new QueryController(params.getXML(),
+		qc = new QueryController(Utils.toXML(keepFilterListNameOnly(params.getXML())),
 								params.getRegistry(),
 								params.getUser(),
 								params.getMimes(),

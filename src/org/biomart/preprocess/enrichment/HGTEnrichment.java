@@ -60,7 +60,7 @@ public class HGTEnrichment extends Enrichment {
 	public void runEnrichment(OutputStream o) {
 		Log.debug(this.getClass().getName() + "#runEnrichment invoked");
 		
-		Document d = Utils.parseXML(params.getXML());
+		Document d = keepFilterNameOnly(params.getXML());
 		
 		FileOutputStream setsStream = null, bkStream = null;
 		

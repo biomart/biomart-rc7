@@ -20,7 +20,7 @@ public class PreprocessController {
 		try {
 			p = getPreprocessInstance(factoryKlass, pp);
 		} catch (SecurityException e) {
-			
+			Log.error("PreprocessController#newPreprocess: ", e);
 		} catch (IllegalArgumentException e) {
 			Log.error("PreprocessController#newPreprocess: ", e);
 		} catch (NoSuchMethodException e) {

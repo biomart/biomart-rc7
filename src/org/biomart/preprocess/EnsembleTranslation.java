@@ -16,7 +16,7 @@ public class EnsembleTranslation extends Preprocess {
 	Document d;
 
 	public EnsembleTranslation(PreprocessParameters pp) {
-		this(pp, Utils.parseXML(pp.getXML()));
+		this(pp, keepFilterListNameOnly(pp.getXML()));
 	}
 	
 	/**
