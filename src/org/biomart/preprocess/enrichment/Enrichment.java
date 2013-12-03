@@ -22,10 +22,10 @@ public abstract class Enrichment extends Preprocess {
 
 	@Override
 	public void run(OutputStream out) throws TechnicalException, IOException {
-		runEnrichment();
+		runEnrichment(out);
 	}
 	
-	public abstract void runEnrichment();
+	public abstract void runEnrichment(OutputStream o);
 	
 	public String getFilterContent(Document doc, String filter) {
 		NodeList fs = doc.getDocumentElement().getElementsByTagName("Filter");

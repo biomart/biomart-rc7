@@ -1,10 +1,13 @@
 package org.biomart.preprocess.enrichment;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.Arrays;
 
 import org.biomart.common.exceptions.TechnicalException;
 import org.biomart.common.resources.Log;
@@ -14,6 +17,8 @@ import org.biomart.preprocess.utils.Utils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import com.google.common.base.Joiner;
 
 public class HGTEnrichment extends Enrichment {
 	static final String BACKGROUND_FILTER = "background";
@@ -52,7 +57,7 @@ public class HGTEnrichment extends Enrichment {
 
 
 	@Override
-	public void runEnrichment() {
+	public void runEnrichment(OutputStream o) {
 		Log.debug(this.getClass().getName() + "#runEnrichment invoked");
 		
 		Document d = Utils.parseXML(params.getXML());
@@ -71,11 +76,12 @@ public class HGTEnrichment extends Enrichment {
 			makeBackground(d, bkStream);
 						
 			runProcess();
-			//getResults();
+			printResults(o, getResults());
 		} catch (Exception e) {
 			Log.error("HGTEnrichment#runEnrichment ", e);
 		} finally {
 			try {
+				o.close();
 				setsStream.close();
 				bkStream.close();
 			} catch (IOException e) {
@@ -83,6 +89,42 @@ public class HGTEnrichment extends Enrichment {
 				Log.error("HGTEnrichment#runEnrichment ", e);
 			}
 		}
+	}
+	
+	private String[][] getResults() {
+		Log.debug(this.getClass().getName() + "#getResults invoked");
+		String d = System.getProperty("file.separator");
+		String[][] r = null;
+		try {
+			EnrichmentResultParser e = new EnrichmentResultParser(
+					new FileReader(playground + d + "hypg.list"),
+					new FileReader(playground + d + "hypg.pv"),
+					null
+			);
+			r = e.getResults();
+		} catch (FileNotFoundException e) {
+			Log.error(this.getClass().getName() + "#getResults cannot find/open the result files ", e);
+		} catch (IOException e) {
+			Log.error(this.getClass().getName() + "#getResults cannot find/open the result files ", e);
+		}
+		return r;
+	}
+	
+	// NOTE that if r is null, it prints the header only.
+	private void printResults(OutputStream o, String[][] r) throws IOException {
+		Log.debug(this.getClass().getName() + "#printResults invoked");
+		Log.debug(this.getClass().getName() + "#printResults results...");
+		String d = "\t", lr = "\n", genes;
+		String[] line = null;
+		// Write the header first
+		o.write(("Annotation"+d+"Score"+d+"Genes"+lr).getBytes());
+		for (int i = 0; i < r.length; ++i) {
+			line = r[i];
+			genes = Joiner.on(",").join(Arrays.copyOfRange(line, 2, line.length));
+			o.write((line[0]+d+line[1]+d+genes+lr).getBytes());
+			Log.debug(this.getClass().getName() + "#printResults "+ line[0]+d+line[1]+d+genes);
+		}
+		o.flush();
 	}
 	
 	private void makeSets(Document doc, OutputStream o) throws TechnicalException, IOException {
@@ -165,25 +207,8 @@ public class HGTEnrichment extends Enrichment {
 		} catch (InterruptedException e) {
 			Log.error("HGTEnrichment#runProcess runner has been interrupted", e);
 		} finally {
-			//if (setsFile != null) setsFile.delete();
-			//if (backgroundFile != null) backgroundFile.delete();
-		}
-	}
-	
-	private void printInputs(String sets, String bk) throws IOException {
-		File workPath = null;
-		PrintWriter spw = null, bpw = null;
-		try {
-			workPath = new File(playground);
-			setsFile = File.createTempFile("sets", "", workPath);
-			backgroundFile = File.createTempFile("background", "", workPath);
-			spw = new PrintWriter(setsFile);
-			bpw = new PrintWriter(backgroundFile);
-			spw.print(sets);
-			bpw.print(bk);
-		} finally {
-			if (spw != null) spw.close();
-			if (bpw != null) bpw.close();
+			if (setsFile != null) setsFile.delete();
+			if (backgroundFile != null) backgroundFile.delete();
 		}
 	}
 	
