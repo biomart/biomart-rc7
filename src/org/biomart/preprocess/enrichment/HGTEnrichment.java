@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.Arrays;
 
 import org.biomart.common.exceptions.TechnicalException;
@@ -23,6 +22,7 @@ import com.google.common.base.Joiner;
 public class HGTEnrichment extends Enrichment {
 	static final String BACKGROUND_FILTER = "background_list";
 	static final String SETS_FILTER = "sets_list";
+	static final String FILTER_FUNC_ATTR = "func";
 	
 	Configuration cfg;
 	
@@ -113,7 +113,6 @@ public class HGTEnrichment extends Enrichment {
 	// NOTE that if r is null, it prints the header only.
 	private void printResults(OutputStream o, String[][] r) throws IOException {
 		Log.debug(this.getClass().getName() + "#printResults invoked");
-		Log.debug(this.getClass().getName() + "#printResults results...");
 		String d = "\t", lr = "\n", genes;
 		String[] line = null;
 		// Write the header first
@@ -122,7 +121,6 @@ public class HGTEnrichment extends Enrichment {
 			line = r[i];
 			genes = Joiner.on(",").join(Arrays.copyOfRange(line, 2, line.length));
 			o.write((line[0]+d+line[1]+d+genes+lr).getBytes());
-			Log.debug(this.getClass().getName() + "#printResults "+ line[0]+d+line[1]+d+genes);
 		}
 		o.flush();
 	}
@@ -157,8 +155,7 @@ public class HGTEnrichment extends Enrichment {
 		
 		for (Node n : filters) {
 			e = (Element) n;
-			if (e.getAttribute("name").equalsIgnoreCase(filter)) {
-				e.setAttribute("name", "hgnc_symbol");
+			if (e.getAttribute(FILTER_FUNC_ATTR).equalsIgnoreCase(filter)) {
 				aFilter = e;
 				break;
 			}
@@ -166,7 +163,7 @@ public class HGTEnrichment extends Enrichment {
 		if (aFilter == null) {
 			Log.error(this.getClass().getName() + " "+ SETS_FILTER +" filter is nowhere to be found!");
 			return null;
-		}	
+		}
 		dataset.appendChild(aFilter);
 		return d;
 	}
