@@ -86,10 +86,10 @@ $.namespace('biomart.query', function(self) {
     };
 
     self.compile = function(format, mart, processor, limit, header, client) {
-    processor = processor || "TSV";
-    limit = limit || -1;
-    header = typeof header == 'undefined' ? true : header;
-    client = client || 'biomartclient';
+        processor = processor || "TSV";
+        limit = limit || -1;
+        header = typeof header == 'undefined' ? true : header;
+        client = client || 'biomartclient';
         return self.handlers[format](mart, processor, limit, header, client);
     };
 
@@ -98,7 +98,7 @@ $.namespace('biomart.query', function(self) {
         client = client || '';
 
         var arr = [
-            '<?xml version="1.0" encoding="UTF-8"?>', 
+            '<?xml version="1.0" encoding="UTF-8"?>',
             '<!DOCTYPE Query>',
             '<Query client="' + client + '" processor="' + processor + '"' + (limit ? ' limit="' + limit + '"' : '-1') + ' header="' + header + '">'
         ];
@@ -132,7 +132,7 @@ $.namespace('biomart.query', function(self) {
         if (obj.config) {
             normalized.config = obj.config;
         }
-        
+
         if ($.isArray(obj.datasets)) {
             normalized.datasets = obj.datasets.join(',');
         } else {
@@ -189,10 +189,10 @@ $.namespace('biomart.query', function(self) {
         arr.push([
             '<Dataset name="', datasets, '" ', (mart.config ? 'config="' + mart.config + '"' : ''), '>'
         ].join(''));
-        
+
         for (var i=0, item; item=filters[i]; i++) {
-            var value = item.value,
-                name = item.name;
+            var value = item.value, name = item.name,
+                filterList = item.filterList;
 
             if ($.isArray(value)) {
                 name = value[0];
@@ -201,7 +201,9 @@ $.namespace('biomart.query', function(self) {
 
             if (value !== null && $.trim(value)) {
                 arr.push([
-                    '<Filter name="', biomart.escapeHTML(name), '" value="', biomart.escapeHTML(value), '"/>'
+                    '<Filter name="', biomart.escapeHTML(name),
+                    '" value="', biomart.escapeHTML(value),
+                    '" filter_list="', biomart.escapeHTML(filterList), '"/>'
                 ].join(''));
             }
         }

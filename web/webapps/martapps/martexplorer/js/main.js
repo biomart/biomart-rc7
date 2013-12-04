@@ -1189,7 +1189,7 @@ $.namespace('biomart.martexplorer', function(self) {
     }
 
     function getXmlDefault(renderer, limit, client) {
-        var mart = {datasets: [], attributes: {}, filters: {}};
+        var mart = {datasets: [], attributes: {}, filters: []};
 
         mart.config = biomart._state.queryMart.config;
 
@@ -1212,7 +1212,11 @@ $.namespace('biomart.martexplorer', function(self) {
                 } else {
                     name = item.name;
                 }
-                mart.filters[name] = {name: name, value: value};
+                mart.filters.push({
+                    name: name,
+                    value: value,
+                    filterList: item.name
+                });
             }
         });
         _elements.summaryAttributes.children(':not(.removing)').each(function() {
