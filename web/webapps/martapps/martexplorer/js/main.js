@@ -1244,7 +1244,7 @@ $.namespace('biomart.martexplorer', function(self) {
 
             if (item) {
                 if ($.isArray(value)) {
-                    name = value[0]+"#"+item.name;
+                    name = value[0];
                     value = value[1];
                 } else {
                     name = item.name;

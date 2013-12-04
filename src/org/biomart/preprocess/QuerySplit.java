@@ -14,18 +14,18 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-public class Network extends Preprocess {
+public class QuerySplit extends Preprocess {
 
 	Document doc;
 	Document[] queries;
 	Node[] attrs;
 	QueryController currentQC;
 	
-	public Network(PreprocessParameters params) {
+	public QuerySplit(PreprocessParameters params) {
 		super(params);
-		Log.debug("Network::Network invoked");
+		Log.debug("QuerySplit::QuerySplit invoked");
 		
-		this.doc = keepFilterListNameOnly(params.getXML());
+		this.doc = Utils.parseXML(params.getXML());
 		
 		makeQueries();
 	}
@@ -43,7 +43,7 @@ public class Network extends Preprocess {
 
 	@Override
 	public void run(OutputStream out) throws TechnicalException, IOException {
-		Log.debug("Network#run invoked");
+		Log.debug("QuerySplit#run invoked");
 		
 		this.out = out;
 
@@ -56,14 +56,14 @@ public class Network extends Preprocess {
 		
 		for (Document q : queries) {
 			String str = Utils.toXML(q);
-			Log.debug("Network#run subquery :"+ str);
+			Log.debug("QuerySplit#run subquery :"+ str);
 			currentQC = newController(str, params);
 			currentQC.runQuery(out);
 		}
 	}
 	
 	protected void makeQueries() {
-		Log.debug("Network#makeQueries invoked");
+		Log.debug("QuerySplit#makeQueries invoked");
 		String processor = Utils.getProcessor(doc);
 
 		removeProcessorAttribute(doc);
@@ -100,7 +100,7 @@ public class Network extends Preprocess {
             						p.getMimes(),
             						p.getCountQuery());
         } catch (Exception e) {
-            Log.error("Network#newController Error during querying", e);
+            Log.error("QuerySplit#newController Error during querying", e);
             throw new BioMartApiException(e.getMessage());
         }
 	}
