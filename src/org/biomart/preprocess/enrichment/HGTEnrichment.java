@@ -22,7 +22,7 @@ import com.google.common.base.Joiner;
 public class HGTEnrichment extends Enrichment {
 	static final String BACKGROUND_FILTER = "background_list";
 	static final String SETS_FILTER = "sets_list";
-	static final String FILTER_FUNC_ATTR = "func";
+	static final String FILTER_FUNC_ATTR = "filter_list";
 	
 	Configuration cfg;
 	
