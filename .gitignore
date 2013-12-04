@@ -14,5 +14,3 @@ manifest.mf
 nohup.out
 .classpath
 .project
-
-preprocesses/enrichment/annotation_file.txt
