@@ -598,29 +598,20 @@ function assign(obj) {
 }
 
 function extend (protoProps, staticProps) {
-    var parent = this
-    var child
+    var parentCtor = this
 
-    if (protoProps && protoProps.hasOwnProperty('constructor')) {
-        child = protoProps.constructor
-    } else {
-        child = function(){
-            this.super_ = parent.prototype
-            return parent.apply(this, arguments)
-        }
+    function F() {
+        parentCtor.apply(this, arguments)
+        this.constructor = F
     }
 
-    assign(child, parent, staticProps)
+    F.prototype = Object.create(parentCtor.prototype)
 
-    var Surrogate = function(){ this.constructor = child }
-    Surrogate.prototype = parent.prototype
-    child.prototype = new Surrogate()
+    assign(F.prototype, protoProps)
+    assign(F, staticProps)
 
-    if (protoProps) assign(child.prototype, protoProps)
-
-    return child
+    return F
 }
-
 ////////////////////////////////////////////////////////////////////////////////
 // NOTE!!
 //
@@ -804,7 +795,7 @@ BaseNetworkRenderer.prototype = assign({}, biomart.renderer.results.plain, {
             .attr("width", 1e4)
             .attr("height", 6e3)
 
-        return group
+        return group.append("g")
     },
 
     printHeader: function(header, writee) {
@@ -895,6 +886,9 @@ function getTickFn (graph, text) {
 
 function showNetwork (struct) {
     setEventHandlers(struct)
+    var n = struct.renderer.nodes[0], size = struct.force.size(),
+    m = [size[0] / 2, size[1] / 2]
+    struct.renderer.group.attr("transform", "translate("+(m[0] - n.x)+","+(m[1] - n.y)+")")
 }
 
 function setEventHandlers(struct) {
@@ -927,7 +921,7 @@ var NetworkRenderer = BaseNetworkRenderer.extend({
     config: biomart.networkRendererConfig,
 
     init: function () {
-        this.super_.init.call(this)
+        BaseNetworkRenderer.prototype.init.call(this)
         this.tabSelector = '#network-list'
         this.group = null
     },
@@ -938,7 +932,7 @@ var NetworkRenderer = BaseNetworkRenderer.extend({
             return $(this.tabSelector)
 
         // Create the container
-        var $elem = this.super_.getElement.call(this)
+        var $elem = BaseNetworkRenderer.prototype.getElement.call(this)
         // This is the actual tab list
         $elem.append('<ul id="network-list" class="network-tabs"></ul>')
         return $elem
@@ -999,7 +993,7 @@ var NetworkRenderer = BaseNetworkRenderer.extend({
 
     printHeader: function (header, writee) {
         this.init()
-        this.super_.printHeader.call(this, header, writee)
+        BaseNetworkRenderer.prototype.printHeader.call(this, header, writee)
     },
 
     draw: function (writee) {
@@ -1014,7 +1008,7 @@ var NetworkRenderer = BaseNetworkRenderer.extend({
 
         this.drawNetwork(this.config)
         // Reset the status for the next draw (tab)
-        this.init()
+        // this.init()
 
         $.publish('network.completed')
     },
@@ -1078,7 +1072,7 @@ var NetworkRenderer = BaseNetworkRenderer.extend({
     },
 
     clear: function () {
-        this.super_.clear.call(this)
+        BaseNetworkRenderer.prototype.clear.call(this)
         this.clearTimers()
         if (this.group) {
             d3.select(this.group.node().nearestViewportElement).remove()
@@ -1103,6 +1097,8 @@ var NetworkRenderer = BaseNetworkRenderer.extend({
     }
 
 })
+
+NetworkRenderer.extend = extend
 
 biomart.renderer.results.network = new NetworkRenderer()
 
@@ -1138,13 +1134,13 @@ var EnrichmentRenderer = NetworkRenderer.extend({
         this.makeTable(domItem)
         this.drawNetwork(this.config)
         // Reset the status for the next draw (tab)
-        this.init()
+        // this.init()
 
         $.publish('network.completed')
     },
 
     makeNE: function (rows) {
-        this.super_.makeNE.call(this, rows)
+        NetworkRenderer.prototype.makeNE.call(this, rows)
         for (var i = 0, rLen = rows.length, r; i < rLen && (r = rows[i]); ++i) {
             this.table.addRow(r)
         }
@@ -1194,7 +1190,7 @@ var EnrichmentRenderer = NetworkRenderer.extend({
     },
 
     clear: function () {
-        this.super_.clear.call(this)
+        NetworkRenderer.prototype.clear.call(this)
         this.table && this.table.destroy()
         this.table = null
     }
