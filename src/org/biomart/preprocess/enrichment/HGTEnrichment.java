@@ -16,6 +16,7 @@ import org.biomart.preprocess.utils.Utils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.google.common.base.Joiner;
 
@@ -23,27 +24,30 @@ public class HGTEnrichment extends Enrichment {
 	static final String BACKGROUND_FILTER = "background_list";
 	static final String SETS_FILTER = "sets_list";
 	static final String FILTER_FUNC_ATTR = "filter_list";
-	
+//	static final String ATTR_NAME = "name";
+	static final String ATTR_NAME = "value"; // "hgnc_symbol";
+	static final String CUTOFF_ATTR_NAME = "transcript_count_copy";
+
 	Configuration cfg;
-	
-	String playground, runner, annotation, cutoff = "0.003";
-	
+
+	String playground, runner, annotation, cutoff;
+
 	File setsFile = null, backgroundFile = null;
-	
+
 	public HGTEnrichment(PreprocessParameters params) {
 		super(params);
-		
+
 		try {
 			cfg = new Configuration();
 			cfg.load();
 		} catch (IOException e) {
 			Log.error("HGTEnrichment::HGTEnrichment ", e);
 		}
-		
+
 		getProperties();
-		
+
 	}
-	
+
 	private void getProperties() {
 		playground = cfg.getProperty("enrichment.dir");
 		runner = cfg.getProperty("enrichment.runner");
@@ -59,22 +63,25 @@ public class HGTEnrichment extends Enrichment {
 	@Override
 	public void runEnrichment(OutputStream o) {
 		Log.debug(this.getClass().getName() + "#runEnrichment invoked");
-		
+
 		Document d = Utils.parseXML(params.getXML());
-		
+
 		FileOutputStream setsStream = null, bkStream = null;
-		
+
 		try {
 			File workPath = new File(playground);
 			setsFile = File.createTempFile(SETS_FILTER, "", workPath);
 			backgroundFile = File.createTempFile(BACKGROUND_FILTER, "", workPath);
 			setsStream  = new FileOutputStream(setsFile);
 			bkStream = new FileOutputStream(backgroundFile);
-		
+			
+			cutoff = getCutOff(d);
+
 			Log.debug(this.getClass().getName() + " translating into Ensembles IDs...");
 			makeSets(d, setsStream);
 			makeBackground(d, bkStream);
-						
+//			selectAnnotationFile(d);
+
 			runProcess();
 			printResults(o, getResults());
 		} catch (Exception e) {
@@ -91,6 +98,23 @@ public class HGTEnrichment extends Enrichment {
 		}
 	}
 	
+	private void selectAnnotationFile(Document doc) {
+		Element attr = null;
+		String name = null, match = "external_gene_id";
+		NodeList nl = doc.getDocumentElement().getElementsByTagName("Attribute");
+		if (nl.getLength() > 0) {
+			for (int i = 0, len = nl.getLength(); i < len; ++i) {
+				attr = (Element) nl.item(0);
+				name = attr.getAttribute("name");
+				if (match.equalsIgnoreCase(name)) {
+					annotation = cfg.getProperty("diseases_file");
+					return;
+				}
+					
+			}
+		}
+	}
+
 	private String[][] getResults() {
 		Log.debug(this.getClass().getName() + "#getResults invoked");
 		String d = System.getProperty("file.separator");
@@ -109,50 +133,73 @@ public class HGTEnrichment extends Enrichment {
 		}
 		return r;
 	}
-	
+
 	// NOTE that if r is null, it prints the header only.
 	private void printResults(OutputStream o, String[][] r) throws IOException {
 		Log.debug(this.getClass().getName() + "#printResults invoked");
 		String d = "\t", lr = "\n", genes;
 		String[] line = null;
 		// Write the header first
-		o.write(("Annotation"+d+"Score"+d+"Genes"+lr).getBytes());
-		for (int i = 0; i < r.length; ++i) {
+		o.write(("Annotation"+d+"P-value"+d+"Bonferroni P-value"+d+"Genes"+lr).getBytes());
+		for (int i = 0; i < r.length && i < 5; ++i) {
 			line = r[i];
-			genes = Joiner.on(",").join(Arrays.copyOfRange(line, 2, line.length));
-			o.write((line[0]+d+line[1]+d+genes+lr).getBytes());
+			genes = Joiner.on(",").join(Arrays.copyOfRange(line, 3, line.length));
+			o.write((line[0]+d+line[1]+d+line[2]+d+genes+lr).getBytes());
 		}
 		o.flush();
 	}
-	
+
 	private void makeSets(Document doc, OutputStream o) throws TechnicalException, IOException {
-		o.write(">fracchia\n".getBytes());
-		Document d = removeAllButThisFilter(doc, SETS_FILTER);
-		Log.debug(this.getClass().getName() + " starting translation for sets");
-		new EnsembleTranslation(this.params, d).run(o);
-		try {
-			o.write("<fracchia\n".getBytes());
-		} catch (IOException e) {
-			FileOutputStream fo = new FileOutputStream(setsFile);
-			fo.write("<fracchia\n".getBytes());
-			fo.close();
-		}
+//		o.write(">fracchia\n".getBytes());
+		Document d = removeAllButThisFilterList(doc, SETS_FILTER);
+		Log.debug(this.getClass().getName() + "#makeSets query "+ Utils.toXML(d));
+		Element f = (Element)d.getDocumentElement().getElementsByTagName("Filter").item(0);
+		String data = f.getAttribute(ATTR_NAME);
+		Log.debug(this.getClass().getName() + "#makeSets data "+ data);
+		o.write(makeSet(">fracchia", data, "<fracchia").getBytes());
+//		Log.debug(this.getClass().getName() + " starting translation for sets");
+//		new EnsembleTranslation(this.params, d).run(o);
+//		try {
+//			o.write("<fracchia\n".getBytes());
+//		} catch (IOException e) {
+//			FileOutputStream fo = new FileOutputStream(setsFile);
+//			fo.write("<fracchia\n".getBytes());
+//			fo.close();
+//		}
 	}
-	
+
 	private void makeBackground(Document doc, OutputStream o) throws TechnicalException, IOException {
-		Document d = removeAllButThisFilter(doc, BACKGROUND_FILTER);
-		Log.debug(this.getClass().getName() + " starting translation for background");
-		new EnsembleTranslation(this.params, d).run(o);	
+		Log.debug(this.getClass().getName() + "#makeBackground query "+ Utils.toXML(doc));
+		Document d = removeAllButThisFilterList(doc, BACKGROUND_FILTER);
+		Element f = (Element)d.getDocumentElement().getElementsByTagName("Filter").item(0);
+		String data = f.getAttribute(ATTR_NAME);
+		o.write(makeBackground(data).getBytes());
+//		Log.debug(this.getClass().getName() + " starting translation for background");
+//		new EnsembleTranslation(this.params, d).run(o);
 	}
 	
-	private Document removeAllButThisFilter(Document doc, String filter) {
+	private String getCutOff(Document doc) {
+		NodeList nl = doc.getDocumentElement().getElementsByTagName("Filter");
+		String v = null;
+		Element e = null;
+		for (int i = 0, len = nl.getLength(); i < len; ++i) {
+			e = (Element) nl.item(i);
+			if (e.getAttribute("name").equalsIgnoreCase(CUTOFF_ATTR_NAME)) {
+				return e.getAttribute(ATTR_NAME); 
+			}
+		}
+		return "";
+	}
+
+	private Document removeAllButThisFilterList(Document doc, String filter) {
 		// Remove other filter
 		Document d = Utils.copy(doc);
 		Element dataset = (Element)d.getElementsByTagName("Dataset")
 				.item(0), e, aFilter = null;
-		
+
 		Node[] filters = Utils.removeElement(d, "Filter");
-		
+		Log.debug(this.getClass().getName() + "#removeAllButeThisFilter d "+ Utils.toXML(d));
+
 		for (Node n : filters) {
 			e = (Element) n;
 			if (e.getAttribute(FILTER_FUNC_ATTR).equalsIgnoreCase(filter)) {
@@ -161,21 +208,45 @@ public class HGTEnrichment extends Enrichment {
 			}
 		}
 		if (aFilter == null) {
-			Log.error(this.getClass().getName() + " "+ SETS_FILTER +" filter is nowhere to be found!");
+			Log.error(this.getClass().getName() + " "+ filter +" filter is nowhere to be found!");
 			return null;
 		}
 		dataset.appendChild(aFilter);
 		return d;
 	}
 	
+	private Document removeAllButThisFilter(Document doc, String filterList, String filter) {
+		Document d = Utils.copy(doc);
+		Element dataset = (Element)d.getElementsByTagName("Dataset")
+				.item(0), e, aFilter = null;
+
+		Node[] filters = Utils.removeElement(d, "Filter");
+
+		for (Node n : filters) {
+			e = (Element) n;
+			if (e.getAttribute(FILTER_FUNC_ATTR).equalsIgnoreCase(filterList)
+				&& e.getAttribute("name").equalsIgnoreCase(filter)) {
+				aFilter = e;
+				break;
+			}
+		}
+		if (aFilter == null) {
+			Log.error(this.getClass().getName() + " "+ filter +" filter is nowhere to be found!");
+			return null;
+		}
+		dataset.appendChild(aFilter);
+		return d;
+	}
+
 	private String buildCommand() {
-		return runner 
-				+ " -g "+ backgroundFile.getAbsolutePath() 
+		return runner
+				+ " -g "+ backgroundFile.getAbsolutePath()
 				+ " -a "+ annotation
 				+ " -c "+ cutoff
 				+ " -s "+ setsFile.getAbsolutePath();
+//				+ " -B";
 	}
-	
+
 	public void runProcess() {
 		Runtime rt = Runtime.getRuntime();
 		Process pr = null;
@@ -208,29 +279,29 @@ public class HGTEnrichment extends Enrichment {
 			if (backgroundFile != null) backgroundFile.delete();
 		}
 	}
-	
+
 	public String makeBackground(String bk) {
 		String[] s = bk.split(",");
 		StringBuilder b = new StringBuilder(s.length);
-		for (String e : s) 
+		for (String e : s)
 			b.append(e + "\n");
 		return b.toString();
 	}
-	
+
 	public String makeSet(String setBegin, String genes, String setEnd) {
 		String[] gs = genes.split(",");
 		StringBuilder b = new StringBuilder(gs.length + 2);
 		String d = "\n";
-		
+
 		b.append(setBegin + d);
 		for (String s : gs) {
 			b.append(s + d);
 		}
 		b.append(setEnd + d);
-		
+
 		return b.toString();
 	}
-	
-	
+
+
 
 }
