@@ -49,7 +49,9 @@ biomart.networkRendererConfig.force.charge = function (d) {
 // ENRICHMENT
 biomart.enrichmentRendererConfig = {
     graph: {
-        nodeClassName: 'network-bubble',
+        nodeClassName: function (d) {
+            return "isHub" in d ? "annotation-bubble" : "network-bubble"
+        },
         edgeClassName: 'network-edge',
         radius: function (d) {
             return 5 + d.radius
@@ -582,6 +584,185 @@ var Table = (function (d3) {
 
     return Table
 }) (d3);
+function centrePic(self) {
+    var n = self.nodes[0], size = self.force.size(),
+    m = [size[0] / 2, size[1] / 2]
+    self.group.attr("transform", "translate("+(m[0] - n.x)+","+(m[1] - n.y)+")")
+}
+
+/**
+ * Places elements along a circle perimenter at equal distance from each other.
+ *
+ * @param {Array.<Object>} nodes - elements on which set coordinates.
+ * @param {Number} r - the radius of the circumference.
+ * @param {Array.<Number>} centre - the centre of the circle, default the origin.
+ */
+function placeAlongCircle(nodes, r, centre) {
+    if (!centre) centre = [0, 0]
+    var k = nodes.length, mpi = Math.PI/180, dist = 360/k * mpi, pos = dist
+    nodes.forEach(function(d) {
+        d.x = centre[0] + r * Math.cos(pos)
+        d.y = centre[1] + r * Math.sin(pos)
+        pos += dist
+    })
+}
+
+/**
+ * It returns a tick function for the "tick" event of force layout.
+ * @param nodes
+ * @param {String} selector
+ * @return {Function} the tick function.
+ */
+function fociTick (nodes, circles, lines, self) {
+    return function (e) {
+        // Push nodes toward their designated focus.
+        var k = .1 * e.alpha;
+        nodes.forEach(function(o, i) {
+            if (o.isHub) return;
+            self.getNeighbors(i).forEach(function(h) {
+                var x = h.x - o.x
+                var y = h.y - o.y
+                var l = Math.sqrt(x * x + y * y)
+                if (l < 100) {
+                    o.y += y * k;
+                    o.x += x * k;
+                }
+            })
+        })
+
+        circles
+            .attr("transform", function (d) {
+                return "translate("+d.x+","+d.y+")"
+            })
+            // .attr("cx", function(d) { return d.x; })
+            // .attr("cy", function(d) { return d.y; });
+
+        lines
+            .attr({
+                x1: function(d) { return d.source.x },
+                y1: function(d) { return d.source.y },
+                x2: function(d) { return d.target.x },
+                y2: function(d) { return d.target.y }
+            })
+    }
+}
+
+function fociForce(nodes, size) {
+    return d3.layout.force()
+        .nodes(nodes)
+        .links([])
+        .gravity(0)
+        .size(size)
+}
+
+function computeRadius(nodes, header) {
+    var score = header[1]
+    var max = nodes[nodes.length-1][score]
+    var min = nodes[0][score]
+    nodes.forEach(function (n) {
+        n.radius = (1 - (n[score] - min) / (max - min)) * 50 + 10
+    })
+}
+
+function fociDraw() {
+    var w = $(window).width(), h = $(window).height()
+    // this.nodes = this.nodes.filter(function (n) {
+    //     return !n.isHub || (hubCount++ < 5)
+    // })
+    var hubs = this.nodes.filter(function (d) {
+            return d.isHub
+        }),
+        genes = this.nodes.filter(function(d) {
+            return !d.isHub
+        }),
+        colorScale = null
+
+    placeAlongCircle(genes, 230, [w/2, h/2])
+    placeAlongCircle(hubs, 100, [w/2, h/2])
+    computeRadius(hubs, this.header)
+
+    // colorScale = d3.scale.linear()
+    //     .domain([this.nodes[this.nodes.length-1].radius,
+    //             this.nodes[0].radius])
+    //     .range(["#169BF9", "#ff0000"])
+
+    colorScale = d3.scale.category20()
+
+    var self = this, g = self.config.graph,
+        lines = self.group.append("svg:g").selectAll("line")
+            .data(this.edges).enter()
+            .append("svg:line")
+            .attr({
+                x1: function (d) { return d.source.x },
+                x2: function (d) { return d.target.x },
+                y1: function (d) { return d.source.y },
+                y2: function (d) { return d.target.y },
+                "class": this.config.graph.edgeClassName
+            }),
+        circles = self.group.append("svg:g")
+            .selectAll("g")
+            .data(self.nodes).enter()
+            .append("svg:g"),
+        tick = null
+
+        circles.append("svg:circle")
+            .attr({
+                "class": g.nodeClassName,
+                "r": g.radius,
+                "id": g["id"],
+                "fill": function (d, i) {
+                    return d.color = d.isHub
+                        ? colorScale(d.radius)
+                        : "#8D6D8D"
+                },
+                "stroke": "#352118",
+                "stroke-width": 2,
+                "opacity": 0.8
+                // cx: function (d) { return d.x },
+                // cy: function (d) { return d.y }
+            })
+        circles.append("svg:circle")
+            .attr({
+                "r": 2,
+                "fill": "black"
+            })
+        tick = fociTick(this.nodes, circles, lines, this)
+
+    this.force = fociForce(this.nodes, [w, h])
+    this.force.on("tick", tick).start()
+    // loop(this.config.force.threshold, this, function(self) {
+    //     self.force.stop()
+    //     centrePic(self)
+    //     var drag = self.force.drag().on('dragstart', function (d) {
+    //         self.force.stop()
+    //         d3.event.sourceEvent.stopPropagation()
+    //         d.fixed = true
+    //     })
+    //     var g = self.config.graph
+    //     self.group.selectAll("circle")
+    //         .data(self.nodes).enter()
+    //         .append("svg:circle")
+    //         .attr({
+    //             "class": g.nodeClassName,
+    //             "r": g.radius,
+    //             "id": g["id"],
+    //             // cx: function (d) { return d.x },
+    //             // cy: function (d) { return d.y }
+    //         })
+    //         // .call(drag)
+    // })
+}
+
+function loop (thr, self, cb) {
+    var t
+    if (self.force.alpha() > thr) {
+        self.force.tick()
+        t = setTimeout(function () { loop(thr, self, cb) }, 1)
+        self.addTimer(t)
+    } else {
+        cb(self)
+    }
+}
 var concat = Array.prototype.push
 var slice = Array.prototype.slice
 var toString = Object.prototype.toString
@@ -1106,15 +1287,20 @@ var EnrichmentRenderer = NetworkRenderer.extend({
 
     config: biomart.enrichmentRendererConfig,
 
+    init: function () {
+        NetworkRenderer.prototype.init.call(this)
+        this.annCount = -1
+    },
+
     makeTable: function (wrapper) {
         // $elem.append('<div id="network-report-table" class="network-report-table"></div>')
         this.table = new Table({
             wrapper: wrapper,
             className: "network-report-table",
             header: this.header.slice(0, -1),
-            numCol: 2,
+            numCol: 3,
             tooltip: function (data) {
-                var i = 0, d = data[2].split(","), len = d.length, b = ""
+                var i = 0, d = data[3].split(","), len = d.length, b = ""
                 for (; i < len; ++i) {
                     b += d[i]+"<br>"
                 }
@@ -1132,10 +1318,11 @@ var EnrichmentRenderer = NetworkRenderer.extend({
             className: "network-wrapper"
         })
         this.makeTable(domItem)
-        this.drawNetwork(this.config)
-        // Reset the status for the next draw (tab)
-        // this.init()
 
+        this.makeNE(this.rowBuffer)
+        this.rowBuffer = []
+
+        fociDraw.call(this)
         $.publish('network.completed')
     },
 
@@ -1147,20 +1334,31 @@ var EnrichmentRenderer = NetworkRenderer.extend({
     },
 
     insertNodes: function (row, header) {
+        var ann, gs, res, index, g, gid, annIdx = 0, genesIdx = 3,
+            // p-value index, bonferroni p-value
+            pvIdx = 1, bpvIdx = 2
+
+        if (++this.annCount >= 5) return []
         //row: [annotation, score, gene list]
-        var ann = this.findElem(this.nodes, row[0]),
-            gs = row[2].split(","), res = [], index, g, gid
+        ann = this.findElem(this.nodes, row[annIdx])
+        gs = row[genesIdx].split(",")
+        res = []
+
         if (! ann) {
-            index = this.nodes.push(ann = this.addProp({}, header[0], row[0])) - 1
-            this.addId(ann, row[0])
+            index = this.nodes.push(ann = this.addProp({}, header[annIdx], row[annIdx])) - 1
+            this.addProp(ann, header[pvIdx], row[pvIdx])
+            // this.addProp(ann, header[bpvIdx], row[bpvIdx])
+            this.addId(ann, row[annIdx])
             ann.index = index
-            ann.radius = row[1] * 50
+            ann.isHub = true
+            // Nodes are sorted by score
+            // ann.radius = (row[1] / this.nodes[0][header[1]]) / 700  + 15
         }
         res.push(ann)
         for (var i = 0, len = gs.length; i < len; ++i) {
             g = this.findElem(this.nodes, gid = gs[i])
             if (! g) {
-                index = this.nodes.push(g = this.addProp({}, header[2], gid)) - 1
+                index = this.nodes.push(g = this.addProp({}, header[genesIdx], gid)) - 1
                 this.addId(g, gid)
                 g.index = index
                 g.radius = 8
@@ -1173,6 +1371,7 @@ var EnrichmentRenderer = NetworkRenderer.extend({
     insertEdges: function (nodes, row, header) {
         //nodes: [ann, g0, g1, ...]
         //row/header: [annotation, score, gene list]
+        if (!nodes.length) return []
         var ann = nodes[0], annId = ann._id, eid, g, e, res = []
         for (var i = 1, len = nodes.length; i < len; ++i) {
             e = this.findElem(this.edges, eid = annId + (g = nodes[i])._id)
