@@ -77,6 +77,9 @@ biomart.enrichmentRendererConfig = {
         callback: textCallback,
         link: function (d) {
                 return d._link
+        },
+        text: function (d) {
+            return d._id
         }
     }
 }
@@ -597,13 +600,26 @@ function centrePic(self) {
  * @param {Number} r - the radius of the circumference.
  * @param {Array.<Number>} centre - the centre of the circle, default the origin.
  */
+function placeAlongFullCircle(nodes, r, centre) {
+    if (!centre) centre = [0, 0]
+    var k = nodes.length, mpi = Math.PI/180, dist = 360/k * mpi, pos = dist,
+        offset = 20
+    nodes.forEach(function(d, i) {
+        d.x = centre[0] + r * Math.cos(pos) + (-offset + Math.random() * 2 * offset)
+        d.y = centre[1] + r * Math.sin(pos) + (-offset + Math.random() * 2 * offset)
+        pos += dist
+    })
+}
+
 function placeAlongCircle(nodes, r, centre) {
     if (!centre) centre = [0, 0]
-    var k = nodes.length, mpi = Math.PI/180, dist = 360/k * mpi, pos = dist
-    nodes.forEach(function(d) {
-        d.x = centre[0] + r * Math.cos(pos)
-        d.y = centre[1] + r * Math.sin(pos)
-        pos += dist
+    var k = nodes.length, mpi = Math.PI/180, dist = 360/k * mpi, pos = dist,
+        offset = 20
+    nodes.forEach(function(d, i) {
+        // d.x = centre[0] + r * Math.cos(pos) + (-offset + Math.random() * 2 * offset)
+        d.x = centre[0] + r * Math.cos(i / k * Math.PI) //+ (-offset + Math.random() * 2 * offset)
+        d.y = centre[1] + r * Math.sin(i / k * Math.PI) //+ (-offset + Math.random() * 2 * offset)
+        // pos += dist
     })
 }
 
@@ -613,7 +629,7 @@ function placeAlongCircle(nodes, r, centre) {
  * @param {String} selector
  * @return {Function} the tick function.
  */
-function fociTick (nodes, circles, lines, self) {
+function fociTick (nodes, circles, lines, text, self) {
     return function (e) {
         // Push nodes toward their designated focus.
         var k = .1 * e.alpha;
@@ -644,6 +660,12 @@ function fociTick (nodes, circles, lines, self) {
                 x2: function(d) { return d.target.x },
                 y2: function(d) { return d.target.y }
             })
+
+        if (text) {
+            text.attr('transform', function (d) {
+                return 'translate('+ (d.x + 5) +','+ d.y +')'
+            })
+        }
     }
 }
 
@@ -677,8 +699,8 @@ function fociDraw() {
         }),
         colorScale = null
 
-    placeAlongCircle(genes, 230, [w/2, h/2])
-    placeAlongCircle(hubs, 100, [w/2, h/2])
+    placeAlongFullCircle(genes, 230, [w/2, h/2])
+    placeAlongFullCircle(hubs, 100, [w/2, h/2])
     computeRadius(hubs, this.header)
 
     // colorScale = d3.scale.linear()
@@ -703,7 +725,7 @@ function fociDraw() {
             .selectAll("g")
             .data(self.nodes).enter()
             .append("svg:g"),
-        tick = null
+        tick = null, text = null
 
         circles.append("svg:circle")
             .attr({
@@ -726,7 +748,10 @@ function fociDraw() {
                 "r": 2,
                 "fill": "black"
             })
-        tick = fociTick(this.nodes, circles, lines, this)
+
+        if ("text" in this.config)
+            text = makeText(this.group, this.nodes, this.config.text)
+        tick = fociTick(this.nodes, circles, lines, text, this)
 
     this.force = fociForce(this.nodes, [w, h])
     this.force.on("tick", tick).start()
