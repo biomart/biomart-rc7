@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.biomart.common.exceptions.TechnicalException;
 import org.biomart.common.resources.Log;
@@ -33,6 +35,8 @@ public class HGTEnrichment extends Enrichment {
 	String playground, runner, annotation, cutoff;
 
 	File setsFile = null, backgroundFile = null;
+	
+	Map<String, String> annotationFiles = null;
 
 	public HGTEnrichment(PreprocessParameters params) {
 		super(params);
@@ -51,7 +55,7 @@ public class HGTEnrichment extends Enrichment {
 	private void getProperties() {
 		playground = cfg.getProperty("enrichment.dir");
 		runner = cfg.getProperty("enrichment.runner");
-		annotation = cfg.getProperty("enrichment.annotation_file");
+		annotationFiles = getAnnotations();
 	}
 
 	@Override
@@ -76,6 +80,7 @@ public class HGTEnrichment extends Enrichment {
 			bkStream = new FileOutputStream(backgroundFile);
 			
 			cutoff = getCutOff(d);
+			annotation = selectAnnotationFile(d);
 
 			Log.debug(this.getClass().getName() + " translating into Ensembles IDs...");
 			makeSets(d, setsStream);
@@ -98,21 +103,34 @@ public class HGTEnrichment extends Enrichment {
 		}
 	}
 	
-	private void selectAnnotationFile(Document doc) {
+	private Map<String, String> getAnnotations() {
+		String anns = cfg.getProperty("enrichment.annotation_file");
+		String[] entries = anns.split(",");
+		for (int i = 0; i < entries.length; ++i) {
+			entries[i] = entries[i].trim();
+		}
+		Map<String, String> m = new HashMap<String, String>(entries.length);
+		for (String s : entries) {
+			String[] kv = s.split("=");
+			m.put(kv[0].trim(), kv[1].trim());
+		}
+		return m;
+	}
+	
+	private String selectAnnotationFile(Document doc) {
 		Element attr = null;
-		String name = null, match = "external_gene_id";
+		String name = null, path = null;
 		NodeList nl = doc.getDocumentElement().getElementsByTagName("Attribute");
 		if (nl.getLength() > 0) {
 			for (int i = 0, len = nl.getLength(); i < len; ++i) {
 				attr = (Element) nl.item(0);
 				name = attr.getAttribute("name");
-				if (match.equalsIgnoreCase(name)) {
-					annotation = cfg.getProperty("diseases_file");
-					return;
+				if ((path = annotationFiles.get(name)) != null) {
+					break;
 				}
-					
 			}
 		}
+		return path;
 	}
 
 	private String[][] getResults() {
