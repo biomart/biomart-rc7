@@ -39,7 +39,7 @@ public class EnsembleTranslation extends Preprocess {
 						root.getElementsByTagName("Dataset")
 						.item(0);
 		
-		attr.setAttribute("name", "ensembl_gene_id");
+		attr.setAttribute("name", "external_gene_id");
 		dataset.appendChild(attr);
 		// plain/text results
 		root.setAttribute("processor", "TSVX");

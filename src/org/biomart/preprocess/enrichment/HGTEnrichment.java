@@ -26,7 +26,7 @@ public class HGTEnrichment extends Enrichment {
 	static final String FILTER_FUNC_ATTR = "filter_list";
 //	static final String ATTR_NAME = "name";
 	static final String ATTR_NAME = "value"; // "hgnc_symbol";
-	static final String CUTOFF_ATTR_NAME = "transcript_count_copy";
+	static final String CUTOFF_FILTER = "transcript_count_copy";
 
 	Configuration cfg;
 
@@ -150,32 +150,52 @@ public class HGTEnrichment extends Enrichment {
 	}
 
 	private void makeSets(Document doc, OutputStream o) throws TechnicalException, IOException {
-//		o.write(">fracchia\n".getBytes());
+		// Temporary hack
+		String s = null;
+		Element filter = null;
 		Document d = removeAllButThisFilterList(doc, SETS_FILTER);
-		Log.debug(this.getClass().getName() + "#makeSets query "+ Utils.toXML(d));
-		Element f = (Element)d.getDocumentElement().getElementsByTagName("Filter").item(0);
-		String data = f.getAttribute(ATTR_NAME);
-		Log.debug(this.getClass().getName() + "#makeSets data "+ data);
-		o.write(makeSet(">fracchia", data, "<fracchia").getBytes());
-//		Log.debug(this.getClass().getName() + " starting translation for sets");
-//		new EnsembleTranslation(this.params, d).run(o);
-//		try {
-//			o.write("<fracchia\n".getBytes());
-//		} catch (IOException e) {
-//			FileOutputStream fo = new FileOutputStream(setsFile);
-//			fo.write("<fracchia\n".getBytes());
-//			fo.close();
-//		}
+		if (d == null || d.getDocumentElement()
+				.getElementsByTagName("Filter").getLength() == 0) {
+			Node[] filters = Utils.removeElement(d = Utils.copy(doc), "Filter");
+			Element dataset = (Element)d.getElementsByTagName("Dataset")
+					.item(0);
+			for (Node n : filters) {
+				filter = (Element) n;
+				s = filter.getAttribute(FILTER_FUNC_ATTR);
+				if (!(s.equalsIgnoreCase(BACKGROUND_FILTER) 
+					|| s.equalsIgnoreCase(CUTOFF_FILTER))) {
+					dataset.appendChild(filter);
+				}
+			}
+		}
+		// End temporary hack
+		
+		
+		o.write(">fracchia\n".getBytes());
+//		Log.debug(this.getClass().getName() + "#makeSets query "+ Utils.toXML(d));
+//		Element f = (Element)d.getDocumentElement().getElementsByTagName("Filter").item(0);
+//		String data = f.getAttribute(ATTR_NAME);
+//		Log.debug(this.getClass().getName() + "#makeSets data "+ data);
+//		o.write(makeSet(">fracchia", data, "<fracchia").getBytes());
+		Log.debug(this.getClass().getName() + " starting translation for sets");
+		new EnsembleTranslation(this.params, d).run(o);
+		try {
+			o.write("<fracchia\n".getBytes());
+		} catch (IOException e) {
+			FileOutputStream fo = new FileOutputStream(setsFile);
+			fo.write("<fracchia\n".getBytes());
+			fo.close();
+		}
 	}
 
 	private void makeBackground(Document doc, OutputStream o) throws TechnicalException, IOException {
-		Log.debug(this.getClass().getName() + "#makeBackground query "+ Utils.toXML(doc));
+//		Log.debug(this.getClass().getName() + "#makeBackground query "+ Utils.toXML(doc));
 		Document d = removeAllButThisFilterList(doc, BACKGROUND_FILTER);
-		Element f = (Element)d.getDocumentElement().getElementsByTagName("Filter").item(0);
-		String data = f.getAttribute(ATTR_NAME);
-		o.write(makeBackground(data).getBytes());
-//		Log.debug(this.getClass().getName() + " starting translation for background");
-//		new EnsembleTranslation(this.params, d).run(o);
+//		Element f = (Element)d.getDocumentElement().getElementsByTagName("Filter").item(0);
+//		String data = f.getAttribute(ATTR_NAME);
+//		o.write(makeBackground(data).getBytes());
+		Log.debug(this.getClass().getName() + " starting translation for background");
+		new EnsembleTranslation(this.params, d).run(o);
 	}
 	
 	private String getCutOff(Document doc) {
@@ -184,7 +204,7 @@ public class HGTEnrichment extends Enrichment {
 		Element e = null;
 		for (int i = 0, len = nl.getLength(); i < len; ++i) {
 			e = (Element) nl.item(i);
-			if (e.getAttribute("name").equalsIgnoreCase(CUTOFF_ATTR_NAME)) {
+			if (e.getAttribute("name").equalsIgnoreCase(CUTOFF_FILTER)) {
 				return e.getAttribute(ATTR_NAME); 
 			}
 		}
@@ -275,8 +295,8 @@ public class HGTEnrichment extends Enrichment {
 		} catch (InterruptedException e) {
 			Log.error("HGTEnrichment#runProcess runner has been interrupted", e);
 		} finally {
-			if (setsFile != null) setsFile.delete();
-			if (backgroundFile != null) backgroundFile.delete();
+			//if (setsFile != null) setsFile.delete();
+			//if (backgroundFile != null) backgroundFile.delete();
 		}
 	}
 
