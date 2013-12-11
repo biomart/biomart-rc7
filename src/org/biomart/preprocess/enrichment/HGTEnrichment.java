@@ -148,6 +148,10 @@ public class HGTEnrichment extends Enrichment {
 			Log.error(this.getClass().getName() + "#getResults cannot find/open the result files ", e);
 		} catch (IOException e) {
 			Log.error(this.getClass().getName() + "#getResults cannot find/open the result files ", e);
+		} finally {
+			// delete also the result files
+			new File(playground, "hypg.list").delete();
+			new File(playground, "hypg.pv").delete();
 		}
 		return r;
 	}
@@ -313,8 +317,8 @@ public class HGTEnrichment extends Enrichment {
 		} catch (InterruptedException e) {
 			Log.error("HGTEnrichment#runProcess runner has been interrupted", e);
 		} finally {
-			//if (setsFile != null) setsFile.delete();
-			//if (backgroundFile != null) backgroundFile.delete();
+			if (setsFile != null) setsFile.delete();
+			if (backgroundFile != null) backgroundFile.delete();
 		}
 	}
 
