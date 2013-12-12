@@ -1,11 +1,14 @@
 package org.biomart.preprocess.enrichment;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +16,7 @@ import java.util.Map;
 import org.biomart.common.exceptions.TechnicalException;
 import org.biomart.common.resources.Log;
 import org.biomart.preprocess.EnsembleTranslation;
+import org.biomart.preprocess.InputFormatTranslator;
 import org.biomart.preprocess.PreprocessParameters;
 import org.biomart.preprocess.utils.Utils;
 import org.w3c.dom.Document;
@@ -171,8 +175,7 @@ public class HGTEnrichment extends Enrichment {
 		o.flush();
 	}
 
-	private void makeSets(Document doc, OutputStream o) throws TechnicalException, IOException {
-		// Temporary hack
+	private Document useAnyOtherFilterAsSetsHack(Document doc) {
 		String s = null;
 		Element filter = null;
 		Document d = removeAllButThisFilterList(doc, SETS_FILTER);
@@ -190,7 +193,44 @@ public class HGTEnrichment extends Enrichment {
 				}
 			}
 		}
+		
+		return d;
+	}
+	
+	// Doc must have only one filter
+	private Document mouse2HumanHack(Document doc) throws TechnicalException, IOException {
+		Log.debug(this.getClass().getName() + "#mouse2HumanHack query: "+ Utils.toXML(doc)); 
+		Element dataset = (Element) doc.getDocumentElement()
+				.getElementsByTagName("Dataset")
+				.item(0);
+		String name = dataset.getAttribute("name");
+		if (name.equalsIgnoreCase("hsapiens_gene_ensembl"))
+			return doc;
+		
+		ByteArrayOutputStream o = new ByteArrayOutputStream();
+		new InputFormatTranslator(this.params, doc, "hsapiens_homolog_ensembl_gene").run(o);
+		String s = new String(o.toByteArray(), "UTF-8"), value;
+		String[] lines = s.split("\n");
+		value = Joiner.on(",").join(Arrays.copyOfRange(lines, 1, lines.length));
+		Document d = Utils.copy(doc);
+		NodeList filters = d.getDocumentElement().getElementsByTagName("Filter");
+		if (filters.getLength() == 0) return null;
+		dataset = (Element) d.getDocumentElement()
+				.getElementsByTagName("Dataset")
+				.item(0);
+		dataset.setAttribute("name", "hsapiens_gene_ensembl");
+		Element f = (Element)filters.item(0);
+		f.setAttribute("name", "ensembl_gene_id");
+		f.setAttribute("value", value);
+		return d;
+	}
+	
+	private void makeSets(Document doc, OutputStream o) throws TechnicalException, IOException {
+		// Temporary hack
+		Document d = useAnyOtherFilterAsSetsHack(doc);
+		d = mouse2HumanHack(d);
 		// End temporary hack
+		
 		
 		
 		o.write(">fracchia\n".getBytes());
@@ -200,7 +240,7 @@ public class HGTEnrichment extends Enrichment {
 //		Log.debug(this.getClass().getName() + "#makeSets data "+ data);
 //		o.write(makeSet(">fracchia", data, "<fracchia").getBytes());
 		Log.debug(this.getClass().getName() + " starting translation for sets");
-		new EnsembleTranslation(this.params, d).run(o);
+		new InputFormatTranslator(this.params, d, "external_gene_id").run(o);
 		try {
 			o.write("<fracchia\n".getBytes());
 		} catch (IOException e) {
@@ -213,11 +253,14 @@ public class HGTEnrichment extends Enrichment {
 	private void makeBackground(Document doc, OutputStream o) throws TechnicalException, IOException {
 //		Log.debug(this.getClass().getName() + "#makeBackground query "+ Utils.toXML(doc));
 		Document d = removeAllButThisFilterList(doc, BACKGROUND_FILTER);
+		// Temporary hack
+		d = mouse2HumanHack(d);
+		// Temporary hack
 //		Element f = (Element)d.getDocumentElement().getElementsByTagName("Filter").item(0);
 //		String data = f.getAttribute(ATTR_NAME);
 //		o.write(makeBackground(data).getBytes());
 		Log.debug(this.getClass().getName() + " starting translation for background");
-		new EnsembleTranslation(this.params, d).run(o);
+		new InputFormatTranslator(this.params, d, "external_gene_id").run(o);
 	}
 	
 	private String getCutOff(Document doc) {
@@ -343,7 +386,5 @@ public class HGTEnrichment extends Enrichment {
 
 		return b.toString();
 	}
-
-
 
 }

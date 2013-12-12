@@ -11,26 +11,23 @@ import org.biomart.queryEngine.QueryController;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class EnsembleTranslation extends Preprocess {
+public class InputFormatTranslator extends Preprocess {
 	
 	Document d;
-
-	public EnsembleTranslation(PreprocessParameters pp) {
-		this(pp, Utils.parseXML(pp.getXML()));
+	String translatorAttribute;
+	
+	public InputFormatTranslator(PreprocessParameters pp) {
+		this(pp, Utils.parseXML(pp.getXML()), "external_gene_id");
 	}
 	
-	/**
-	 * Removes All the Attribute instances and sets the processor to TSV,
-	 * then modifies the query such that it only translates gene names 
-	 * into Ensemble IDs. Finally it submits the query to the QueryController.
-	 * @param pp
-	 * @param doc
-	 */
-	public EnsembleTranslation(PreprocessParameters pp, Document doc) {
+	public InputFormatTranslator(PreprocessParameters pp,
+			Document doc, String attribute) {
 		super(pp);
 		Log.debug(this.getClass().getName() + " new instance");
+		Log.debug(this.getClass().getName() + "#InputFormatTranslator original query: "+ Utils.toXML(doc));
 		
 		d = doc;
+		translatorAttribute = attribute;
 		Utils.removeElement(d, "Attribute");
 		
 		Element root = d.getDocumentElement(), 
@@ -39,7 +36,7 @@ public class EnsembleTranslation extends Preprocess {
 						root.getElementsByTagName("Dataset")
 						.item(0);
 		
-		attr.setAttribute("name", "external_gene_id");
+		attr.setAttribute("name", translatorAttribute);
 		dataset.appendChild(attr);
 		// plain/text results
 		root.setAttribute("processor", "TSVX");
@@ -53,6 +50,7 @@ public class EnsembleTranslation extends Preprocess {
 	@Override
 	public void run(OutputStream out) throws TechnicalException, IOException {
 		Log.debug(this.getClass().getName() + " translating into ensemble IDs ...");
+		Log.debug(this.getClass().getName() + "#run query: "+ Utils.toXML(d));
 		new QueryController(Utils.toXML(d), // Note
 				params.getRegistry(),
 				params.getUser(),
