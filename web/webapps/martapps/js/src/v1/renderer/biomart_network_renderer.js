@@ -1524,7 +1524,7 @@ var NetworkRenderer = BaseNetworkRenderer.extend({
     draw: function (writee) {
         var t = "", attrs = Object.keys(biomart._state.queryMart.attributes)
         attrs.forEach(function(a) { t += a + " " })
-        var domItem = this.newTab(writee, $(this.tabSelector))[0]
+        var domItem = this.newTab(writee, $(this.tabSelector), t)[0]
 
         this.group = this.newSVG({
             container: domItem,
