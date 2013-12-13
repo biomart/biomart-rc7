@@ -44,36 +44,22 @@ public class EnrichmentResultParser {
 		this.delim = delim == null ? "\t" : delim; 
 	}
 	
-	public String[][] getResults() throws IOException {
+	public Map<String, List<String>> getGenes() {
+		return genes;
+	}
+	
+	public SortedMap<Double, String> getAnnotations () {
+		return ann;
+	}
+	
+	public Map<String, String> getBonPv() {
+		return bonPv;
+	}
+	
+	public void retrieveResults() throws IOException {
 		Log.debug(this.getClass().getName() + "#getResults invoked "+ (genes.size() == ann.size()));
 		populateAnnWithPValue();
 		getGeneList();
-		String[][] r = new String[ann.size()][];		
-		Set<Map.Entry<Double, String>> set = ann.entrySet();
-		Iterator<Map.Entry<Double, String>> it = set.iterator();
-		Map.Entry<Double, String> e;
-		String k = null;
-		int idx = 0;
-		
-		while(it.hasNext()) {
-			e = it.next(); k = e.getValue();
-			// ["annotation", "p-value", "bonferroni", "gene1", "gene2", ..., "geneN"]
-			r[idx++] = row(k, e.getKey(), bonPv.get(k), genes.get(k));			
-		}
-		
-		return r;
-	}
-	
-	private String[] row(String a, Double v, String bonPv, List<String> genes) {
-//		Log.debug(this.getClass().getName()+"#row arguments "+a+" "+Double.toString(v)+" "+genes);
-		String[] r = new String[genes.size() + 3];
-		int i = 2;
-		r[0] = a; r[1] = Double.toString(v); r[2] = bonPv;
-		for (String s : genes) {
-			r[++i] = s;
-		}
-//		Log.debug(this.getClass().getName()+"#row "+Arrays.toString(r));
-		return r;
 	}
 	
 	private void populateAnnWithPValue() throws IOException {

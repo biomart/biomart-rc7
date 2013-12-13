@@ -1611,8 +1611,8 @@ var EnrichmentRenderer = NetworkRenderer.extend({
         this.table = new Table({
             wrapper: wrapper,
             className: "network-report-table",
-            header: this.header.slice(0, -1),
-            numCol: 3,
+            header: this.header.slice(0, -2).concat([this.header[4]]),
+            numCol: 4,
             tooltip: function (data) {
                 var i = 0, d = data[3].split(","), len = d.length, b = ""
                 for (; i < len; ++i) {
@@ -1643,7 +1643,7 @@ var EnrichmentRenderer = NetworkRenderer.extend({
     makeNE: function (rows) {
         NetworkRenderer.prototype.makeNE.call(this, rows)
         for (var i = 0, rLen = rows.length, r; i < rLen && (r = rows[i]); ++i) {
-            this.table.addRow(r)
+            this.table.addRow(r.slice(0, -2).concat([r[4]]))
         }
     },
 

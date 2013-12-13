@@ -15,7 +15,6 @@ import java.util.Map;
 
 import org.biomart.common.exceptions.TechnicalException;
 import org.biomart.common.resources.Log;
-import org.biomart.preprocess.EnsembleTranslation;
 import org.biomart.preprocess.InputFormatTranslator;
 import org.biomart.preprocess.PreprocessParameters;
 import org.biomart.preprocess.utils.Utils;
@@ -92,7 +91,7 @@ public class HGTEnrichment extends Enrichment {
 //			selectAnnotationFile(d);
 
 			runProcess();
-			printResults(o, getResults());
+			printResults(o, getResults(d));
 		} catch (Exception e) {
 			Log.error("HGTEnrichment#runEnrichment ", e);
 		} finally {
@@ -137,7 +136,7 @@ public class HGTEnrichment extends Enrichment {
 		return path;
 	}
 
-	private String[][] getResults() {
+	private String[][] getResults(Document doc) {
 		Log.debug(this.getClass().getName() + "#getResults invoked");
 		String d = System.getProperty("file.separator");
 		String[][] r = null;
@@ -147,7 +146,7 @@ public class HGTEnrichment extends Enrichment {
 					new FileReader(playground + d + "hypg.pv"),
 					null
 			);
-			r = e.getResults();
+			r = new ResultHandler(this.params, e, doc).getResults();
 		} catch (FileNotFoundException e) {
 			Log.error(this.getClass().getName() + "#getResults cannot find/open the result files ", e);
 		} catch (IOException e) {
@@ -166,11 +165,11 @@ public class HGTEnrichment extends Enrichment {
 		String d = "\t", lr = "\n", genes;
 		String[] line = null;
 		// Write the header first
-		o.write(("Annotation"+d+"P-value"+d+"Bonferroni P-value"+d+"Genes"+lr).getBytes());
+		o.write(("Annotation"+d+"P-value"+d+"Bonferroni P-value"+d+"Genes"+d+"Description"+lr).getBytes());
 		for (int i = 0; i < r.length && i < 5; ++i) {
 			line = r[i];
-			genes = Joiner.on(",").join(Arrays.copyOfRange(line, 3, line.length));
-			o.write((line[0]+d+line[1]+d+line[2]+d+genes+lr).getBytes());
+			genes = Joiner.on(",").join(Arrays.copyOfRange(line, 3, line.length-1));
+			o.write((line[0]+d+line[1]+d+line[2]+d+genes+d+line[line.length-1]+lr).getBytes());
 		}
 		o.flush();
 	}
@@ -225,7 +224,7 @@ public class HGTEnrichment extends Enrichment {
 		return d;
 	}
 	
-	private void makeSets(Document doc, OutputStream o) throws TechnicalException, IOException {
+	private Document makeSets(Document doc, OutputStream o) throws TechnicalException, IOException {
 		// Temporary hack
 		Document d = useAnyOtherFilterAsSetsHack(doc);
 		d = mouse2HumanHack(d);
@@ -248,9 +247,10 @@ public class HGTEnrichment extends Enrichment {
 			fo.write("<fracchia\n".getBytes());
 			fo.close();
 		}
+		return d;
 	}
 
-	private void makeBackground(Document doc, OutputStream o) throws TechnicalException, IOException {
+	private Document makeBackground(Document doc, OutputStream o) throws TechnicalException, IOException {
 //		Log.debug(this.getClass().getName() + "#makeBackground query "+ Utils.toXML(doc));
 		Document d = removeAllButThisFilterList(doc, BACKGROUND_FILTER);
 		// Temporary hack
@@ -261,6 +261,7 @@ public class HGTEnrichment extends Enrichment {
 //		o.write(makeBackground(data).getBytes());
 		Log.debug(this.getClass().getName() + " starting translation for background");
 		new InputFormatTranslator(this.params, d, "external_gene_id").run(o);
+		return d;
 	}
 	
 	private String getCutOff(Document doc) {
