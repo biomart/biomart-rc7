@@ -166,7 +166,7 @@ public class HGTEnrichment extends Enrichment {
 		String[] line = null;
 		// Write the header first
 		o.write(("Annotation"+d+"P-value"+d+"Bonferroni P-value"+d+"Genes"+d+"Description"+lr).getBytes());
-		for (int i = 0; i < r.length && i < 5; ++i) {
+		for (int i = 0; i < r.length; ++i) {
 			line = r[i];
 			genes = Joiner.on(",").join(Arrays.copyOfRange(line, 3, line.length-1));
 			o.write((line[0]+d+line[1]+d+line[2]+d+genes+d+line[line.length-1]+lr).getBytes());

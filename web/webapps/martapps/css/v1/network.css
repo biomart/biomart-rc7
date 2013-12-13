@@ -66,11 +66,13 @@ text.network-shadow {
 }
 
 .network-report-table {
-    width: 15% !important;
+    border-left: 1px dashed #333;
+    padding-left: 15px;
+    width: 23% !important;
 }
 
 .network-wrapper {
-    width: 85%;
+    width: 75%;
 }
 
 .rtb-tooltip {

@@ -36,6 +36,9 @@ biomart.networkRendererConfig = {
         callback: textCallback,
         link: function (d) {
             return d._link
+        },
+        text: function (d) {
+            return d._id
         }
     }
 }
@@ -795,7 +798,7 @@ function nwtDraw() {
     "use strict"
 
     var nodes = this.nodes, edges = this.edges, conf = this.config,
-        lines = null, circles = null, group = this.group, text = false,
+        lines = null, circles = null, group = this.group, text = "text" in conf,
         neighbors = null, force = null, neighbors = null,
         extent = d3.extent(edges, function (e) {
             return e.value
@@ -810,7 +813,8 @@ function nwtDraw() {
             computeThickness: nwtComputeThickness,
             filter: nwtFilter,
             setPosition: nwtSetPosition,
-            neighbors: nwtNeighbors
+            neighbors: nwtNeighbors,
+            text: nwtText
         }
 
     // compute neighbors
@@ -869,6 +873,9 @@ function nwtDraw() {
         force = draw.newForce(size)
         lines = draw.lines()
         circles = draw.circles()
+        if (text) {
+            text = draw.text()
+        }
         force.on("tick", draw.tick()).start()
         return draw
     }
@@ -917,6 +924,10 @@ function nwtDraw() {
                 "fill": "black"
             })
         return circles
+    }
+
+    function nwtText() {
+        return makeText(group, nodes, conf.text)
     }
 
     function nwtComputeThickness() {
@@ -1462,6 +1473,17 @@ var NetworkRenderer = BaseNetworkRenderer.extend({
         this.addProp(o, '_id', idValue)
     },
 
+    makeTable: function (wrapper) {
+        // $elem.append('<div id="network-report-table" class="network-report-table"></div>')
+        this.table = new Table({
+            wrapper: wrapper,
+            className: "",
+            header: this.header.slice(0, -1),
+            numCol: 3,
+            tooltip: null
+        })
+    },
+
     // I'm assuming there could not be duplicated edges and
     // nodes.length === 2
     insertEdges: function (nodes, row, header) {
@@ -1488,15 +1510,30 @@ var NetworkRenderer = BaseNetworkRenderer.extend({
         BaseNetworkRenderer.prototype.printHeader.call(this, header, writee)
     },
 
+    makeNE: function (rows) {
+        BaseNetworkRenderer.prototype.makeNE.call(this, rows)
+        for (var i = 0, rLen = rows.length, r; i < rLen && (r = rows[i]); ++i) {
+            this.table.addRow(this.makeRow(r))
+        }
+    },
+
+    makeRow: function (row) {
+        return row
+    },
+
     draw: function (writee) {
         var t = "", attrs = Object.keys(biomart._state.queryMart.attributes)
         attrs.forEach(function(a) { t += a + " " })
+        var domItem = this.newTab(writee, $(this.tabSelector))[0]
+
         this.group = this.newSVG({
-            container: this.newTab(writee, $(this.tabSelector), t)[0],
+            container: domItem,
             w: "100%",
             h: "100%",
             className: "network-wrapper"
         })
+
+        this.makeTable($('<div class="network-report-table">').appendTo($(domItem))[0])
 
         this.makeNE(this.rowBuffer)
         this.rowBuffer = []
@@ -1573,6 +1610,8 @@ var NetworkRenderer = BaseNetworkRenderer.extend({
             d3.select(this.group.node().nearestViewportElement).remove()
         }
         this.group = null
+        this.table && this.table.destroy()
+        this.table = null
     },
 
     destroy: function () {
@@ -1610,11 +1649,11 @@ var EnrichmentRenderer = NetworkRenderer.extend({
         // $elem.append('<div id="network-report-table" class="network-report-table"></div>')
         this.table = new Table({
             wrapper: wrapper,
-            className: "network-report-table",
+            className: "",
             header: this.header.slice(0, -2).concat([this.header[4]]),
             numCol: 4,
             tooltip: function (data) {
-                var i = 0, d = data[3].split(","), len = d.length, b = ""
+                var i = 0, d = data[4].split(","), len = d.length, b = ""
                 for (; i < len; ++i) {
                     b += d[i]+"<br>"
                 }
@@ -1625,13 +1664,15 @@ var EnrichmentRenderer = NetworkRenderer.extend({
 
     draw: function (writee) {
         var domItem = this.newTab(writee, $(this.tabSelector))[0]
+
         this.group = this.newSVG({
             container: domItem,
             w: "100%",
             h: "100%",
             className: "network-wrapper"
         })
-        this.makeTable(domItem)
+
+        this.makeTable($('<div class="network-report-table">').appendTo($(domItem))[0])
 
         this.makeNE(this.rowBuffer)
         this.rowBuffer = []
@@ -1640,11 +1681,15 @@ var EnrichmentRenderer = NetworkRenderer.extend({
         $.publish('network.completed')
     },
 
-    makeNE: function (rows) {
-        NetworkRenderer.prototype.makeNE.call(this, rows)
-        for (var i = 0, rLen = rows.length, r; i < rLen && (r = rows[i]); ++i) {
-            this.table.addRow(r.slice(0, -2).concat([r[4]]))
-        }
+    // makeNE: function (rows) {
+    //     NetworkRenderer.prototype.makeNE.call(this, rows)
+    //     for (var i = 0, rLen = rows.length, r; i < rLen && (r = rows[i]); ++i) {
+    //         this.table.addRow(this.makeRow(r))
+    //     }
+    // },
+
+    makeRow: function (row) {
+        return row.slice(0, -2).concat([row[4], row[3]])
     },
 
     insertNodes: function (row, header) {
@@ -1704,8 +1749,8 @@ var EnrichmentRenderer = NetworkRenderer.extend({
 
     clear: function () {
         NetworkRenderer.prototype.clear.call(this)
-        this.table && this.table.destroy()
-        this.table = null
+        // this.table && this.table.destroy()
+        // this.table = null
     }
 })
 
