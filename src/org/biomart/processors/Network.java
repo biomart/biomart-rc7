@@ -7,9 +7,13 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.biomart.processors.annotations.FieldInfo;
@@ -126,27 +130,28 @@ public class Network extends ProcessorImpl {
         
         public void send() {
         		Log.debug("Network#send sending data...");
-        		Set<Map.Entry<EntryKey, Double>> set = h.entrySet();
-        		Iterator<Map.Entry<EntryKey, Double>> it = set.iterator();
-        		Map.Entry<EntryKey, Double> e = null;
         		EntryKey k = null;
         		String vstr = null;
         		
-        		while(it.hasNext()) {
-        			e = it.next();
-        			k = e.getKey();
-        			vstr = Double.toString(e.getValue());
-        			try {
+        		ArrayList<Map.Entry<EntryKey, Double>> sortedMap = 
+        				sortByValue(h);
+        		try {
+        			for (Entry<EntryKey, Double> entry : sortedMap) {
+        				k = entry.getKey();
+        				vstr = Double.toString(entry.getValue());
+        				
         				linesSent++;
+
         				out.write(Joiner.on(DELIMITER).join(k.g0, k.g1, vstr).getBytes());
         				out.write(NEWLINE_BYTES);
 
         				if (++count % FLUSH_INTERVAL == 0)
         					out.flush();
-        			} catch (IOException ex) {
-        				throw new BioMartQueryException("Problem writing to OutputStream", ex);
         			}
+        		} catch (IOException e1) {
+        			throw new BioMartQueryException("Problem writing to OutputStream", e1);
         		}
+			
         		
         		clear();
         }
@@ -170,6 +175,24 @@ public class Network extends ProcessorImpl {
         		} catch (IOException e) {
     				throw new BioMartQueryException("Problem writing to OutputStream", e);
     			}
+        	}
+        	
+        	private ArrayList<Entry<EntryKey, Double>> sortByValue(Map<EntryKey, Double> m) {
+        		Log.debug(this.getClass().getName() + "#sortByValue invoked");
+        		ArrayList<Map.Entry<EntryKey, Double>> a = 
+        				new ArrayList<Entry<EntryKey, Double>>(m.entrySet());
+        		
+        		Collections.sort(a, new Comparator<Entry<EntryKey, Double>>() {
+        			@Override
+        			public int compare(Entry<EntryKey, Double> a, Entry<EntryKey, Double> b) {
+        				double av = a.getValue(), bv = b.getValue();
+        				return av < bv ? 1 : av == bv ? 0 : -1;
+        			}
+        		});
+        		
+        		Log.debug(this.getClass().getName() + "#sortByValue "+ a);
+        		
+        		return a;
         	}
     }
 
