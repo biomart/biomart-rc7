@@ -109,11 +109,11 @@ public class ResultHandler {
 		DefaultPreprocess dp = new DefaultPreprocess(this.pp);
 		dp.run(o);
 		desc = new String(o.toByteArray(), "UTF-8");
-		splittedDesc = desc.split("\n");
+		splittedDesc = desc.trim().split("\n");
 		for (int i = 1; i < splittedDesc.length; ++i) {
 			String[] p = splittedDesc[i].split("\t");
 			// Ann, Desc
-			m.put(p[0], p[1]);
+			m.put(p[0], p.length < 2 ? "No Description" : p[1]);
 		}
 		this.pp.setXml(oxml);
 		return m;
