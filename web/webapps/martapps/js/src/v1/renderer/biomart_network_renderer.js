@@ -82,7 +82,7 @@ biomart.enrichmentRendererConfig = {
                 return d._link
         },
         text: function (d) {
-            return d._id
+            return 'description' in d ? d.description : d._id
         }
     }
 }
@@ -1695,7 +1695,7 @@ var EnrichmentRenderer = NetworkRenderer.extend({
     insertNodes: function (row, header) {
         var ann, gs, res, index, g, gid, annIdx = 0, genesIdx = 3,
             // p-value index, bonferroni p-value
-            pvIdx = 1, bpvIdx = 2
+            pvIdx = 1, bpvIdx = 2, descIdx = 4
 
         if (++this.annCount >= 5) return []
         //row: [annotation, score, gene list]
@@ -1706,6 +1706,7 @@ var EnrichmentRenderer = NetworkRenderer.extend({
         if (! ann) {
             index = this.nodes.push(ann = this.addProp({}, header[annIdx], row[annIdx])) - 1
             this.addProp(ann, header[pvIdx], row[pvIdx])
+            this.addProp(ann, "description", row[descIdx])
             // this.addProp(ann, header[bpvIdx], row[bpvIdx])
             this.addId(ann, row[annIdx])
             ann.index = index
