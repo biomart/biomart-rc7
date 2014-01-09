@@ -203,7 +203,11 @@ $.namespace('biomart.query', function(self) {
                 arr.push([
                     '<Filter name="', biomart.escapeHTML(name),
                     '" value="', biomart.escapeHTML(value),
-                    '" filter_list="', biomart.escapeHTML(filterList), '"/>'
+                    '" filter_list="',
+                        filterList
+                            ? biomart.escapeHTML(filterList)
+                            : "",
+                    '"/>'
                 ].join(''));
             }
         }
