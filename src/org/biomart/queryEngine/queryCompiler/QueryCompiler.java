@@ -33,9 +33,9 @@ import org.jdom.Document;
 import org.jdom.output.XMLOutputter;
 
 /**
- * 
+ *
  * @author Jonathan Guberman, Arek Kasprzyk
- * 
+ *
  *         This class prepares SQL query for both Source schema (Virtual Mart) based querying as well as Materialised
  *         schemas (Marts). A vital component of query compilation which is used for ON THE FLY extension of WHERE
  *         clause for dataset joining, sits in the SubQuery object.
@@ -45,7 +45,7 @@ public class QueryCompiler {
     // added by Yong for QC testing
     /**
      * qcPath is a list of org.biomart.builder.model.Table org.biomart.builder.model.Relation
-     * 
+     *
      * methods may be used by QC Table.getName() Table.getColumns() Relation.getFirstKey.getName()
      * Relation.getSecondKey.getName()
      */
@@ -60,7 +60,7 @@ public class QueryCompiler {
     private String quoteChar = "";
 
     /**
-     * 
+     *
      * @param dbName
      * @param ds
      * @return
@@ -494,7 +494,7 @@ public class QueryCompiler {
     }
 
     /**
-     * 
+     *
      * @param dbName
      * @return
      */
@@ -701,6 +701,7 @@ public class QueryCompiler {
                 querySQL.append(".");
                 querySQL.append(quoteChar + filter.getDatasetColumn().getSourceColumn().getName() + quoteChar);
                 if (values.length == 1) {
+                    querySQL.append(" ");
                     querySQL.append(filter.getQualifier());
                     querySQL.append("'" + selectedFilters.get(filter) + "'");
                 } else {
@@ -778,7 +779,7 @@ public class QueryCompiler {
     }
 
     /**
-     * 
+     *
      * @param value
      */
     public void setQcPathMap(Map<DatasetTable, List<Object>> value) {
@@ -786,7 +787,7 @@ public class QueryCompiler {
     }
 
     /**
-     * 
+     *
      * @param value
      */
     public void setSelectedAttributes(List<Attribute> value) {
@@ -794,7 +795,7 @@ public class QueryCompiler {
     }
 
     /**
-     * 
+     *
      * @param value
      */
     public void setSelectedFilters(Map<Filter, String> value) {
@@ -814,7 +815,7 @@ public class QueryCompiler {
 
     /**
      * Generates the SQL query corresponding to the SubQuery object specified
-     * 
+     *
      * @param subQuery
      * @param forceSource
      * @return
