@@ -35,6 +35,8 @@ public final class Config extends MartConfiguratorObject {
 	private final List<RDFClass> rdflist;
 
 	private Container rootContainer;
+	
+	private String dino;
 
 	/**
 	 * @param parentMart
@@ -126,6 +128,14 @@ public final class Config extends MartConfiguratorObject {
 			RDFClass rdf = new RDFClass(rdfElement);
 			this.addRDF(rdf);
 		}
+		
+		org.jdom.Attribute dinoEl = element.getAttribute(XMLElements.DINO.toString());
+		if (dinoEl != null) { 
+			// Probably i should use the value, not the name.
+			Log.debug(this.getClass().getName() + " setting dino with name "+ dinoEl.getValue());
+			dino = dinoEl.getName();
+		}
+		
 		//TODO tmp
 		//change master from "1" to "true"
 		this.setMaster(this.isMasterConfig());
@@ -231,6 +241,9 @@ public final class Config extends MartConfiguratorObject {
 		element.setAttribute(XMLElements.READONLY.toString(), this.getPropertyValue(XMLElements.READONLY));
 		element.setAttribute(XMLElements.PASSWORD.toString(), this.getPropertyValue(XMLElements.PASSWORD));
 		element.setAttribute(XMLElements.RDFCLASS.toString(),this.getPropertyValue(XMLElements.RDFCLASS));
+		
+		Log.debug(this.getClass().getName() + "#generateXml() setting Dino attribute to "+ this.getPropertyValue(XMLElements.DINO));
+		element.setAttribute(XMLElements.DINO.toString(), this.getPropertyValue(XMLElements.DINO));
 		
 		if(includeImpExp && this.isMasterConfig()) {
 			//annotations
@@ -641,6 +654,11 @@ public final class Config extends MartConfiguratorObject {
 			return "";
 		else
 			return keys[1];
+	}
+	
+	public String getDino() {
+		Log.debug(this.getClass().getName() + "#getDino()");
+		return dino;
 	}
 	
 	public String getAccessKey(String ds) {

@@ -28,6 +28,7 @@ import org.biomart.objects.objects.Dataset;
 public final class Query {
 
 	private final String processor;
+	private final String dino;
     private final Map<Dataset, SubQuery> importableOnlySubqueries = new HashMap<Dataset,SubQuery>();
 	private Map<Dataset, Set<SubQuery>> datasetSubqueries;
 	//private LinkIndex linkIndex = new LinkIndex();
@@ -62,6 +63,7 @@ public final class Query {
 		this.datasetSubqueries = new HashMap<Dataset, Set<SubQuery>>();
 		this.limit = (qv.getLimit());
 		this.processor = (qv.getProcessor());
+		this.dino = qv.getDino();
 		this.queryElementList = qv.getQueryElementList();
 		this.pseudoAttributes =  qv.getPseudoAttributes();
 		this.originalAttributeOrder = qv.getOriginalAttributeOrder();
@@ -72,6 +74,10 @@ public final class Query {
 		this.outputDisplayNames = new String[this.originalAttributeOrder.size()];
 	}
 
+    public String getDino() {
+    		return dino;
+    }
+    
     public Map<Dataset, SubQuery> getImportableOnlySubqueries() {
 		return importableOnlySubqueries;
 	}

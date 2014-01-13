@@ -21,7 +21,7 @@ public enum XMLElements {
 	 PROCESSORGROUP  ("processorgroup"),
 	 PROCESSOR  ("processor"),
 	 DATASET ("dataset"),
-	
+
 	 CONFIG ("config"),
 	 PARTITIONTABLE ("partitiontable"),
 	 CONTAINER ("container"),
@@ -40,6 +40,7 @@ public enum XMLElements {
 	 TRANSFORM("transform"),
 	 SOURCECONTAINERS("sourcecontainers"),
 	 SOURCECONTAINER("sourcecontainer"),
+	 DINO("dino"),
 
 	//attribute
 	 HIDE("hide"),
@@ -54,7 +55,8 @@ public enum XMLElements {
 	 SPLITON("spliton"),
 	 OPERATION("operation"),
 	 DATAFILE("datafile"),
-	
+	 FUNCTION("function"),
+
 	 UNIQUEID("uniqueid"),
 	 DRIVERCLASSNAME("driverclassname"),
 	 URL("url"),
@@ -64,7 +66,7 @@ public enum XMLElements {
 	 PASSWORD("password"),
 	 MASKED("masked"),
 	 KEYGUESSING("keyguessing"),
-	
+
 	 OPTIMISER("optimiser"),
 	 INDEXOPTIMISED("indexoptimised"),
 	 CENTRALTABLE("centraltable"),
@@ -74,7 +76,7 @@ public enum XMLElements {
 	 COL("col"),
 	 ROWS("rows"),
 	 COLS("cols"),
-	
+
 	 POINTER("pointer"),
 	 GUITYPE("guitype"),
 	 ICONS("icons"),
@@ -112,7 +114,7 @@ public enum XMLElements {
 	 DATASETDISPLAYNAME ("datasetdisplayname"),
 	 DATASETHIDEVALUE ("datasethidevalue"),
      SUBCLASSOF ("subclassof"),
-	 
+
 	 FIRSTTABLE ("firsttable"),
 	 FIRSTKEY ("firstkey"),
 	 SECONDTABLE ("secondtable"),
@@ -137,13 +139,13 @@ public enum XMLElements {
 	 TRUE_VALUE("true"),
 	 FALSE_VALUE("false"),
 	 NONE("none"),
-	
+
 	 PARTITIONPREFIX("p"),
-	 PARTITIONCOLUMNPREFIX("c"), 
+	 PARTITIONCOLUMNPREFIX("c"),
 	 TABPROCESSORGROUP("Tabular"),
 	 SEQUENCESPROCESSORGROUP("Sequences"),
 	 GRAPHSPROCESSORGROUP("Graphs"),
-	
+
 	 HTMLPROCESSOR("HTML"),
 	 CSVPROCESSOR("CSV"),
 	 XLSPROCESSOR("XLS"),
@@ -151,21 +153,21 @@ public enum XMLElements {
 	 FASTAPROCESSOR("FASTA"),
 	 GFFPROCESSOR("GFF"),
 	 KAPLAPROCESSOR("KAPLA"),
-	 
+
 	 //gui only
 	 VISIBLEMODIFIED("visiblemodified"),
 	 ERROR("error");
-	 
+
 	private String value;
-	
+
 	 XMLElements(String value) {
 		 this.value = value;
 	 }
-	 
+
 	 public String toString() {
 		 return this.value;
 	 }
-	 
+
 	 public static XMLElements valueFrom(String value) {
 		 for(XMLElements xe: XMLElements.values()) {
 			 if(xe.toString().equalsIgnoreCase(value))

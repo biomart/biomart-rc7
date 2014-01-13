@@ -42,6 +42,7 @@ public class QueryValidator {
     private List<String> queryStartingPoints;
     private int limit;
     private String processor;
+    private String dino = null;
     private List<QueryElement> originalAttributeOrder = new ArrayList<QueryElement>();
     private List<QueryElement> pseudoAttributes = new ArrayList<QueryElement>();
     private List<Integer> attributeList = new ArrayList<Integer>();
@@ -74,6 +75,16 @@ public class QueryValidator {
 
     public List<QueryElement> getQueryElementList() {
         return queryElementList;
+    }
+    
+    public boolean hasDino() {
+    		Log.debug(this.getClass().getName() + "#hasDino() == "+ (dino != null && !dino.isEmpty()));
+    		return dino != null && !dino.isEmpty();
+    }
+    
+    public String getDino() {
+    		Log.debug(this.getClass().getName() + "#getDino");
+		return dino;
     }
 
     public QueryValidator(Document queryXMLobject, MartRegistry registryObj, String userGroup) {
@@ -224,6 +235,9 @@ public class QueryValidator {
             while (filtersXMLIterator.hasNext()) {
                 Element filterXML = (Element) filtersXMLIterator.next();
                 for (Dataset dataset : datasets.keySet()) {
+                	
+                		dino = dataset.getDino(configName);
+                	
                     String name = StringEscapeUtils.escapeSql(filterXML.getAttributeValue("name"));
                     String value = StringEscapeUtils.escapeSql(filterXML.getAttributeValue("value"));
 

@@ -1,6 +1,7 @@
 package org.biomart.queryEngine;
 
 import org.biomart.common.exceptions.BioMartException;
+
 import java.io.EOFException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -13,7 +14,6 @@ import java.util.Date;
 import org.biomart.common.exceptions.FunctionalException;
 import org.biomart.objects.objects.MartRegistry;
 import org.biomart.common.resources.Log;
-
 import org.jdom.Document;
 import org.jdom.input.SAXBuilder;
 import org.xml.sax.InputSource;
@@ -22,10 +22,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.biomart.common.exceptions.TechnicalException;
 import org.biomart.common.exceptions.ValidationException;
 import org.biomart.configurator.utils.McUtils;
+import org.biomart.dino.DinoBridge;
 import org.biomart.objects.objects.Attribute;
 import org.biomart.processors.ProcessorInterface;
 import org.biomart.processors.ProcessorRegistry;
@@ -104,21 +106,25 @@ public final class QueryController {
 
             queryValidator.setQueryDocument(queryXMLobject);
             queryValidator.validateQuery();
-			query = splitQuery();
-
-			Log.debug("Unplanned: " + query);
-
-			// This is commented because it does not work anymore
-            // esentially there is no query planning happening anymore
-            // to be replaced with an intelligent query planner at some stage
-            // query.planQuery();
-
-			Log.debug("Planned:" + query);
-
-			generateAttributePositions();
-
-			Log.debug("LIMIT: " + query.getLimit());
-
+            
+            if (! queryValidator.hasDino()) {
+	            	query = splitQuery();
+	
+	    			Log.debug("Unplanned: " + query);
+	
+	    			// This is commented because it does not work anymore
+	                // esentially there is no query planning happening anymore
+	                // to be replaced with an intelligent query planner at some stage
+	                // query.planQuery();
+	
+	    			Log.debug("Planned:" + query);
+	
+	    			generateAttributePositions();
+	
+	    			Log.debug("LIMIT: " + query.getLimit());
+            } else {
+            		query = null;
+            }
 		} catch (Exception e) {
             throw new ValidationException(e.getMessage(), e);
 		}
@@ -137,16 +143,19 @@ public final class QueryController {
         // 4. Run query
         // 5. Call done (cleanup) on Processor
         try {
-            QueryRunner queryRunnerObj = new QueryRunner(query,
-                    processorObj.getCallback(), processorObj.getErrorHandler(), isCountQuery);
+        		if (queryValidator.hasDino()) {
+        			new DinoBridge(new Query(queryValidator, false));
+        		} else {
+                QueryRunner queryRunnerObj = new QueryRunner(query,
+                        processorObj.getCallback(), processorObj.getErrorHandler(), isCountQuery);
 
-            processorObj.setQuery(queryRunnerObj.query);
-            processorObj.setOutputStream(outputHandle);
+                processorObj.setQuery(queryRunnerObj.query);
+                processorObj.setOutputStream(outputHandle);
 
-            queryRunnerObj.runQuery();
+                queryRunnerObj.runQuery();
 
-            processorObj.done();
-
+                processorObj.done();
+        		}
         } catch (BioMartException e) {
             if (!(e.getCause() instanceof EOFException)) {
                 throw e;
