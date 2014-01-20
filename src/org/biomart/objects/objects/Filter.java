@@ -632,6 +632,9 @@ public class Filter extends Element	{
 		MartConfiguratorUtils.addAttribute(element, XMLElements.CONFIG.toString(), this.getParentConfig().getName());
 		MartConfiguratorUtils.addAttribute(element, XMLElements.DEFAULT.toString(), this.getPropertyValue(XMLElements.DEFAULT));
 		MartConfiguratorUtils.addAttribute(element, XMLElements.POINTER.toString(), this.isPointer().toString());
+		
+		element.setAttribute(XMLElements.FUNCTION.toString(), this.getPropertyValue(XMLElements.FUNCTION));
+		
 		if (this.isPointer()) {
 			element.setAttribute(XMLElements.POINTEDDATASET.toString(),this.getPropertyValue(XMLElements.POINTEDDATASET));
 			element.setAttribute(XMLElements.POINTEDFILTER.toString(),this.getPropertyValue(XMLElements.POINTEDFILTER));

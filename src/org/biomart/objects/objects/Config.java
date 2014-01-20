@@ -133,7 +133,7 @@ public final class Config extends MartConfiguratorObject {
 		if (dinoEl != null) { 
 			// Probably i should use the value, not the name.
 			Log.debug(this.getClass().getName() + " setting dino with name "+ dinoEl.getValue());
-			dino = dinoEl.getName();
+			dino = dinoEl.getValue();
 		}
 		
 		//TODO tmp

@@ -25,7 +25,7 @@ import org.biomart.objects.objects.Dataset;
  * There is no need to execute importable only subqueries multiple times as their
  * resultset remains the same
  */
-public final class Query {
+public class Query {
 
 	private final String processor;
 	private final String dino;

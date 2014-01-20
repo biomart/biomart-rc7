@@ -106,6 +106,8 @@ public class Attribute extends Element implements Comparable<Attribute> {
 		MartConfiguratorUtils.addAttribute(element, XMLElements.POINTER.toString(), this.isPointer().toString());
 		// add serialization to datatype
 		MartConfiguratorUtils.addAttribute(element, XMLElements.DATATYPE.toString(), this.getPropertyValue(XMLElements.DATATYPE));
+		
+		element.setAttribute(XMLElements.FUNCTION.toString(), this.getPropertyValue(XMLElements.FUNCTION));
 
 		if (this.isPointer()) {
 			element.setAttribute(XMLElements.POINTEDATTRIBUTE.toString(),this.getPropertyValue(XMLElements.POINTEDATTRIBUTE));

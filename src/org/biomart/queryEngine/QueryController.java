@@ -27,7 +27,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.biomart.common.exceptions.TechnicalException;
 import org.biomart.common.exceptions.ValidationException;
 import org.biomart.configurator.utils.McUtils;
-import org.biomart.dino.DinoBridge;
+import org.biomart.dino.DinoHandler;
 import org.biomart.objects.objects.Attribute;
 import org.biomart.processors.ProcessorInterface;
 import org.biomart.processors.ProcessorRegistry;
@@ -69,10 +69,16 @@ public final class QueryController {
 	private final QueryValidator queryValidator;
 	private final Query query;
 	private boolean isCountQuery;
+	
+	private String[] mimes;
+	private String user;
 
     public QueryController(String xml, final MartRegistry registryObj, String user, String[] mimes, boolean isCountQuery) {
 		Log.info("Incoming XML query: " + xml);
 
+		this.mimes = mimes;
+		this.user = user;
+		
 		this.isCountQuery = isCountQuery;
 		this.registryObj = registryObj;
         userGroup = McUtils.getUserGroup(registryObj, user, "").getName();
@@ -144,7 +150,8 @@ public final class QueryController {
         // 5. Call done (cleanup) on Processor
         try {
         		if (queryValidator.hasDino()) {
-        			new DinoBridge(new Query(queryValidator, false));
+        			Query q = new Query(queryValidator, false);
+        			DinoHandler.runDino(q, user, mimes, outputHandle);
         		} else {
                 QueryRunner queryRunnerObj = new QueryRunner(query,
                         processorObj.getCallback(), processorObj.getErrorHandler(), isCountQuery);
@@ -164,7 +171,7 @@ public final class QueryController {
             throw new TechnicalException(e);
         } catch (InterruptedException e) {
             throw new TechnicalException(e);
-        } finally {
+		} finally {
             long end = new Date().getTime();
             Log.info(String.format("Total query time is %s ms", end-start));
         }

@@ -21,7 +21,7 @@ import org.biomart.objects.objects.Filter;
  * Exportables and Importables. QueryElement List is composed of >1 QueryElements in order
  * to store AttributeLists, FilterLists, Exportables and Importables based on Lists.
  */
-public final class QueryElement {
+public class QueryElement {
 	private QueryElementType type = null;
 	private int position = -1;
     private HashMap <String, String> PseudoAttributeValue = new HashMap<String, String>();
