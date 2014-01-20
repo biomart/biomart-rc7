@@ -25,7 +25,7 @@ import org.biomart.api.lite.Mart;
 import org.biomart.api.lite.MartRegistry;
 import org.biomart.common.resources.Log;
 import org.biomart.configurator.model.object.FilterData;
-import org.biomart.queryEngine.QueryControllerProxy;
+import org.biomart.queryEngine.QueryController;
 
 public final class Portal {
     public final MartRegistry _registry;
@@ -221,7 +221,7 @@ public final class Portal {
 
     public void executeQuery(String xml, OutputStream out, boolean isCountQuery) {
         try {
-            new QueryControllerProxy(xml, _registry.getFullRegistry(),
+            new QueryController(xml, _registry.getFullRegistry(),
                     _user == null ? "" : _user, isCountQuery).runQuery(out);
         } catch (Exception e) {
             Log.error("Error during querying", e);
