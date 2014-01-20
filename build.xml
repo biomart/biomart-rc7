@@ -30,7 +30,7 @@
   </target>
   <!-- Compiles the source directory -->
   <target name="compile.main" depends="-init">
-    <javac srcdir="${src.dir}" destdir="${build.classes}/main" deprecation="${build.deprecation}" depend="no" debug="true" source="1.6" includeantruntime="no">
+    <javac srcdir="${src.dir}" destdir="${build.classes}/main" deprecation="${build.deprecation}" depend="no" debug="true" source="1.7" includeantruntime="no">
       <classpath>
         <path refid="project.classpath"/>
       </classpath>
