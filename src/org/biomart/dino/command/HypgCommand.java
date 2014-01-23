@@ -1,60 +1,68 @@
 package org.biomart.dino.command;
 
+import java.io.File;
+
 import org.apache.commons.lang.StringUtils;
 
-public class HypgCommand implements Command {
+public class HypgCommand implements ShellCommand {
 
-	String background, sets, annotations, cutoff, cmd;
-	
-	public HypgCommand(String cmdBinPath) {
-		this.cmd = cmdBinPath;
-	}
+	File background, sets, annotations, bin;
+	String cutoff;
 	
 	@Override
 	public String build() {
 		return StringUtils.join(new String[] {
-			cmd,
-			"-g", getBackground(),
-			"-s", getSets(),
-			"-a", getAnnotations(),
+			bin.getPath(),
+			"-g", getBackground().getPath(),
+			"-s", getSets().getPath(),
+			"-a", getAnnotations().getPath(),
 			"-c", getCutoff()
 		}, " ");
 	}
 	
-	public String getCmdBinPath() {
-		return cmd;
+	public File getCmdBinPath() {
+		return bin;
+	}
+	
+	public HypgCommand setCmdBinPath(File bin) {
+		this.bin = bin;
+		return this;
 	}
 
-	public String getBackground() {
+	public File getBackground() {
 		return background;
 	}
 
-	public void setBackground(String background) {
+	public HypgCommand setBackground(File background) {
 		this.background = background;
+		return this;
 	}
 
-	public String getSets() {
+	public File getSets() {
 		return sets;
 	}
 
-	public void setSets(String sets) {
+	public HypgCommand setSets(File sets) {
 		this.sets = sets;
+		return this;
 	}
 
-	public String getAnnotations() {
+	public File getAnnotations() {
 		return annotations;
 	}
 
-	public void setAnnotations(String annotations) {
+	public HypgCommand setAnnotations(File annotations) {
 		this.annotations = annotations;
+		return this;
 	}
 
 	public String getCutoff() {
 		return cutoff;
 	}
 
-	public void setCutoff(String cutoff) {
+	public HypgCommand setCutoff(String cutoff) {
 		this.cutoff = cutoff;
+		return this;
 	}
 	
 	

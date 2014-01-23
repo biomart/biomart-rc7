@@ -17,7 +17,7 @@ import org.biomart.dino.annotations.Func;
 import org.biomart.dino.command.Command;
 import org.biomart.dino.command.CommandRunner;
 import org.biomart.dino.command.HypgCommand;
-import org.biomart.dino.command.HgmcRunner;
+import org.biomart.dino.command.HypgRunner;
 import org.biomart.dino.querybuilder.QueryBuilder;
 import org.biomart.objects.objects.Attribute;
 import org.biomart.objects.objects.Element;
@@ -79,7 +79,7 @@ public class EnrichmentDino implements Dino {
 	Query q;
 	
 	HypgCommand cmd;
-	HgmcRunner cmdRunner;
+	HypgRunner cmdRunner;
 	QueryBuilder qbuilder;
 	MetaData metadata;
 	
@@ -87,7 +87,7 @@ public class EnrichmentDino implements Dino {
 	
 	@Inject
 	public EnrichmentDino(HypgCommand cmd, 
-						  HgmcRunner cmdRunner, 
+						  HypgRunner cmdRunner, 
 						  @Named("JavaApi") QueryBuilder qbuilder) {
 		this.cmd = cmd;
 		this.cmdRunner = cmdRunner;

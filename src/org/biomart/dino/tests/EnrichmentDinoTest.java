@@ -20,7 +20,7 @@ public class EnrichmentDinoTest {
 	@Before
 	public void setUp() throws Exception {
 		cmd = new HypgCommand();
-		cmdRunner = new HgmcRunner();
+		cmdRunner = new HypgRunner();
 	}
 
 	@Test
