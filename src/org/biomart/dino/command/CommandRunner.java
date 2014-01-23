@@ -1,6 +1,9 @@
 package org.biomart.dino.command;
 
+import java.io.IOException;
+
 public interface CommandRunner {
 
-	void run(String cmd);
+	public CommandRunner run() throws IOException, InterruptedException;
+	public Object getResults();
 }

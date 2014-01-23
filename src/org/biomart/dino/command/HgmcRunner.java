@@ -1,11 +1,11 @@
 package org.biomart.dino.command;
 
-public class HgmcRunner implements CommandRunner {
+public class HgmcRunner extends ShellRunner {
 
 	@Override
-	public void run(String cmd) {
+	public Object getResults() {
 		// TODO Auto-generated method stub
-		
+		return null;
 	}
 
 }
