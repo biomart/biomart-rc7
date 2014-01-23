@@ -6,7 +6,7 @@ import static org.mockito.Mockito.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.biomart.common.utils.XMLElements;
@@ -78,6 +78,8 @@ public class DinoHandlerTest {
 		QueryElement qe;
 		TestDino dino = new TestDino();
 		List<Field> fds = DinoHandler.getAnnotatedFields(testDinoClass);
+		List<QueryElement> expectedBoundEls = new ArrayList<QueryElement>(),
+				boundEls = null;
 		
 		
 		List<QueryElement> l = new ArrayList<QueryElement>();
@@ -93,15 +95,24 @@ public class DinoHandlerTest {
 		e = TestSupport.mockAttributeElement(XMLElements.FUNCTION, first, null);
 		l.add(qe = TestSupport.mockQE(e, QueryElementType.FILTER));
 		when(qe.getFilterValues()).thenReturn(first);
+		expectedBoundEls.add(qe);
 		
 		e = TestSupport.mockAttributeElement(XMLElements.FUNCTION, second, second);
-		l.add(TestSupport.mockQE(e, QueryElementType.ATTRIBUTE));
+		l.add(qe = TestSupport.mockQE(e, QueryElementType.ATTRIBUTE));
+		expectedBoundEls.add(qe);
 		
-		DinoHandler.setFieldValues(dino, fds, l);
+		boundEls = DinoHandler.setFieldValues(dino, fds, l);
 		
 		assertEquals(first, dino.getF1());
 		assertEquals(second, dino.getF2());
 		
+		Iterator<QueryElement> it = boundEls.iterator();
+		while(it.hasNext()) {
+			qe = it.next();
+			assertTrue(expectedBoundEls.contains(qe));
+		}
+		
+//		assertEquals("it returned the proper QueryElement elements", expectedBoundEls, boundEls);
 	}
 }
 

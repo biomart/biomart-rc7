@@ -2,16 +2,11 @@ package org.biomart.dino.querybuilder;
 
 import java.io.OutputStream;
 
-import org.biomart.api.Portal;
 import org.biomart.api.Query;
-import org.biomart.api.factory.MartRegistryFactory;
 
 import com.google.inject.Inject;
 
 public class JavaQueryBuilder implements QueryBuilder {
-
-	@Inject private static MartRegistryFactory factory;
-
 	
 	private Query q;
 	private boolean header;
@@ -21,26 +16,20 @@ public class JavaQueryBuilder implements QueryBuilder {
 	private Query.Dataset dataset;
 	private String datasetName, datasetConfig;
 	
-	public JavaQueryBuilder() {
-		init();
-	}
-	
-	@Override
-	public QueryBuilder initQuery(boolean header, String client, int limit,
-			String proc) {
-		
-		init();
-		
-		q.setHeader(this.header = header);
-		q.setClient(this.client = client);
-		q.setLimit(this.limit = limit);
-		q.setProcessor(this.proc = proc);
-		return this;
-	}
-	
-	private void init() {
-		Portal portal = new Portal(factory);
-		this.q = new Query(portal);
+	/**
+	 * 
+	 * By default, it starts with a query with this parameters:
+	 * header = false
+	 * client = "false"
+	 * processor = "TSVX"
+	 * limit = -1, that is not limit
+	 * empty dataset name and configuration
+	 * 
+	 * @param q - A new prestine Query object.
+	 */
+	@Inject
+	public JavaQueryBuilder(Query q) {
+		this.q = q;
 		this.header = false;
 		this.client = "false";
 		this.proc = "TSVX";
@@ -53,7 +42,6 @@ public class JavaQueryBuilder implements QueryBuilder {
 	@Override
 	public QueryBuilder getResults(OutputStream out) {
 		q.getResults(out);
-		init();
 		
 		return this;
 	}

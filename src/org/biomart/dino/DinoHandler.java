@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.biomart.api.factory.XmlMartRegistryModule;
 import org.biomart.common.exceptions.ValidationException;
 import org.biomart.common.resources.Log;
 import org.biomart.dino.annotations.Func;
@@ -17,6 +18,9 @@ import org.biomart.objects.objects.Element;
 import org.biomart.queryEngine.Query;
 import org.biomart.queryEngine.QueryElement;
 import org.biomart.common.utils.XMLElements;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 /**
  * 
@@ -31,11 +35,25 @@ import org.biomart.common.utils.XMLElements;
  */
 public class DinoHandler {
 
+	// This is to make test easier (we must cope with all code as always...)
+	static boolean initialize = false;
+	static Injector inj;
+	
 	private DinoHandler() {}
+	
+	private static void init() {
+		if (!initialize) {
+			inj = Guice.createInjector(
+				new DinoModule(), 
+				new XmlMartRegistryModule());
+		}
+	}
 	
 	public static void 
 	runDino(Query q, String user, String[] mimes, OutputStream o) throws IOException {
 		Log.debug("DinoHandler#runDino() invoked");
+		
+		init();
 
 		Class<? extends Dino> dinoClass;
 		Dino dino;
@@ -43,9 +61,14 @@ public class DinoHandler {
 				
 		try {
 			
+			// Get the class
 			dinoClass = getDinoClass(dinoName);
+			// Get the fields to bing to
 			List<Field> fields = getAnnotatedFields(dinoClass);
-			dino = getDinoInstance(dinoClass);
+			// Create an Dino instance
+			dino = inj.getInstance(dinoClass);
+			
+			// Set the field values
 			setFieldValues(dino, fields, q.getQueryElementList());
 			dino.setQuery(q)
 				.setMimes(mimes)
@@ -55,9 +78,7 @@ public class DinoHandler {
 			Log.error("DinoHandler#runDino Class<"+ dinoName +"> not found.", e);
 			o.close();
 		} catch (IllegalArgumentException |
-				 InstantiationException   |
-				 IllegalAccessException   |
-				 InvocationTargetException e) {
+				 IllegalAccessException e) {
 			Log.error("DinoHandler#runDino ", e);
 			o.close();
 		}
@@ -137,13 +158,14 @@ public class DinoHandler {
 	 * @throws IllegalAccessException
 	 * @throws ValidationException if there's any mandatory function parameter missing.
 	 */
-	public static void
+	public static List<QueryElement>
 	setFieldValues(Dino b, List<Field> fields, List<QueryElement> qes) throws IllegalArgumentException, IllegalAccessException {
 		XMLElements key = XMLElements.FUNCTION;
 		String propVal = null;
 		Element e = null;
 		Func a = null;
 		ArrayList<Field> fieldsCp = null;
+		ArrayList<QueryElement> boundEls = new ArrayList<QueryElement>(qes);
 		
 		for (QueryElement q : qes) {
 			e = q.getElement();
@@ -158,10 +180,12 @@ public class DinoHandler {
 					f.set(b, getElementValue(q));
 					f.setAccessible(false);
 					fields.remove(f);
+				} else {
+					boundEls.remove(q);
 				}
 			}
 			
-			if (fields.size() == 0) return;
+			if (fields.size() == 0) break;
 		}
 		
 		for (Field f : fields) {
@@ -171,6 +195,8 @@ public class DinoHandler {
 						+ "` missing");
 			}
 		}
+		
+		return boundEls;
 	}
 	
 	

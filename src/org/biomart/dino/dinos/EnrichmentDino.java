@@ -5,14 +5,18 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
-import org.biomart.api.Portal;
 import org.biomart.api.Query;
-import org.biomart.api.factory.MartRegistryFactory;
 import org.biomart.common.resources.Log;
-import org.biomart.dino.CommandRunner;
-import org.biomart.dino.Command;
+import org.biomart.dino.annotations.Func;
+import org.biomart.dino.command.Command;
+import org.biomart.dino.command.CommandRunner;
+import org.biomart.dino.command.HypgCommand;
+import org.biomart.dino.command.HgmcRunner;
+import org.biomart.dino.querybuilder.QueryBuilder;
+import org.biomart.queryEngine.QueryElement;
 
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 // Such that it can easily use even compound commands
 //Command cmd;
@@ -38,6 +42,13 @@ import com.google.inject.Inject;
 //void setRegistryFactory(MartRegistryFactory reg);				V
 //void setCommandRunner(CommandRunner cmdRunner);
 
+
+/**
+ * NOTE This implementation assumes the incoming query has only one attribute!
+ * 
+ * @author luca
+ *
+ */
 public class EnrichmentDino implements Dino {
 	static public final String 
 			HSAPIENS_DATASET = "hsapiens_gene_ensembl",
@@ -45,30 +56,24 @@ public class EnrichmentDino implements Dino {
 			HGNC_ATTR		 = "external_gene_id", //"hgnc_symbol";
 			ENS2HGNC_FILTER  = "ensembl_gene_id";
 	
-	String background, sets, annotation, client;
-	double cutoff;
+	@Func(id = "background") String background;
+	@Func(id = "sets") String sets;
+	@Func(id = "annotation") String annotation;
+	@Func(id = "cutoff") String cutoff;
 	
-	MartRegistryFactory regFactory;
+	String client;
 	
-	Command cmd;
-	CommandRunner cmdRunner;
+	HypgCommand cmd;
+	HgmcRunner cmdRunner;
+	QueryBuilder qbuilder;
 	
-	public EnrichmentDino() {}
-	
-	public EnrichmentDino(
-			String background, 
-			String sets, 
-			double cutoff, 
-			String annotation,
-			String client) {
-		
-		Log.debug(this.getClass().getName() + " invoked");
-		
-		this.background = background;
-		this.annotation = annotation;
-		this.client = client;
-		this.cutoff = cutoff;
-		this.sets = sets;
+	@Inject
+	public EnrichmentDino(HypgCommand cmd, 
+						  HgmcRunner cmdRunner, 
+						  @Named("JavaApi") QueryBuilder qbuilder) {
+		this.cmd = cmd;
+		this.cmdRunner = cmdRunner;
+		this.qbuilder = qbuilder;
 	}
 
 	@Override
@@ -83,21 +88,18 @@ public class EnrichmentDino implements Dino {
 		
 	}
 	
-	@Inject
-	public void setRegistryFactory(MartRegistryFactory regFactory) {
-		this.regFactory = regFactory;
+	public Command getCommand() {
+		return cmd;
 	}
 	
-	@Inject
-	public void setCommand(Command cmd) {
-		this.cmd = cmd;
+	public CommandRunner getCommandRunner() {
+		return cmdRunner;
 	}
 	
-	@Inject
-	public void setCommandRunner(CommandRunner runner) {
-		cmdRunner = runner;
+	public QueryBuilder getQueryBuilder() {
+		return this.qbuilder;
 	}
-	
+		
 	String buildCommand() {
 		return cmd.build();
 	}
@@ -106,26 +108,8 @@ public class EnrichmentDino implements Dino {
 		cmdRunner.run(buildCommand()); 
 	}
 	
-	Query toHgnc(String dataset, String config, String filterValue) { 
-		return initQuery()
-			.addDataset(dataset, config)
-			.addFilter(ENS2HGNC_FILTER, filterValue)
-			.addAttribute(HGNC_ATTR)
-			.end();
-	}
+	public void toEnsembl(String value, OutputStream o) {
 
-	/**
-	 * It just initialize a new Query object with basic parameters.
-	 * 
-	 * @return a new Query.
-	 */
-	Query initQuery() {
-		Portal portal = new Portal(regFactory);
-		return new Query(portal)
-			.setClient("false")
-			.setHeader(false)
-			.setLimit(-1)
-			.setProcessor("TSVX");
 	}
 	
 	void getQueryResults(Query q, OutputStream o) {
@@ -137,10 +121,10 @@ public class EnrichmentDino implements Dino {
 	}
 
 	void getAnnotations(String attribute, String dataset, String config, OutputStream o) {
-		Query q = initQuery()
-				.addDataset(dataset, config)
-				.addAttribute(attribute).end();
-		getQueryResults(q, o);
+//		Query q = initQuery()
+//				.addDataset(dataset, config)
+//				.addAttribute(attribute).end();
+//		getQueryResults(q, o);
 	}
 	
 	void getHSapiensAnnotations(String attribute, OutputStream o) {
@@ -167,7 +151,7 @@ public class EnrichmentDino implements Dino {
 		return client;
 	}
 
-	public double getCutoff() {
+	public String getCutoff() {
 		return cutoff;
 	}
 	

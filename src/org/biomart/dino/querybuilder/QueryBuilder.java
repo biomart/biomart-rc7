@@ -3,8 +3,6 @@ package org.biomart.dino.querybuilder;
 import java.io.OutputStream;
 
 public interface QueryBuilder {
-
-	public QueryBuilder initQuery(boolean header, String client, int limit, String proc);
 	
 	public QueryBuilder getResults(OutputStream out);
 

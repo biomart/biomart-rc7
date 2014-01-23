@@ -1,4 +1,4 @@
-package org.biomart.dino;
+package org.biomart.dino.command;
 
 public interface CommandRunner {
 
