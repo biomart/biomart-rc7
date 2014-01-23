@@ -9,29 +9,49 @@ import org.biomart.queryEngine.QueryElement;
 public class Utils {
 
 	/**
-	 * Given an Attribute element e, it returns the attribute within the
-	 * attribute list e belongs to useful for any id to Ensembl id.
+	 * Given a query element that wraps an attribute list e, it returns 
+	 * the attribute within the attribute list useful for any id 
+	 * to Ensembl gene id translation.
 	 * 
-	 * @param e attribute where retrieve the attribute list from.
-	 * @return an attribute to use for Ensembl id translation or the input attribute if the operation failed.
+	 * NOTE: this method returns null if the operation failed because we 
+	 * cannot create and return an empty element, nor the wrapped element as
+	 * symbol of fail.
+	 * 
+	 * @param qe query element that wraps an attribute list.
+	 * @return an attribute to use for Ensembl gene id translation 
+	 * 		or null if the operation failed.
 	 */
 	public static Attribute 
-	getAttributeForTranslation(Attribute e) {
-		List<Attribute> eList = e.getAttributeList();
-		return eList.isEmpty() ? e : eList.get(0);
+	getAttributeForEnsemblGeneIdTranslation(QueryElement qe) {
+		List<Attribute> eList = getAttributeList(qe);
+		return eList.isEmpty() ? null : eList.get(0);
 	}
 	
 	/**
-	 * Given an Attribute element e, it returns the attribute within the
-	 * attribute list e belongs to useful for into human specie translation.
+	 * Same as getAttributeForEnsemblGeneIdTranslation except that this is 
+	 * for specie translation.
 	 * 
-	 * @param e attribute where retrieve the attribute list from.
-	 * @return an attribute to use into human specie translation or the input attribute if the operation failed.
+	 * @param qe
+	 * @return
 	 */
 	public static Attribute
-	getAttributeForSpeciesTranslation(Attribute e) {
-		List<Attribute> eList = e.getAttributeList();
-		return eList.size() > 1 ? eList.get(1) : e;
+	getAttributeForEnsemblSpecieIdTranslation(QueryElement qe) {
+		List<Attribute> eList = getAttributeList(qe);
+		return eList.size() > 1 ? eList.get(1) : null;
+	}
+	
+	private static List<Attribute>
+	getAttributeList(QueryElement qe) {
+		Element e = qe.getElement();
+		Attribute a;
+		
+		if (!(e instanceof Attribute)) {
+			return null;
+		} else {
+			a = (Attribute) e;
+		}
+		
+		return a.getAttributeList();
 	}
 	
 	public static String

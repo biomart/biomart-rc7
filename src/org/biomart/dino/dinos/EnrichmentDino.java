@@ -4,15 +4,20 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
-import org.biomart.api.Query;
 import org.biomart.common.resources.Log;
+import org.biomart.dino.MetaData;
+import org.biomart.dino.Utils;
 import org.biomart.dino.annotations.Func;
 import org.biomart.dino.command.Command;
 import org.biomart.dino.command.CommandRunner;
 import org.biomart.dino.command.HypgCommand;
 import org.biomart.dino.command.HgmcRunner;
 import org.biomart.dino.querybuilder.QueryBuilder;
+import org.biomart.objects.objects.Attribute;
+import org.biomart.objects.objects.Element;
+import org.biomart.queryEngine.Query;
 import org.biomart.queryEngine.QueryElement;
 
 import com.google.inject.Inject;
@@ -51,21 +56,23 @@ import com.google.inject.name.Named;
  */
 public class EnrichmentDino implements Dino {
 	static public final String 
-			HSAPIENS_DATASET = "hsapiens_gene_ensembl",
-			HSAPIENS_CONFIG	 = "hsapiens_gene_ensembl_config",
-			HGNC_ATTR		 = "external_gene_id", //"hgnc_symbol";
-			ENS2HGNC_FILTER  = "ensembl_gene_id";
+			BACKGROUND = "background",
+			SETS = "sets",
+			ANNOTATION = "annotation",
+			CUTOFF = "cutoff";
 	
-	@Func(id = "background") String background;
-	@Func(id = "sets") String sets;
-	@Func(id = "annotation") String annotation;
-	@Func(id = "cutoff") String cutoff;
+	@Func(id = BACKGROUND) String background;
+	@Func(id = SETS) String sets;
+	@Func(id = ANNOTATION) String annotation;
+	@Func(id = CUTOFF) String cutoff;
 	
 	String client;
+	Query q;
 	
 	HypgCommand cmd;
 	HgmcRunner cmdRunner;
 	QueryBuilder qbuilder;
+	MetaData metadata;
 	
 	@Inject
 	public EnrichmentDino(HypgCommand cmd, 
@@ -88,50 +95,106 @@ public class EnrichmentDino implements Dino {
 		
 	}
 	
-	public Command getCommand() {
-		return cmd;
-	}
-	
-	public CommandRunner getCommandRunner() {
-		return cmdRunner;
-	}
-	
-	public QueryBuilder getQueryBuilder() {
-		return this.qbuilder;
-	}
+	/**
+	 * Submits a query for gene id translation.
+	 * 
+	 * @param function The function of the filter of which value must be translated.
+	 * @param attributeList Attribute list that includes info mandatory for translation. 
+	 * @param filterName 
+	 * @param filterValue Value to translate.
+	 * @param o
+	 */
+	public void toEnsemblGeneId(String attributeList, 
+								String filterName, 
+								String filterValue, 
+								OutputStream o) {
+		Element tmpe = null;
+		Attribute forTransAttr = null;
+		QueryElement qelem = null;
+		// We can get the queryelement from the function of element it wraps.
+		Map<String, QueryElement> bindings = this.metadata.getBindings();
 		
-	String buildCommand() {
-		return cmd.build();
+		qelem = bindings.get(attributeList);
+		
+		tmpe = Utils.getAttributeForEnsemblGeneIdTranslation(qelem);
+		
+		// It means it didn't find a filter list or qelem doesn't wrap an
+		// attribute list.
+		if (tmpe == null) {
+			Log.error(this.getClass().getName() + "#toEnsemblGeneId(): "+
+					"cannot get the necesary attribute needed for translation. "+
+					"Maybe "+ attributeList + " is not an attribute list?");
+			return;
+		}
+		
+		
+		
+		forTransAttr = (Attribute) tmpe;
+		
+		submitToEnsemblIdQuery(forTransAttr, filterName, filterValue, o);
 	}
 	
-	void runCommand() { 
-		cmdRunner.run(buildCommand()); 
+	
+	private void submitToEnsemblIdQuery(Attribute attr,
+										    String filterName,
+										    String filterValue,
+										    OutputStream o) {
+		initQueryBuilder();
+		qbuilder.setDataset(Utils.getDatasetName(attr), 
+							Utils.getDatasetConfig(attr))
+				.addAttribute(attr.getName())
+				.addFilter(filterName, filterValue)
+				.getResults(o);
 	}
 	
-	public void toEnsembl(String value, OutputStream o) {
-
+	
+	/**
+	 * Retrieves annotations based on the input attribute from the query.
+	 * @param attributeList
+	 * @param o
+	 */
+	public void queryForAnnotations(String attributeList, OutputStream o) {
+		Element tmpe = null;
+		Attribute attr = null;
+		QueryElement qelem = null;
+		// We can get the queryelement from the function of element it wraps.
+		Map<String, QueryElement> bindings = this.metadata.getBindings();
+		
+		qelem = bindings.get(attributeList);
+		
+		tmpe = Utils.getAttributeForEnsemblSpecieIdTranslation(qelem);
+		
+		// It means it didn't find a filter list or qelem doesn't wrap an
+		// attribute list.
+		if (tmpe == null) {
+		Log.error(this.getClass().getName() + "#toEnsemblGeneId(): "+
+			"cannot get the necesary attribute needed for translation. "+
+			"Maybe "+ attributeList + " is not an attribute list?");
+			return;
+		}
+		
+		
+		
+		attr = (Attribute) tmpe;
+		
+		submitAnnotationsQuery(attr, o);
 	}
 	
-	void getQueryResults(Query q, OutputStream o) {
-		q.getResults(o);
+	
+	private void submitAnnotationsQuery(Attribute attr, OutputStream o) {
+		initQueryBuilder();
+		qbuilder.setDataset(Utils.getDatasetName(attr), Utils.getDatasetConfig(attr))
+			.addAttribute(attr.getName())
+			.getResults(o);
 	}
 	
-	void getQueryResults(Query.Dataset d, OutputStream o) {
-		getQueryResults(d.end(), o);
-	}
-
-	void getAnnotations(String attribute, String dataset, String config, OutputStream o) {
-//		Query q = initQuery()
-//				.addDataset(dataset, config)
-//				.addAttribute(attribute).end();
-//		getQueryResults(q, o);
+	
+	private void initQueryBuilder() {
+		qbuilder.init();
 	}
 	
-	void getHSapiensAnnotations(String attribute, OutputStream o) {
-		getAnnotations(attribute, HSAPIENS_DATASET, HSAPIENS_CONFIG, o);
-	}
 	
-	ByteArrayOutputStream byteStream() {
+	public ByteArrayOutputStream byteStream() {
 		return new ByteArrayOutputStream();
 	}
 
@@ -169,12 +232,43 @@ public class EnrichmentDino implements Dino {
 
 	@Override
 	public Dino setQuery(org.biomart.queryEngine.Query query) {
+		q = query;
 		return this;
 	}
 
 	@Override
 	public Dino setMimes(String[] mimes) {
 		return this;
+	}
+	
+	@Override
+	public Dino setMetaData(MetaData md) {
+		this.metadata = md;
+		return this;
+	}
+	
+	public MetaData getMetaData() {
+		return this.metadata;
+	}
+	
+	public Command getCommand() {
+		return cmd;
+	}
+	
+	public CommandRunner getCommandRunner() {
+		return cmdRunner;
+	}
+	
+	public QueryBuilder getQueryBuilder() {
+		return this.qbuilder;
+	}
+		
+	String buildCommand() {
+		return cmd.build();
+	}
+	
+	void runCommand() { 
+		cmdRunner.run(buildCommand()); 
 	}
 	
 }

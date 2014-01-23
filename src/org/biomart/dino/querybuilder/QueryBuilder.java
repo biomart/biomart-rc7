@@ -34,4 +34,7 @@ public interface QueryBuilder {
 	
 	public String getDatasetConfig();
 	
+	public QueryBuilder init();
+
+	
 }

@@ -24,14 +24,18 @@ public class JavaQueryBuilderTest {
 		builder = new JavaQueryBuilder(q);
 	}
 	
-	@Test
-	public void initialStateTest() {
+	private void initTestHelper(QueryBuilder builder) {
 		assertFalse(builder.hasHeader());
 		assertEquals("false", builder.getClient());
-		assertEquals("TSVX", builder.getProcessor());
+		assertEquals("TSV", builder.getProcessor());
 		assertEquals(-1, builder.getLimit());
 		assertEquals("", builder.getDatasetName());
 		assertEquals("", builder.getDatasetConfig());
+	}
+	
+	@Test
+	public void initialStateTest() {
+		initTestHelper(builder);
 	}
 	
 	@Test
@@ -106,7 +110,20 @@ public class JavaQueryBuilderTest {
 		assertEquals(xml, xmlq);
 	}
 	
-	
+	@Test
+	public void initTest() {
+		builder.setClient("foo")
+			.setHeader(false)
+			.setLimit(2)
+			.setDataset("a", "b")
+			.setProcessor("CSV")
+			.addAttribute("a")
+			.addFilter("f", "v");
+		
+		builder.init();
+		initTestHelper(builder);
+		
+	}
 }
 
 

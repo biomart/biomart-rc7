@@ -2,6 +2,7 @@ package org.biomart.dino.tests.fixtures;
 
 import java.io.OutputStream;
 
+import org.biomart.dino.MetaData;
 import org.biomart.dino.annotations.Func;
 import org.biomart.dino.dinos.Dino;
 import org.biomart.queryEngine.Query;
@@ -48,6 +49,12 @@ public class TestDino implements Dino {
 
 	public double getBar() {
 		return bar;
+	}
+
+	@Override
+	public Dino setMetaData(MetaData metaData) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

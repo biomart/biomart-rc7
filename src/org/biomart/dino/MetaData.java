@@ -4,15 +4,11 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.biomart.common.utils.XMLElements;
 import org.biomart.dino.annotations.Func;
-import org.biomart.objects.objects.Dataset;
 import org.biomart.objects.objects.Element;
-import org.biomart.queryEngine.Query;
 import org.biomart.queryEngine.QueryElement;
-import org.biomart.queryEngine.SubQuery;
 
 public class MetaData {
 
@@ -27,7 +23,7 @@ public class MetaData {
 	 * @param fields fields bound to the query elements. From them we can retrieve the Function field values.
 	 * @param qel QueryElements from the query, bound to dino fields.
 	 */
-	public void setBinding(List<Field> fields, List<QueryElement> qel) {
+	public void setBindings(List<Field> fields, List<QueryElement> qel) {
 		boundEls = new HashMap<String, QueryElement>();
 		Element e = null;
 		Func a = null;
@@ -53,7 +49,7 @@ public class MetaData {
 	 * Value: the QueryElement that wraps this element.
 	 * 
 	 */
-	public Map<String, QueryElement> getBinding() {
+	public Map<String, QueryElement> getBindings() {
 		return boundEls;
 	}
 }

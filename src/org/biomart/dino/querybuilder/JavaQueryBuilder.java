@@ -8,7 +8,7 @@ import com.google.inject.Inject;
 
 public class JavaQueryBuilder implements QueryBuilder {
 	
-	private Query q;
+	private Query q, pristineQ;
 	private boolean header;
 	private String client;
 	private String proc;
@@ -25,18 +25,28 @@ public class JavaQueryBuilder implements QueryBuilder {
 	 * limit = -1, that is not limit
 	 * empty dataset name and configuration
 	 * 
-	 * @param q - A new prestine Query object.
+	 * NOTE: this implementation keep track only of the last dataset added so,
+	 * if you call multiple times setDataset without initialize the builder 
+	 * before, you're going to have multiple datasets inside your query.
+	 * 
+	 * @param q - A new pristine Query object.
 	 */
 	@Inject
 	public JavaQueryBuilder(Query q) {
-		this.q = q;
+		this.pristineQ = q;
+		init();
+	}
+	
+	public QueryBuilder init() {
+		this.q = this.pristineQ;
 		this.header = false;
 		this.client = "false";
-		this.proc = "TSVX";
+		this.proc = "TSV";
 		this.limit = -1;
 		this.dataset = null;
 		this.datasetName = "";
 		this.datasetConfig = "";
+		return this;
 	}
 
 	@Override

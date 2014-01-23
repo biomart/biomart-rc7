@@ -7,7 +7,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -60,8 +59,8 @@ public class MetaDataTest {
 		
 		assertFalse(fields.isEmpty());
 		
-		md.setBinding(fields, qes);
-		Map<String, QueryElement> binding = md.getBinding();
+		md.setBindings(fields, qes);
+		Map<String, QueryElement> binding = md.getBindings();
 		
 		assertTrue(binding.size() != 0);
 		assertEquals(m, binding);
