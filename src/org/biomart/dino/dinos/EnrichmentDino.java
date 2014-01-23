@@ -229,18 +229,19 @@ public class EnrichmentDino implements Dino {
 		
 		forTransAttr = (Attribute) tmpe;
 		
-		submitToEnsemblIdQuery(forTransAttr, filterName, filterValue, o);
+		submitToEnsemblIdQuery(qelem, forTransAttr, filterName, filterValue, o);
 	}
 	
 	
-	private void submitToEnsemblIdQuery(Attribute attr,
+	private void submitToEnsemblIdQuery(QueryElement qeAttr,
+										Attribute transAttr,
 										    String filterName,
 										    String filterValue,
 										    OutputStream o) {
 		initQueryBuilder();
-		qbuilder.setDataset(Utils.getDatasetName(attr), 
-							Utils.getDatasetConfig(attr))
-				.addAttribute(attr.getName())
+		qbuilder.setDataset(qeAttr.getDataset().getName(), 
+							qeAttr.getConfig().getName())
+				.addAttribute(transAttr.getName())
 				.addFilter(filterName, filterValue)
 				.getResults(o);
 	}
