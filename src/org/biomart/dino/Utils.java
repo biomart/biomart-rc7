@@ -35,7 +35,7 @@ public class Utils {
 	 * @return
 	 */
 	public static Attribute
-	getAttributeForEnsemblSpecieIdTranslation(QueryElement qe) {
+	getAttributeForAnnotationRetrieval(QueryElement qe) {
 		List<Attribute> eList = getAttributeList(qe);
 		return eList.size() > 1 ? eList.get(1) : null;
 	}

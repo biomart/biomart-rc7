@@ -1,9 +1,13 @@
 package org.biomart.dino.dinos;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.biomart.common.resources.Log;
@@ -61,6 +65,11 @@ public class EnrichmentDino implements Dino {
 			ANNOTATION = "annotation",
 			CUTOFF = "cutoff";
 	
+	// Key: dataset_config_name + attribute_list name
+	// Value: path of the annotation file
+	static private Map<String, String> annotationsFilePaths =
+			new HashMap<String, String>();
+	
 	@Func(id = BACKGROUND) String background;
 	@Func(id = SETS) String sets;
 	@Func(id = ANNOTATION) String annotation;
@@ -73,6 +82,8 @@ public class EnrichmentDino implements Dino {
 	HgmcRunner cmdRunner;
 	QueryBuilder qbuilder;
 	MetaData metadata;
+	
+	File backgroundInput, setsInput;
 	
 	@Inject
 	public EnrichmentDino(HypgCommand cmd, 
@@ -93,6 +104,93 @@ public class EnrichmentDino implements Dino {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	public void translateFilters() throws IOException {
+		String[] filters = new String[] { background, sets };
+		File[] inputFiles = new File[] { backgroundInput, setsInput };
+		String filterName = "", filt;
+		Map<String, QueryElement> bind = this.metadata.getBindings();
+		QueryElement qe;
+		
+		for (int i = 0; i < filters.length; ++i) {
+			filt = filters[i];
+			// These file must be deleted at the end of the processing.
+			File f = inputFiles[i] = File.createTempFile(filt, "filter");
+			
+			try (FileOutputStream oStream = new FileOutputStream(f)) {
+				
+				qe = bind.get(filt);
+				filterName = qe.getElement().getName();
+				toEnsemblGeneId(annotation, filterName, qe.getFilterValues(), oStream);
+				
+			} catch (FileNotFoundException e) {
+				Log.error(this.getClass().getName() + "#translateFilters() "
+						+"impossible to write on temporary file.", e);
+				throw e;
+			}
+		}
+		
+	}
+	
+	/**
+	 * It returns the absolute path to the annotation file if already present.
+	 * Otherwise, it gathers and put them on disk as temporary file.
+	 * 
+	 * @param attributeList
+	 * @return a path or empty list if something went wrong.
+	 */
+	public String getAnnotationsFilePath(String attributeList) {
+		// 1. check if already present on disk
+		QueryElement qe = this.metadata.getBindings().get(attributeList);
+		Attribute attr = Utils.getAttributeForAnnotationRetrieval(qe);
+		String datasetConfigName = Utils.getDatasetConfig(qe.getElement()),
+			attributeName = attr.getName(),
+			key = annFilePathMapKey(datasetConfigName, attributeName),
+			path = annotationsFilePaths.get(key);
+		
+		if (path == null) {
+			// 1.1 get annotations and put them on disk
+			File annotationFile;
+			
+			try {
+				
+				annotationFile = File.createTempFile(key, "annotations");
+				annotationFile.deleteOnExit();
+				
+			} catch (IOException e) {
+				Log.error(this.getClass().getName() + "#getAnnotationsFilePath("
+						+ attributeList + ") impossible to create a temporary file", e);
+				return "";
+			}
+			
+			try(
+				FileOutputStream oStream = new FileOutputStream(annotationFile)
+			) {
+				
+				path = annotationFile.getPath();
+				queryForAnnotations(attributeList, oStream);
+				annotationsFilePaths.put(key, path);
+				
+			} catch (IOException e) {
+				Log.error(this.getClass().getName() + "#getAnnotationsFilePath("
+					+ attributeList + ") impossible to write on temporary file.", e);
+				return "";
+			}
+		}
+		
+		return path;
+	}
+	
+	/**
+	 * Provides the key for the annotations to file path map.
+	 * @param datasetConfigName Name of the dataset config the attribute list belongs to.
+	 * @param attributeName The name of the second attribute within the attribute list (See documentation).
+	 * @return Key for the annotations to file path map.
+	 */
+	private String 
+	annFilePathMapKey(String datasetConfigName, String attributeName) {
+		return datasetConfigName + attributeName;
 	}
 	
 	/**
@@ -162,7 +260,7 @@ public class EnrichmentDino implements Dino {
 		
 		qelem = bindings.get(attributeList);
 		
-		tmpe = Utils.getAttributeForEnsemblSpecieIdTranslation(qelem);
+		tmpe = Utils.getAttributeForAnnotationRetrieval(qelem);
 		
 		// It means it didn't find a filter list or qelem doesn't wrap an
 		// attribute list.

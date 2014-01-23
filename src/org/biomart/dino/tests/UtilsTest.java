@@ -52,21 +52,21 @@ public class UtilsTest {
 
 	@Test
 	public void getAttributeForEnsemblSpecieIdTranslationTest() {
-		Attribute gotA = Utils.getAttributeForEnsemblSpecieIdTranslation(qe);
+		Attribute gotA = Utils.getAttributeForAnnotationRetrieval(qe);
 		assertEquals(forSpec, gotA);
 	}
 	
 	@Test
 	public void getAttributeForEnsemblSpecieIdTranslationFailTest0() {
 		aList.remove(0);
-		Attribute gotA = Utils.getAttributeForEnsemblSpecieIdTranslation(qe);
+		Attribute gotA = Utils.getAttributeForAnnotationRetrieval(qe);
 		assertNull(gotA);
 	}
 	
 	@Test
 	public void getAttributeForEnsemblSpecieIdTranslationFailTest1() {
 		when(a.getAttributeList()).thenReturn(new ArrayList<Attribute>());
-		Attribute gotA = Utils.getAttributeForEnsemblSpecieIdTranslation(qe);
+		Attribute gotA = Utils.getAttributeForAnnotationRetrieval(qe);
 		assertNull(gotA);
 	}
 
