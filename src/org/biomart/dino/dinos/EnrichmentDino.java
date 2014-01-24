@@ -27,31 +27,6 @@ import org.biomart.queryEngine.QueryElement;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
-// Such that it can easily use even compound commands
-//Command cmd;
-//CommandRunner cmdRunner;
-//
-//Query initQuery()												V
-//void getQueryResults(Query q, OutputStream o);					V
-//String buildCommand() { return cmd.build(); }
-//void runCommand() { cmdRunner.run(buildCommnad()); }
-//Query toEnsembl(String filterValue); OPTIONAL
-//Query toHgnc(String filterValue) { 
-//	return initQuery()
-//		.addFilter(...)
-//		.addAttribute(TO_HGNC_ATTR)
-//		.end();
-//}
-//OutputStream mkInMemoryStream();
-//
-//void getAnnotations(String attribute, OutputStream o);			V
-//void printResults(String res, OutputStream o);
-//
-//void setCommand(Command cmd);
-//void setRegistryFactory(MartRegistryFactory reg);				V
-//void setCommandRunner(CommandRunner cmdRunner);
-
-
 /**
  * NOTE This implementation assumes the incoming query has only one attribute!
  * 
@@ -83,6 +58,7 @@ public class EnrichmentDino implements Dino {
 	QueryBuilder qbuilder;
 	MetaData metadata;
 	
+	// Temporary files.
 	File backgroundInput, setsInput;
 	
 	@Inject
@@ -115,7 +91,7 @@ public class EnrichmentDino implements Dino {
 		
 		for (int i = 0; i < filters.length; ++i) {
 			filt = filters[i];
-			// These file must be deleted at the end of the processing.
+			// These files must be deleted at the end of processing.
 			File f = inputFiles[i] = File.createTempFile(filt, "filter");
 			
 			try (FileOutputStream oStream = new FileOutputStream(f)) {
@@ -350,24 +326,8 @@ public class EnrichmentDino implements Dino {
 		return this.metadata;
 	}
 	
-	public Command getCommand() {
-		return cmd;
-	}
-	
-	public CommandRunner getCommandRunner() {
-		return cmdRunner;
-	}
-	
 	public QueryBuilder getQueryBuilder() {
 		return this.qbuilder;
-	}
-		
-	String buildCommand() {
-		return cmd.build();
-	}
-	
-	void runCommand() { 
-		cmdRunner.run(buildCommand()); 
 	}
 	
 }
