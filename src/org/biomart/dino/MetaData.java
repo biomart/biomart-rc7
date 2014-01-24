@@ -23,7 +23,7 @@ public class MetaData {
 	 * @param fields fields bound to the query elements. From them we can retrieve the Function field values.
 	 * @param qel QueryElements from the query, bound to dino fields.
 	 */
-	public void setBindings(List<Field> fields, List<QueryElement> qel) {
+	public MetaData setBindings(List<Field> fields, List<QueryElement> qel) {
 		boundEls = new HashMap<String, QueryElement>();
 		Element e = null;
 		Func a = null;
@@ -40,6 +40,8 @@ public class MetaData {
 				}
 			}
 		}
+		
+		return this;
 	}
 	
 	/**

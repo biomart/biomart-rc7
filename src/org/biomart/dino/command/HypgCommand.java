@@ -29,11 +29,6 @@ public class HypgCommand implements ShellCommand {
 		return this;
 	}
 
-	public HypgCommand setCmdBinPath(String bin) {
-		this.cmd = bin;
-		return this;
-	}
-
 	public File getBackground() {
 		return background;
 	}

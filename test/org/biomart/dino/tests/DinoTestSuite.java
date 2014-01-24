@@ -7,14 +7,10 @@ import org.junit.runners.Suite.SuiteClasses;
 import org.biomart.dino.tests.querybuilder.JavaQueryBuilderTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ 
-//	EnrichmentDinoTest.class, 
-	DinoHandlerTest.class,
-	AttributesConfigTest.class,
-	MetaDataTest.class,
-	JavaQueryBuilderTest.class,
-	UtilsTest.class,
-	HypgCommandTest.class})
+@SuiteClasses({
+    // EnrichmentDinoTest.class,
+    DinoHandlerTest.class, AttributesConfigTest.class, MetaDataTest.class,
+    JavaQueryBuilderTest.class, UtilsTest.class, HypgCommandTest.class })
 public class DinoTestSuite {
 
 }
