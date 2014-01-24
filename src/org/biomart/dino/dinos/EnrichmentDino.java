@@ -229,37 +229,38 @@ public class EnrichmentDino implements Dino {
 	 * @param o
 	 */
 	public void queryForAnnotations(String attributeList, OutputStream o) {
-		Element tmpe = null;
-		Attribute attr = null;
+		Element annRetr = null, geneRetr;
 		QueryElement qelem = null;
+		
 		// We can get the queryelement from the function of element it wraps.
 		Map<String, QueryElement> bindings = this.metadata.getBindings();
 		
 		qelem = bindings.get(attributeList);
 		
-		tmpe = Utils.getAttributeForAnnotationRetrieval(qelem);
+		// This is for the annotation column
+		annRetr = Utils.getAttributeForAnnotationRetrieval(qelem);
 		
 		// It means it didn't find a filter list or qelem doesn't wrap an
 		// attribute list.
-		if (tmpe == null) {
+		if (annRetr == null) {
 		Log.error(this.getClass().getName() + "#toEnsemblGeneId(): "+
 			"cannot get the necesary attribute needed for translation. "+
 			"Maybe "+ attributeList + " is not an attribute list?");
 			return;
 		}
 		
+		// This is for the gene column
+		geneRetr = Utils.getAttributeForEnsemblGeneIdTranslation(qelem);
 		
-		
-		attr = (Attribute) tmpe;
-		
-		submitAnnotationsQuery(attr, o);
+		submitAnnotationsQuery((Attribute) annRetr, (Attribute) geneRetr, o);
 	}
 	
 	
-	private void submitAnnotationsQuery(Attribute attr, OutputStream o) {
+	private void submitAnnotationsQuery(Attribute st, Attribute sd, OutputStream o) {
 		initQueryBuilder();
-		qbuilder.setDataset(Utils.getDatasetName(attr), Utils.getDatasetConfig(attr))
-			.addAttribute(attr.getName())
+		qbuilder.setDataset(Utils.getDatasetName(st), Utils.getDatasetConfig(st))
+			.addAttribute(st.getName())
+			.addAttribute(sd.getName())
 			.getResults(o);
 	}
 	
