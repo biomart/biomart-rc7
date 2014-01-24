@@ -73,7 +73,7 @@ public class DinoHandlerTest {
 	@Test
 	public void setFieldValuesTest() throws IllegalArgumentException, IllegalAccessException {
 		String otherFilter = "other filter", otherAttribute = "other attribute",
-				first = "first", second = "second";
+				first = "first", second = "second", stVal = "1st";
 		Element e = null;
 		QueryElement qe;
 		TestDino dino = new TestDino();
@@ -92,18 +92,18 @@ public class DinoHandlerTest {
 		// notice that i'm not mocking the getFilterValues method here.
 		l.add(TestSupport.mockQE(e, QueryElementType.FILTER));
 		
+		e = TestSupport.mockAttributeElement(XMLElements.FUNCTION, second, second);
+        l.add(qe = TestSupport.mockQE(e, QueryElementType.ATTRIBUTE));
+        expectedBoundEls.add(qe);
+        
 		e = TestSupport.mockAttributeElement(XMLElements.FUNCTION, first, null);
 		l.add(qe = TestSupport.mockQE(e, QueryElementType.FILTER));
-		when(qe.getFilterValues()).thenReturn(first);
-		expectedBoundEls.add(qe);
-		
-		e = TestSupport.mockAttributeElement(XMLElements.FUNCTION, second, second);
-		l.add(qe = TestSupport.mockQE(e, QueryElementType.ATTRIBUTE));
+		when(qe.getFilterValues()).thenReturn(stVal);
 		expectedBoundEls.add(qe);
 		
 		boundEls = DinoHandler.setFieldValues(dino, fds, l);
 		
-		assertEquals(first, dino.getF1());
+		assertEquals(stVal, dino.getF1());
 		assertEquals(second, dino.getF2());
 		
 		Iterator<QueryElement> it = boundEls.iterator();

@@ -46,6 +46,7 @@ public class EnrichmentDino implements Dino {
     static private Map<String, String> annotationsFilePaths = 
             new HashMap<String, String>();
 
+    // NOTE: these will contain filter values and attribute names.
     @Func(id = BACKGROUND)
     String background;
     @Func(id = SETS)
@@ -132,28 +133,40 @@ public class EnrichmentDino implements Dino {
     }
     
     public void translateFilters() throws IOException {
-        String[] filters = new String[] { background, sets };
-        File[] inputFiles = new File[] { backgroundInput, setsInput };
+        Log.debug(this.getClass().getName() + "#translatesFilters()");
+        String[] filters = new String[] { BACKGROUND, SETS },
+                filterValues = new String[] { background, sets };
         String filterName = "", filt;
+        
+        File[] inputFiles = new File[] { backgroundInput, setsInput };
+        
         Map<String, QueryElement> bind = this.metadata.getBindings();
+        Log.debug(bind);
+        
         QueryElement qe;
+        Element e = null;
 
         for (int i = 0; i < filters.length; ++i) {
             filt = filters[i];
             // These files must be deleted at the end of processing.
-            File f = inputFiles[i] = File.createTempFile(filt, "filter");
+            File f = inputFiles[i] = File.createTempFile("input", "filter");
 
             try (FileOutputStream oStream = new FileOutputStream(f)) {
-
+                Log.debug("EnrichmentDino::translateFilters() for filter : "+ filt);
+        
                 qe = bind.get(filt);
-                filterName = qe.getElement().getName();
-                toEnsemblGeneId(annotation, filterName, qe.getFilterValues(),
-                        oStream);
+                e = qe.getElement();
+                filterName = e.getName();
+                
+                toEnsemblGeneId(ANNOTATION, 
+                                filterName, 
+                                filterValues[i],
+                                oStream);
 
-            } catch (FileNotFoundException e) {
+            } catch (FileNotFoundException ex) {
                 Log.error(this.getClass().getName() + "#translateFilters() "
-                        + "impossible to write on temporary file.", e);
-                throw e;
+                        + "impossible to write on temporary file.", ex);
+                throw ex;
             }
         }
 
@@ -243,7 +256,9 @@ public class EnrichmentDino implements Dino {
         Map<String, QueryElement> bindings = this.metadata.getBindings();
 
         qelem = bindings.get(attributeList);
-
+        Log.debug(this.getClass().getName() + "#toEnsemblGeneId()" 
+                + " attributeList = "+ attributeList 
+                + " element got = "+ qelem);
         tmpe = Utils.getAttributeForEnsemblGeneIdTranslation(qelem);
 
         // It means it didn't find a filter list or qelem doesn't wrap an
@@ -251,7 +266,7 @@ public class EnrichmentDino implements Dino {
         if (tmpe == null) {
             Log.error(this.getClass().getName()
                     + "#toEnsemblGeneId(): "
-                    + "cannot get the necesary attribute needed for translation. "
+                    + "cannot get the necessary attribute needed for translation. "
                     + "Maybe " + attributeList + " is not an attribute list?");
             return;
         }

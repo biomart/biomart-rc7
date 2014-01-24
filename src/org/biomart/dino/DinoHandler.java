@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.biomart.api.factory.XmlMartRegistryModule;
+import org.biomart.common.exceptions.FunctionalException;
 import org.biomart.common.exceptions.ValidationException;
 import org.biomart.common.resources.Log;
 import org.biomart.dino.annotations.Func;
@@ -66,13 +67,16 @@ public class DinoHandler {
             dinoClass = getDinoClass(dinoName);
             // Get the fields to bing to
             List<Field> fields = getAnnotatedFields(dinoClass);
+            Log.debug("DinoHandler::runDino() number of annotated fields from class "+dinoClass.getName()+" is "+fields.size());
+            Log.debug("DinoHandler::runDino() number query elements is "+ q.getQueryElementList().size());
             // Create an Dino instance
             dino = inj.getInstance(dinoClass);
 
             // Set the field values
-            setFieldValues(dino, fields, q.getQueryElementList());
+            List<QueryElement> boundEls = 
+                    setFieldValues(dino, fields, q.getQueryElementList());
             MetaData md = new MetaData()
-                .setBindings(fields, q.getQueryElementList());
+                .setBindings(fields, boundEls);
             
             dino.setQuery(q)
                 .setMimes(mimes)
@@ -153,7 +157,6 @@ public class DinoHandler {
 
     /**
      * 
-     * Note that it modifies the original fields argument.
      * 
      * @param b
      *            The builder instance on which set field values.
@@ -162,44 +165,46 @@ public class DinoHandler {
      * @param qes
      *            elements coming from the query.
      * 
+     * @return The QueryElements that have been bound.
+     * 
      * @throws IllegalArgumentException
      * @throws IllegalAccessException
      * @throws ValidationException
      *             if there's any mandatory function parameter missing.
      */
-    public static List<QueryElement> setFieldValues(Dino b, List<Field> fields,
-            List<QueryElement> qes) throws IllegalArgumentException,
-            IllegalAccessException {
+    public static List<QueryElement> 
+    setFieldValues(Dino b, List<Field> fields, List<QueryElement> qes) 
+                           throws IllegalArgumentException,
+                                  IllegalAccessException {
         XMLElements key = XMLElements.FUNCTION;
         String propVal = null;
         Element e = null;
         Func a = null;
-        ArrayList<Field> fieldsCp = null;
-        ArrayList<QueryElement> boundEls = new ArrayList<QueryElement>(qes);
+        ArrayList<Field> fieldsCp = null, currFields = new ArrayList<Field>(fields);
+        ArrayList<QueryElement> boundEls = new ArrayList<QueryElement>(qes.size());
 
         for (QueryElement q : qes) {
             e = q.getElement();
             // Get its function name
             propVal = e.getPropertyValue(key);
 
-            fieldsCp = new ArrayList<Field>(fields);
+            fieldsCp = new ArrayList<Field>(currFields);
             for (Field f : fieldsCp) {
                 a = f.getAnnotation(Func.class);
                 if (a.id().equalsIgnoreCase(propVal)) {
                     f.setAccessible(true);
                     f.set(b, getElementValue(q));
                     f.setAccessible(false);
-                    fields.remove(f);
-                } else {
-                    boundEls.remove(q);
+                    currFields.remove(f);
+                    boundEls.add(q);
                 }
             }
 
-            if (fields.size() == 0)
+            if (currFields.size() == 0)
                 break;
         }
 
-        for (Field f : fields) {
+        for (Field f : currFields) {
             if (!f.getAnnotation(Func.class).optional()) {
                 throw new ValidationException("Function parameter `"
                         + f.getAnnotation(Func.class).id() + "` missing");
