@@ -21,8 +21,8 @@ public class DinoModule extends AbstractModule {
             .annotatedWith(Names.named("JavaApi"))
             .to(JavaQueryBuilder.class);
 
-        bind(HypgRunner.class).to(HypgRunner.class);
-        bind(HypgCommand.class).to(HypgCommand.class);
+        bind(HypgRunner.class);
+        bind(HypgCommand.class);
 
     }
 
