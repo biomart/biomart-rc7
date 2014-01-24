@@ -8,7 +8,7 @@ public class HypgCommand implements ShellCommand {
 
 	File background, sets, annotations, bin;
 	String cutoff;
-	
+
 	@Override
 	public String build() {
 		return StringUtils.join(new String[] {
@@ -19,13 +19,18 @@ public class HypgCommand implements ShellCommand {
 			"-c", getCutoff()
 		}, " ");
 	}
-	
+
 	public File getCmdBinPath() {
 		return bin;
 	}
-	
+
 	public HypgCommand setCmdBinPath(File bin) {
 		this.bin = bin;
+		return this;
+	}
+
+	public HypgCommand setCmdBinPath(String bin) {
+		this.cmd = bin;
 		return this;
 	}
 
@@ -64,7 +69,7 @@ public class HypgCommand implements ShellCommand {
 		this.cutoff = cutoff;
 		return this;
 	}
-	
-	
+
+
 
 }
