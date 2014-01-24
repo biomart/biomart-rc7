@@ -12,7 +12,9 @@ import org.biomart.dino.tests.querybuilder.JavaQueryBuilderTest;
 	DinoHandlerTest.class,
 	AttributesConfigTest.class,
 	MetaDataTest.class,
-	JavaQueryBuilderTest.class})
+	JavaQueryBuilderTest.class,
+	UtilsTest.class,
+	HypgCommandTest.class})
 public class DinoTestSuite {
 
 }

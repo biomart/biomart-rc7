@@ -18,7 +18,7 @@ public class AttributesConfigTest {
 	static final String sep = AttributesConfig.sep,
 			dirPath = StringUtils.join(new String [] {
 					System.getProperty("user.dir"),
-					"src",
+					"test",
 					"org",
 					"biomart",
 					"dino",
