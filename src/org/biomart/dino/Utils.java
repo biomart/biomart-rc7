@@ -1,10 +1,13 @@
 package org.biomart.dino;
 
+import java.util.Iterator;
 import java.util.List;
 
 import org.biomart.objects.objects.Attribute;
 import org.biomart.objects.objects.Element;
+import org.biomart.queryEngine.Query;
 import org.biomart.queryEngine.QueryElement;
+import org.biomart.queryEngine.QueryElementType;
 
 public class Utils {
 
@@ -27,6 +30,20 @@ public class Utils {
         List<Attribute> eList = getAttributeList(qe);
         return eList.isEmpty() ? null : eList.get(0);
     }
+    
+    public static Attribute 
+    getAttributeForEnsemblGeneIdTranslation(Query q) {
+        QueryElement qe;
+        List<QueryElement> l = q.getQueryElementList();
+        Iterator<QueryElement> it = l.iterator();
+        while(it.hasNext()) {
+            if ((qe = it.next()).getType() != QueryElementType.ATTRIBUTE) {
+                return (Attribute) qe.getElement();
+            }
+        }
+        
+        return null;
+    }
 
     /**
      * Same as getAttributeForEnsemblGeneIdTranslation except that this is for
@@ -38,6 +55,20 @@ public class Utils {
     public static Attribute getAttributeForAnnotationRetrieval(QueryElement qe) {
         List<Attribute> eList = getAttributeList(qe);
         return eList.size() > 1 ? eList.get(1) : null;
+    }
+    
+    public static Attribute 
+    getAttributeForAnnotationRetrieval(Query q) {
+        QueryElement qe;
+        List<QueryElement> l = q.getQueryElementList();
+        Iterator<QueryElement> it = l.iterator();
+        while(it.hasNext()) {
+            if ((qe = it.next()).getType() != QueryElementType.ATTRIBUTE) {
+                return (Attribute) qe.getElement();
+            }
+        }
+        
+        return null;
     }
 
     private static List<Attribute> getAttributeList(QueryElement qe) {

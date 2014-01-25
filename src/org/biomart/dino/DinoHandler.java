@@ -66,28 +66,28 @@ public class DinoHandler {
             // Get the class
             dinoClass = getDinoClass(dinoName);
             // Get the fields to bing to
-            List<Field> fields = getAnnotatedFields(dinoClass);
-            Log.debug("DinoHandler::runDino() number of annotated fields from class "+dinoClass.getName()+" is "+fields.size());
+//            List<Field> fields = getAnnotatedFields(dinoClass);
+//            Log.debug("DinoHandler::runDino() number of annotated fields from class "+dinoClass.getName()+" is "+fields.size());
             Log.debug("DinoHandler::runDino() number query elements is "+ q.getQueryElementList().size());
             // Create an Dino instance
             dino = inj.getInstance(dinoClass);
 
             // Set the field values
-            List<QueryElement> boundEls = 
-                    setFieldValues(dino, fields, q.getQueryElementList());
-            MetaData md = new MetaData()
-                .setBindings(fields, boundEls);
+//            List<QueryElement> boundEls = 
+//                    setFieldValues(dino, fields, q.getQueryElementList());
+//            Binding md = new Binding()
+//                .setBindings(fields, boundEls);
             
             dino.setQuery(q)
                 .setMimes(mimes)
-                .setMetaData(md)
+                .setMetaData(new Binding())
                 .run(o);
 
         } catch (ClassNotFoundException e) {
             Log.error("DinoHandler#runDino Class<" + dinoName + "> not found.",
                     e);
             o.close();
-        } catch (IllegalArgumentException | IllegalAccessException e) {
+        } catch (IllegalArgumentException e) {
             Log.error("DinoHandler#runDino ", e);
             o.close();
         }
@@ -129,106 +129,5 @@ public class DinoHandler {
         Dino dino = Dino.class.cast(ctor.newInstance());
 
         return dino;
-    }
-
-    /**
-     * Explores klass' fields and returns the ones annotated with the Func
-     * annotation.
-     * 
-     * @param klass
-     * @return a list of fields annotated with the Func annotation.
-     */
-    public static List<Field> getAnnotatedFields(Class<?> klass) {
-        // All fields, included the interfaces' ones
-        Field[] fds = klass.getDeclaredFields();
-        List<Field> fields = new ArrayList<Field>(fds.length);
-
-        for (Field f : fds) {
-            if (f.isAnnotationPresent(Func.class)
-                    && f.getType() == String.class) {
-
-                fields.add(f);
-
-            }
-        }
-
-        return fields;
-    }
-
-    /**
-     * 
-     * 
-     * @param b
-     *            The builder instance on which set field values.
-     * @param fields
-     *            builder's class' fields annotated with the Func annotation.
-     * @param qes
-     *            elements coming from the query.
-     * 
-     * @return The QueryElements that have been bound.
-     * 
-     * @throws IllegalArgumentException
-     * @throws IllegalAccessException
-     * @throws ValidationException
-     *             if there's any mandatory function parameter missing.
-     */
-    public static List<QueryElement> 
-    setFieldValues(Dino b, List<Field> fields, List<QueryElement> qes) 
-                           throws IllegalArgumentException,
-                                  IllegalAccessException {
-        XMLElements key = XMLElements.FUNCTION;
-        String propVal = null;
-        Element e = null;
-        Func a = null;
-        ArrayList<Field> fieldsCp = null, currFields = new ArrayList<Field>(fields);
-        ArrayList<QueryElement> boundEls = new ArrayList<QueryElement>(qes.size());
-
-        for (QueryElement q : qes) {
-            e = q.getElement();
-            // Get its function name
-            propVal = e.getPropertyValue(key);
-
-            fieldsCp = new ArrayList<Field>(currFields);
-            for (Field f : fieldsCp) {
-                a = f.getAnnotation(Func.class);
-                if (a.id().equalsIgnoreCase(propVal)) {
-                    f.setAccessible(true);
-                    f.set(b, getElementValue(q));
-                    f.setAccessible(false);
-                    currFields.remove(f);
-                    boundEls.add(q);
-                }
-            }
-
-            if (currFields.size() == 0)
-                break;
-        }
-
-        for (Field f : currFields) {
-            if (!f.getAnnotation(Func.class).optional()) {
-                throw new ValidationException("Function parameter `"
-                        + f.getAnnotation(Func.class).id() + "` missing");
-            }
-        }
-
-        return boundEls;
-    }
-
-    public static String getElementValue(QueryElement qe) {
-        String value = "";
-
-        switch (qe.getType()) {
-        case ATTRIBUTE:
-            Attribute a = (Attribute) qe.getElement();
-            value = a.getName();
-            break;
-        case FILTER:
-            value = qe.getFilterValues();
-            break;
-        default:
-            break;
-        }
-
-        return value;
     }
 }

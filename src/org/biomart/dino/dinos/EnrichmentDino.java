@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.biomart.common.resources.Log;
-import org.biomart.dino.MetaData;
+import org.biomart.dino.Binding;
 import org.biomart.dino.Utils;
 import org.biomart.dino.annotations.Func;
 import org.biomart.dino.command.Command;
@@ -62,7 +62,7 @@ public class EnrichmentDino implements Dino {
     HypgCommand cmd;
     HypgRunner cmdRunner;
     QueryBuilder qbuilder;
-    MetaData metadata;
+    Binding metadata;
 
     // Temporary files.
     File backgroundInput, setsInput;
@@ -378,12 +378,12 @@ public class EnrichmentDino implements Dino {
     }
 
     @Override
-    public Dino setMetaData(MetaData md) {
+    public Dino setMetaData(Binding md) {
         this.metadata = md;
         return this;
     }
 
-    public MetaData getMetaData() {
+    public Binding getMetaData() {
         return this.metadata;
     }
 

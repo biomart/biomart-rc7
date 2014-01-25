@@ -49,6 +49,8 @@ public class Query {
     public List<QueryElement> pseudoAttributes = new ArrayList<QueryElement>();
 
 	private final boolean isCountQuery;
+	
+	private List<QueryElement> attributeListList = null;
 
     public Query(QueryValidator qv, boolean isCountQuery) {
 		this.isCountQuery = isCountQuery;
@@ -72,6 +74,8 @@ public class Query {
         this.outputOrder = new int[this.originalAttributeOrder.size()];
         this.isAttributeList = qv.getAttributeListSizes().toArray(new Integer[qv.getAttributeListSizes().size()]);
 		this.outputDisplayNames = new String[this.originalAttributeOrder.size()];
+		
+		attributeListList = qv.getAttributeListList();
 	}
 
     public String getDino() {

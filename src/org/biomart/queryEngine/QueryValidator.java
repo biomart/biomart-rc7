@@ -52,6 +52,8 @@ public class QueryValidator {
 
     private Map<String,String> processorParams;
     private Map<String,String> processorConfig;
+    
+    private List<QueryElement> attributeListList = new ArrayList<QueryElement>();
 
     public String getClient() {
         return client;
@@ -85,6 +87,10 @@ public class QueryValidator {
     public String getDino() {
     		Log.debug(this.getClass().getName() + "#getDino");
 		return dino;
+    }
+    
+    public List<QueryElement> getAttributeListList() {
+        return this.attributeListList;
     }
 
     public QueryValidator(Document queryXMLobject, MartRegistry registryObj, String userGroup) {
@@ -191,6 +197,7 @@ public class QueryValidator {
                     }
 
                     if (attribute.isAttributeList()) {
+                        attributeListList.add(new QueryElement(attribute, dataset));
                         for (Attribute subAttribute : attribute.getAttributeList()) {
                             processAttribute(seenAttributes, pseudoAttributeMap, dataset, subAttribute, isMultiple, processLinkOut, linkAttributeNames);
                         }
