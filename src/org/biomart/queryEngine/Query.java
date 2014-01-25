@@ -51,7 +51,7 @@ public class Query {
 	private final boolean isCountQuery;
 	
 	private List<QueryElement> attributeListList = null;
-	private List<QueryElement> filtersGroup = null
+	private List<QueryElement> filtersGroup = null;
 
     public Query(QueryValidator qv, boolean isCountQuery) {
 		this.isCountQuery = isCountQuery;
