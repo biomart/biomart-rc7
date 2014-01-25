@@ -51,6 +51,7 @@ public class Query {
 	private final boolean isCountQuery;
 	
 	private List<QueryElement> attributeListList = null;
+	private List<QueryElement> filtersGroup = null
 
     public Query(QueryValidator qv, boolean isCountQuery) {
 		this.isCountQuery = isCountQuery;
@@ -76,10 +77,19 @@ public class Query {
 		this.outputDisplayNames = new String[this.originalAttributeOrder.size()];
 		
 		attributeListList = qv.getAttributeListList();
+		filtersGroup = qv.getFilters();
 	}
 
     public String getDino() {
     		return dino;
+    }
+    
+    public List<QueryElement> getAttributeListList() {
+        return attributeListList;
+    }
+    
+    public List<QueryElement> getFilters() {
+        return filtersGroup;
     }
     
     public Map<Dataset, SubQuery> getImportableOnlySubqueries() {

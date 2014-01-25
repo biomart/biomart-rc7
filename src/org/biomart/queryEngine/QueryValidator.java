@@ -54,6 +54,7 @@ public class QueryValidator {
     private Map<String,String> processorConfig;
     
     private List<QueryElement> attributeListList = new ArrayList<QueryElement>();
+    private List<QueryElement> filtersGroup = new ArrayList<QueryElement>();
 
     public String getClient() {
         return client;
@@ -91,6 +92,10 @@ public class QueryValidator {
     
     public List<QueryElement> getAttributeListList() {
         return this.attributeListList;
+    }
+    
+    public List<QueryElement> getFilters() {
+        return this.filtersGroup;
     }
 
     public QueryValidator(Document queryXMLobject, MartRegistry registryObj, String userGroup) {
@@ -179,7 +184,7 @@ public class QueryValidator {
             }
 
             List<Element> attributesXML = datasetElement.getChildren("Attribute");
-
+            
             for (Element attributeXML : attributesXML) {
                 List<String> linkAttributeNames = new ArrayList<String>();
                 Set<String> seenAttributes = new HashSet<String>();
@@ -238,6 +243,7 @@ public class QueryValidator {
             // Check and add filters
             List filtersXML = datasetElement.getChildren("Filter");
             Iterator filtersXMLIterator = filtersXML.iterator();
+            QueryElement ff;
             // Get and iterate over the filter objects in the XML
             while (filtersXMLIterator.hasNext()) {
                 Element filterXML = (Element) filtersXMLIterator.next();
@@ -256,10 +262,12 @@ public class QueryValidator {
                         throw new ValidationException("Filter " + name + " not found in " + dataset.getDisplayName());
                     }
                     if (isMultiple) {
-                        queryElementList.add(0, new QueryElement(filter, value, dataset));
+                        queryElementList.add(0, ff = new QueryElement(filter, value, dataset));
                     } else {
-                        queryElementList.add(new QueryElement(filter, value, dataset));
+                        queryElementList.add(ff = new QueryElement(filter, value, dataset));
                     }
+                    
+                    filtersGroup.add(ff);
                 }
             }
             isFirst = false;
