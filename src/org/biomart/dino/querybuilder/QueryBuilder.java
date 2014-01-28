@@ -35,6 +35,10 @@ public interface QueryBuilder {
 	public String getDatasetConfig();
 	
 	public QueryBuilder init();
+	
+	public QueryBuilder setUseDino(boolean use);
+	
+	public boolean getUseDino();
 
 	
 }

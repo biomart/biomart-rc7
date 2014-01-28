@@ -21,7 +21,8 @@ public class JavaQueryBuilder implements QueryBuilder {
 	 * By default, it starts with a query with this parameters:
 	 * header = false
 	 * client = "false"
-	 * processor = "TSVX"
+	 * processor = "TSV"
+	 * useDino = true
 	 * limit = -1, that is not limit
 	 * empty dataset name and configuration
 	 * 
@@ -46,6 +47,11 @@ public class JavaQueryBuilder implements QueryBuilder {
 		this.dataset = null;
 		this.datasetName = "";
 		this.datasetConfig = "";
+		q.setHeader(header)
+		    .setClient(client)
+		    .setProcessor(proc)
+		    .setLimit(limit);
+		
 		return this;
 	}
 
@@ -133,5 +139,16 @@ public class JavaQueryBuilder implements QueryBuilder {
 	public String getDatasetConfig() {
 		return datasetConfig;
 	}
+
+    @Override
+    public QueryBuilder setUseDino(boolean use) {
+        q.setUseDino(use);
+        return this;
+    }
+
+    @Override
+    public boolean getUseDino() {
+        return q.getUseDino();
+    }
 
 }

@@ -113,23 +113,23 @@ public final class QueryController {
             queryValidator.setQueryDocument(queryXMLobject);
             queryValidator.validateQuery();
             
-            if (! queryValidator.hasDino()) {
-	            	query = splitQuery();
-	
-	    			Log.debug("Unplanned: " + query);
-	
-	    			// This is commented because it does not work anymore
-	                // esentially there is no query planning happening anymore
-	                // to be replaced with an intelligent query planner at some stage
-	                // query.planQuery();
-	
-	    			Log.debug("Planned:" + query);
-	
-	    			generateAttributePositions();
-	
-	    			Log.debug("LIMIT: " + query.getLimit());
+            if (queryValidator.hasDino() && queryValidator.getUseDino()) {
+                    query = null;
             } else {
-            		query = null;
+                query = splitQuery();
+                
+                Log.debug("Unplanned: " + query);
+
+                // This is commented because it does not work anymore
+                // essentially there is no query planning happening anymore
+                // to be replaced with an intelligent query planner at some stage
+                // query.planQuery();
+
+                Log.debug("Planned:" + query);
+
+                generateAttributePositions();
+
+                Log.debug("LIMIT: " + query.getLimit());
             }
 		} catch (Exception e) {
             throw new ValidationException(e.getMessage(), e);
@@ -149,19 +149,19 @@ public final class QueryController {
         // 4. Run query
         // 5. Call done (cleanup) on Processor
         try {
-        		if (queryValidator.hasDino()) {
+        		if (queryValidator.hasDino() && queryValidator.getUseDino()) {
         			Query q = new Query(queryValidator, false);
         			DinoHandler.runDino(q, user, mimes, outputHandle);
         		} else {
-                QueryRunner queryRunnerObj = new QueryRunner(query,
-                        processorObj.getCallback(), processorObj.getErrorHandler(), isCountQuery);
-
-                processorObj.setQuery(queryRunnerObj.query);
-                processorObj.setOutputStream(outputHandle);
-
-                queryRunnerObj.runQuery();
-
-                processorObj.done();
+                    QueryRunner queryRunnerObj = new QueryRunner(query,
+                            processorObj.getCallback(), processorObj.getErrorHandler(), isCountQuery);
+    
+                    processorObj.setQuery(queryRunnerObj.query);
+                    processorObj.setOutputStream(outputHandle);
+    
+                    queryRunnerObj.runQuery();
+    
+                    processorObj.done();
         		}
         } catch (BioMartException e) {
             if (!(e.getCause() instanceof EOFException)) {

@@ -11,9 +11,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.biomart.common.exceptions.ValidationException;
 import org.biomart.common.utils.XMLElements;
 import org.biomart.dino.Binding;
-import org.biomart.dino.DinoHandler;
 import org.biomart.dino.annotations.Func;
 import org.biomart.dino.tests.fixtures.TestDino;
 import org.biomart.objects.objects.Element;
@@ -26,8 +26,9 @@ public class BindingTest {
 
     List<Field> fields;
     List<QueryElement> qes;
+    List<Element> els;
     final String stAnn = "first", sdAnn = "second";
-    Map<String, QueryElement> m;
+    Map<String, Element> m;
     
     final Class<TestDino> testDinoClass = TestDino.class;
 
@@ -37,8 +38,10 @@ public class BindingTest {
 
         Field[] fs = org.biomart.dino.tests.fixtures.MetaData.class
                 .getDeclaredFields();
-        Element e1 = mock(Element.class), e2 = mock(Element.class), e3 = mock(Element.class);
-        QueryElement q1 = mock(QueryElement.class), q2 = mock(QueryElement.class), q3 = mock(QueryElement.class);
+        Element e1 = mock(Element.class), e2 = mock(Element.class), 
+                e3 = mock(Element.class);
+        QueryElement q1 = mock(QueryElement.class), q2 = mock(QueryElement.class), 
+                q3 = mock(QueryElement.class);
 
         when(q1.getElement()).thenReturn(e1);
         when(q2.getElement()).thenReturn(e2);
@@ -52,23 +55,47 @@ public class BindingTest {
         qes.add(q1);
         qes.add(q2);
         qes.add(q3);
+        
+        els = new ArrayList<Element>();
+        els.add(e1);
+        els.add(e2);
+        els.add(e3);
 
-        m = new HashMap<String, QueryElement>();
-        m.put(stAnn, q1);
-        m.put(sdAnn, q2);
+        m = new HashMap<String, Element>();
+        m.put(stAnn, e1);
+        m.put(sdAnn, e2);
     }
 
     @Test
-    public void test() {
+    public void setBindingsTest() {
         Binding md = new Binding();
 
         assertFalse(fields.isEmpty());
 
         md.setBindings(fields, qes);
-        Map<String, QueryElement> binding = md.getBindings();
+        Map<String, Element> binding = md.getBindings();
 
         assertTrue(binding.size() != 0);
         assertEquals(m, binding);
+    }
+    
+    @Test
+    public void setBindingsByElementTest() {
+        Binding md = new Binding();
+        md.setBindingsByElement(fields, els);
+        Map<String, Element> binding = md.getBindings();
+
+        assertTrue(binding.size() != 0);
+        assertEquals(m, binding);
+    }
+    
+    @Test(expected = ValidationException.class)
+    public void checkBindingTest() {
+        Binding md = new Binding();
+        els.remove(0);
+        md.setBindingsByElement(fields, els);
+        md.checkBinding(fields);
+
     }
     
     @Test

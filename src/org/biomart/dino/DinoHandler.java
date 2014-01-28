@@ -83,11 +83,7 @@ public class DinoHandler {
                 .setMetaData(new Binding())
                 .run(o);
 
-        } catch (ClassNotFoundException e) {
-            Log.error("DinoHandler#runDino Class<" + dinoName + "> not found.",
-                    e);
-            o.close();
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             Log.error("DinoHandler#runDino ", e);
             o.close();
         }

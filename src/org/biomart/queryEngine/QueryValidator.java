@@ -49,6 +49,8 @@ public class QueryValidator {
     private String client;
     private boolean hasHeader;
     private String userGroup;
+    
+    private boolean useDino;
 
     private Map<String,String> processorParams;
     private Map<String,String> processorConfig;
@@ -56,6 +58,10 @@ public class QueryValidator {
     private List<QueryElement> attributeListList = new ArrayList<QueryElement>();
     private List<QueryElement> filtersGroup = new ArrayList<QueryElement>();
 
+    public boolean getUseDino() {
+        return useDino;
+    }
+    
     public String getClient() {
         return client;
     }
@@ -120,6 +126,8 @@ public class QueryValidator {
 
         client = root.getAttributeValue("client", "");
         String headerAttributeValue = root.getAttributeValue("header", "");
+        
+        useDino = Boolean.parseBoolean(root.getAttributeValue("useDino", "true"));
 
         if ("1".equals(headerAttributeValue) || Boolean.parseBoolean(headerAttributeValue)) {
             hasHeader = true;

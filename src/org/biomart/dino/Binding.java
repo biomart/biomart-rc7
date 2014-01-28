@@ -10,7 +10,6 @@ import org.biomart.common.exceptions.ValidationException;
 import org.biomart.common.resources.Log;
 import org.biomart.common.utils.XMLElements;
 import org.biomart.dino.annotations.Func;
-import org.biomart.dino.dinos.Dino;
 import org.biomart.objects.objects.Attribute;
 import org.biomart.objects.objects.Element;
 import org.biomart.queryEngine.QueryElement;
@@ -19,7 +18,12 @@ public class Binding {
 
     static final XMLElements funcKey = XMLElements.FUNCTION;
 
-    Map<String, QueryElement> boundEls = null;
+    Map<String, Element> boundEls = new HashMap<String, Element>();
+    
+    public Binding clear() {
+        boundEls = new HashMap<String, Element>();
+        return this;
+    }
 
     /**
      * 
@@ -29,43 +33,64 @@ public class Binding {
      * @param qel
      *            QueryElements from the query, bound to dino fields.
      */
-    public Binding setBindings(List<Field> fields, List<QueryElement> qel) {
-        Log.info(this.getClass().getName() 
-                + "#setBingings() fields length = "+ fields.size()
-                + " query elements length "+ qel.size());
-        boundEls = new HashMap<String, QueryElement>();
-        Element e = null;
-        Func a = null;
-        String propVal = "";
-
-        // TODO: improve performance
-        for (QueryElement q : qel) {
-            e = q.getElement();
-            propVal = e.getPropertyValue(funcKey);
-            for (Field f : fields) {
-                a = f.getAnnotation(Func.class);
-                if (a != null) {
-                    if (a.id().equalsIgnoreCase(propVal)) {
-                        boundEls.put(propVal, q);
-                        Log.info(this.getClass().getName() 
-                                + "#setBingings() binding field "
-                                + f.getName() + " to "
-                                + propVal);
-                    } else {
-                        Log.info(this.getClass().getName() 
-                            + "#setBingings() field "
-                            + f.getName() + " has @Func annotation "
-                            + a.id());
-                    }
-                } else {
-                    Log.info(this.getClass().getName() 
-                        + "#setBingings() field "
-                        + f.getName() + " has not @Func annotation");
-                }
+    public Binding setBindings(List<Field> fields, List<QueryElement> queryElements) {
+        
+        List<Field> fieldsCp = new ArrayList<Field>(fields);
+        
+        Field f = null;
+        for (QueryElement q : queryElements) {
+            f = bindElement(q.getElement(), fieldsCp);
+            if (f != null) {
+                // it's bound
+                fieldsCp.remove(f);
             }
         }
+        
 
         return this;
+    }
+    
+    public Binding setBindingsByElement(List<Field> fields, List<Element> els) {
+        
+        List<Field> fieldsCp = new ArrayList<Field>(fields);
+        Field f = null;
+        
+        for (Element e : els) {
+            f = bindElement(e, fieldsCp);
+            if (f != null) {
+                fieldsCp.remove(f);
+            }
+        }
+        
+        return this;
+    }
+    
+    /**
+     * Bind a single Element e to a field in the fields list.
+     * 
+     * @param e
+     * @param fields
+     * @return the field that should be bound to this element, null otherwise.
+     */
+    private Field bindElement(Element e, List<Field> fields) {
+        Func a = null;
+        String propVal = e.getPropertyValue(funcKey);
+        
+        for (Field f : fields) {
+            a = f.getAnnotation(Func.class);
+            if (a != null) {
+                if (a.id().equalsIgnoreCase(propVal)) {
+                    boundEls.put(a.id(), e);
+                    return f;
+                }
+            } else {
+                Log.error(this.getClass().getName() 
+                    + "#setBingings() field "
+                    + f.getName() + " has not @Func annotation");
+            }
+        }
+        
+        return null;
     }
 
     /**
@@ -75,7 +100,7 @@ public class Binding {
      *         this element.
      * 
      */
-    public Map<String, QueryElement> getBindings() {
+    public Map<String, Element> getBindings() {
         return boundEls;
     }
     
@@ -129,14 +154,19 @@ public class Binding {
                 break;
         }
 
-        for (Field f : currFields) {
-            if (!f.getAnnotation(Func.class).optional()) {
+        return boundEls;
+    }
+    
+    
+    public void checkBinding(List<Field> fields) {
+        for (Field f : fields) {
+            Func ann = f.getAnnotation(Func.class); 
+            if (!ann.optional() 
+                && this.boundEls.get(ann.id()) == null) {
                 throw new ValidationException("Function parameter `"
                         + f.getAnnotation(Func.class).id() + "` missing");
             }
         }
-
-        return boundEls;
     }
     
     /**
@@ -164,22 +194,64 @@ public class Binding {
     }
     
     
-    public static String getElementValue(QueryElement qe) {
+    private static String getElementValue(QueryElement qe) {
         String value = "";
 
         switch (qe.getType()) {
-        case ATTRIBUTE:
-            Attribute a = (Attribute) qe.getElement();
-            value = a.getName();
-            break;
-        case FILTER:
-            value = qe.getFilterValues();
-            break;
-        default:
-            break;
+            case ATTRIBUTE:
+                Attribute a = (Attribute) qe.getElement();
+                value = a.getName();
+                break;
+            case FILTER:
+                value = qe.getFilterValues();
+                break;
+            default:
+                break;
         }
 
         return value;
     }
+    
+    /**
+     * Returns the value of e, only if e contains it. That is, only for 
+     * Attributes at the moment.
+     * 
+     * @param e
+     * @return
+     */
+    private static String getElementValue(Element e) {
+        String value = "";
+        
+        if (e instanceof Attribute) {
+            value = ((Attribute) e).getName();
+        }
+        
+        return value;
+    }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
