@@ -102,6 +102,9 @@
     <copy todir="${dist.dir}/conf/xml">
       <fileset dir="${conf.dir}/xml" casesensitive="yes"/>
     </copy>
+    <copy todir="${dist.dir}/conf/dinos">
+      <fileset dir="${conf.dir}/dinos" casesensitive="yes"/>
+    </copy>
     <copy file="${dist.dir}/biomart.properties" tofile="${dist.dir}/biomart.properties.${DSTAMP}${TSTAMP}" failonerror="no"/>
     <copy file="${conf.dir}/files/biomart.properties" todir="${dist.dir}"/>
     <copy todir="${dist.dir}/images">

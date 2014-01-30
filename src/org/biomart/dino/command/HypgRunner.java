@@ -65,7 +65,10 @@ public class HypgRunner extends ShellRunner {
             }
         });
         
-        return new ArrayList<String[]>(results.subList(0, 50));
+        return new ArrayList<String[]>(
+                results.size() > 50 
+                    ? results.subList(0, 50)
+                    : results);
     }
 
 }

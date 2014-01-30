@@ -1,5 +1,6 @@
 package org.biomart.dino;
 
+import org.apache.commons.lang.StringUtils;
 import org.biomart.api.Portal;
 import org.biomart.api.Query;
 import org.biomart.api.factory.MartRegistryFactory;
@@ -17,6 +18,13 @@ public class DinoModule extends AbstractModule {
 
     @Override
     protected void configure() {
+        String s = System.getProperty("file.separator"),
+               p = StringUtils.join(new String[] {
+                       System.getProperty("biomart.basedir"),
+                       System.getProperty("file.separator"),
+                       "conf", "dinos", "EnrichmentDino.properties"
+               }, s);
+        
         bind(QueryBuilder.class)
             .annotatedWith(Names.named("JavaApi"))
             .to(JavaQueryBuilder.class);
@@ -24,10 +32,19 @@ public class DinoModule extends AbstractModule {
         bind(HypgRunner.class);
         bind(HypgCommand.class);
 
+        bind(String.class)
+            .annotatedWith(Names.named("Enrichment File Config Path"))
+            .toInstance(p);
     }
+                
 
     @Provides
-    Query providePortal(MartRegistryFactory factory) {
+    Portal providePortal(MartRegistryFactory factory) {
+        return new Portal(factory);
+    }
+    
+    @Provides
+    Query provideQuery(MartRegistryFactory factory) {
         return new Query(new Portal(factory));
     }
 }

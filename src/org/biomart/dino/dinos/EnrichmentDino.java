@@ -3,13 +3,10 @@ package org.biomart.dino.dinos;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,9 +20,12 @@ import org.biomart.dino.Utils;
 import org.biomart.dino.annotations.Func;
 import org.biomart.dino.command.HypgCommand;
 import org.biomart.dino.command.HypgRunner;
+import org.biomart.dino.configreader.AttributesConfig;
+import org.biomart.dino.configreader.ConfigReader;
+import org.biomart.dino.configreader.EntryReader;
+import org.biomart.dino.configreader.ShellCommandReader;
 import org.biomart.dino.querybuilder.QueryBuilder;
 import org.biomart.objects.objects.Attribute;
-import org.biomart.objects.objects.Dataset;
 import org.biomart.objects.objects.Element;
 import org.biomart.queryEngine.Query;
 import org.biomart.queryEngine.QueryElement;
@@ -45,8 +45,9 @@ public class EnrichmentDino implements Dino {
 
     // Key: dataset_config_name + attribute_list name
     // Value: path of the annotation file
-    static private Map<String, String> annotationsFilePaths = 
-            new HashMap<String, String>();
+    static private Map<String, String> 
+        annotationsFilePaths = new HashMap<String, String>(),
+        config = null;
 
     // NOTE: these will contain filter values and attribute names.
     @Func(id = BACKGROUND)
@@ -72,11 +73,26 @@ public class EnrichmentDino implements Dino {
     OutputStream sink;
 
     @Inject
-    public EnrichmentDino(HypgCommand cmd, HypgRunner cmdRunner,
-            @Named("JavaApi") QueryBuilder qbuilder) {
+    public EnrichmentDino(HypgCommand cmd, 
+                          HypgRunner cmdRunner,
+                          @Named("JavaApi") 
+                          QueryBuilder qbuilder,
+                          @Named("Enrichment File Config Path") 
+                          String configPath) throws IOException {
         this.cmd = cmd;
         this.cmdRunner = cmdRunner;
         this.qbuilder = qbuilder;
+        
+        ConfigReader attrsReader = new AttributesConfig();
+        ConfigReader binReader = new ShellCommandReader(attrsReader);
+        EntryReader entryPoint = new EntryReader(binReader);
+        
+        try {
+            config = entryPoint.setConfigFile(configPath).getConfig();
+        } catch (IOException e) {
+            Log.error(e);
+            throw e;
+        }
     }
 
     @Override
@@ -151,7 +167,7 @@ public class EnrichmentDino implements Dino {
         
         List<QueryElement> filters = this.q.getFilters();
         
-        List<QueryElement> attrsAsQuery, boundAttrs, boundFilts;
+        List<QueryElement> boundAttrs, boundFilts;
         
         try {
             // This is necessary since the only way to get hold of filter
@@ -181,24 +197,34 @@ public class EnrichmentDino implements Dino {
     }
     
  // TODO: print the header if requested.
-    public void sendResults(List<String[]> res, OutputStream o) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(o));
-        for (String[] a : res) {
-            for (String s : a) {
-                writer.write(s, 0, s.length());
+    private void sendResults(List<String[]> res, OutputStream o) throws IOException {
+        
+        try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(o))) {
+            String neg = "No results";
+            
+            if (res.size() == 0) {
+                writer.write(neg, 0, neg.length());
             }
-            writer.newLine();
-        }
+            
+            for (String[] a : res) {
+                for (String s : a) {
+                    String r = s + "\t";
+                    writer.write(r, 0, r.length());
+                }
+                writer.newLine();
+            }
+        };
     }
     
-    // TODO: print the header if requested.
-    private void sendResults(InputStream i, OutputStream o) throws IOException {
-        // use stream pipeline
-    }
+//    // TODO: print the header if requested.
+//    private void sendResults(InputStream i, OutputStream o) throws IOException {
+//        
+//    }
     
     private void enrich() throws IOException {
         String annPath = this.getAnnotationsFilePath(ANNOTATION);
-        
+        File bin = new File(System.getProperty("biomart.basedir"),
+                            config.get(ShellCommandReader.BIN));
         try {
             if (annPath.isEmpty()) {
                 throw new IOException("Cannot find annotations file nor retrieve them");
@@ -208,7 +234,8 @@ public class EnrichmentDino implements Dino {
             cmd.setAnnotations(new File(annPath))
                 .setBackground(backgroundInput)
                 .setSets(setsInput)
-                .setCutoff(cutoff);
+                .setCutoff(cutoff)
+                .setCmdBinPath(bin);
 
             @SuppressWarnings("unchecked")
             List<String[]> results = (List<String[]>) cmdRunner.setCmd(cmd)
@@ -224,8 +251,8 @@ public class EnrichmentDino implements Dino {
             Log.error(this.getClass().getName() + "enrichment interrupted ", e);
             throw new IOException(e);
         } finally {
-            backgroundInput.delete();
-            setsInput.delete();
+//            if (backgroundInput != null) backgroundInput.delete();
+//            if (setsInput != null) setsInput.delete();
         }
         
     }
@@ -235,19 +262,19 @@ public class EnrichmentDino implements Dino {
         
         try {
             
-            backgroundInput = File.createTempFile("input", "filter");
-            translateSingleFilter(BACKGROUND, background, backgroundInput);
-            setsInput = File.createTempFile("input", "filter");
-            translateSingleFilter(SETS, sets, setsInput);
+            backgroundInput = File.createTempFile("background", "filter");
+            translateBackgroundFilter(BACKGROUND, background, backgroundInput);
+            setsInput = File.createTempFile("sets", "filter");
+            translateSetsFilter(SETS, sets, setsInput);
             
         } catch (IOException e) {
             Log.error(this.getClass().getName() + "#translateFilters() "
                     + "impossible to write on temporary file or the file is missing .", e);
             
-            if (backgroundInput.exists()) 
-                backgroundInput.delete();
-            if (setsInput.exists()) 
-                setsInput.delete();
+//            if (backgroundInput.exists()) 
+//                backgroundInput.delete();
+//            if (setsInput.exists()) 
+//                setsInput.delete();
             
             
             throw e;
@@ -255,20 +282,35 @@ public class EnrichmentDino implements Dino {
 
     }
     
-    private void translateSingleFilter(String filter, String filterValue, File outFile) throws IOException {
+    private void translateSetsFilter(String filter, String filterValue, File outFile) throws IOException {
+        Log.debug("sets value: "+ filterValue);
+        
+        try (FileOutputStream oStream = new FileOutputStream(outFile)) {
+            String setName = "set";
+            oStream.write((">" + setName + "\n").getBytes());
+            translateSingleFilter(filter, filterValue, oStream);
+            oStream.write(("<" + setName + "\n").getBytes());
+        }
+    }
+    
+    private void translateBackgroundFilter(String filter, String filterValue, File outFile) throws IOException {
+        try (FileOutputStream oStream = new FileOutputStream(outFile)) {
+            translateSingleFilter(filter, filterValue, oStream);
+        }
+    }
+    
+    private void translateSingleFilter(String filter, String filterValue, FileOutputStream out) {
         Map<String, Element> bind = this.metadata.getBindings();
         Element e = null;
 
         Log.debug(bind);
         
-        try (FileOutputStream oStream = new FileOutputStream(outFile)) {
-            Log.debug("EnrichmentDino::translateFilters() for filter : "+ filter);
-    
-            e = bind.get(filter);
-            String filterName = e.getName();
-            
-            toEnsemblGeneId(ANNOTATION, filterName, filterValue, oStream);
-        } 
+        Log.debug("EnrichmentDino::translateFilters() for filter : "+ filter);
+
+        e = bind.get(filter);
+        String filterName = e.getName();
+
+        toEnsemblGeneId(ANNOTATION, filterName, filterValue, out);
     }
     
     /**
@@ -365,8 +407,10 @@ public class EnrichmentDino implements Dino {
         }
         
         Attribute a2 = Utils.getAttributeForAnnotationRetrieval(attrListElem);
-        String key = annFilePathMapKey(configName, a2.getName()),
+        String key = annFilePathMapKey(datasetName, configName, a2.getName()),
                path = annotationsFilePaths.get(key);
+        
+        Log.debug(this.getClass().getName() + "#getAnnotationsFilePath("+ attributeList +") key: "+ key + " path "+ path );
         
         if (path == null) {
             // 1.1 get annotations and put them on disk
@@ -375,6 +419,9 @@ public class EnrichmentDino implements Dino {
             try {
 
                 annotationFile = File.createTempFile(key, "annotations");
+                Log.info(this.getClass().getName() 
+                        + "#getAnnotationsFilePath("+attributeList+") "
+                        + "created temp file "+ annotationFile.getPath());
                 annotationFile.deleteOnExit();
 
             } catch (IOException ex) {
@@ -385,7 +432,7 @@ public class EnrichmentDino implements Dino {
             }
 
             try (FileOutputStream oStream = new FileOutputStream(annotationFile)) {
-
+                
                 path = annotationFile.getPath();
                 // TODO: check file content.
                 submitAnnotationsQuery(datasetName, 
@@ -406,9 +453,21 @@ public class EnrichmentDino implements Dino {
         return path;
     }
     
+    
+//    private boolean isExternalDataset(Attribute attributeListElem) {
+//        Attribute a2 = Utils.getAttributeForAnnotationRetrieval(attributeListElem);
+//        return a2.getPointedDatasetName() != null 
+//               || ! a2.getPointedDatasetName().isEmpty();
+//    }
+    
     private boolean isSpecieTranslation(Attribute attrListElem) {
+        Log.debug(this.getClass().getName() + "#isSpecieTranslation("+attrListElem.getName() + ")");
+        
         Attribute a1 = Utils.getAttributeForEnsemblGeneIdTranslation(attrListElem);
-        return a1.getName().contains("homology");
+        
+        Log.debug(this.getClass().getName() + "#isSpecieTranslation() a1 name = "+ a1.getName());
+        
+        return a1.getName().contains("homolog");
     }
     
     private String getDatasetNameForSpecieTranslation(Attribute attrListElem) {
@@ -429,9 +488,10 @@ public class EnrichmentDino implements Dino {
      *            (See documentation).
      * @return Key for the annotations to file path map.
      */
-    private String annFilePathMapKey(String datasetConfigName,
-            String attributeName) {
-        return datasetConfigName + attributeName;
+    private String annFilePathMapKey(String datasetName, 
+                                     String datasetConfigName,
+                                     String attributeName) {
+        return datasetName + datasetConfigName + attributeName;
     }
 
     /**
@@ -474,8 +534,8 @@ public class EnrichmentDino implements Dino {
                                         OutputStream o) {
         initQueryBuilder();
         qbuilder.setDataset(dataset, config)
-                .addAttribute(attribute)
                 .addAttribute("ensembl_gene_id")
+                .addAttribute(attribute)
                 .getResults(o);
     }
 
@@ -496,10 +556,6 @@ public class EnrichmentDino implements Dino {
         return sets;
     }
 
-    private String getAnnotation() {
-        return annotation;
-    }
-
     public String getClient() {
         return client;
     }
@@ -514,10 +570,10 @@ public class EnrichmentDino implements Dino {
                 + "cutoff = " + cutoff + "  " + "client = " + client + ")";
     }
 
-    private String toString(ByteArrayOutputStream o)
-            throws UnsupportedEncodingException {
-        return o.toString("UTF-8");
-    }
+//    private String toString(ByteArrayOutputStream o)
+//            throws UnsupportedEncodingException {
+//        return o.toString("UTF-8");
+//    }
 
     @Override
     public Dino setQuery(org.biomart.queryEngine.Query query) {
@@ -544,16 +600,16 @@ public class EnrichmentDino implements Dino {
         return this.qbuilder;
     }
     
-    private List<QueryElement> 
-    fromAttributeToQueryElementList(QueryElement source, List<Attribute> attrs) {
-        List<QueryElement> qs = new ArrayList<QueryElement>(attrs.size());
-        Dataset dataset = source.getDataset();
-        
-        for (Attribute e : attrs) 
-            qs.add(new QueryElement(e, dataset));
-        
-        return qs;
-    }
+//    private List<QueryElement> 
+//    fromAttributeToQueryElementList(QueryElement source, List<Attribute> attrs) {
+//        List<QueryElement> qs = new ArrayList<QueryElement>(attrs.size());
+//        Dataset dataset = source.getDataset();
+//        
+//        for (Attribute e : attrs) 
+//            qs.add(new QueryElement(e, dataset));
+//        
+//        return qs;
+//    }
 
 }
 

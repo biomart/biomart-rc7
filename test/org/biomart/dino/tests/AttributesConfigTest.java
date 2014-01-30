@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
-import org.biomart.dino.AttributesConfig;
+import org.biomart.dino.configreader.AttributesConfig;
 import org.junit.Before;
 import org.junit.Test;
 

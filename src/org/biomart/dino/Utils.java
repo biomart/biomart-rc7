@@ -4,11 +4,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.biomart.common.resources.Log;
-import org.biomart.common.utils.XMLElements;
 import org.biomart.configurator.model.object.PartitionColumn;
 import org.biomart.objects.objects.Attribute;
 import org.biomart.objects.objects.Config;
-import org.biomart.objects.objects.Dataset;
 import org.biomart.objects.objects.Element;
 import org.biomart.objects.objects.Mart;
 import org.biomart.objects.objects.PartitionTable;
@@ -108,7 +106,7 @@ public class Utils {
 
     
     public static String getDatasetName(Attribute attributeList) {
-        Attribute a = getAttributeForAnnotationRetrieval(attributeList);
+        Attribute a = getAttributeForEnsemblGeneIdTranslation(attributeList);
         if (a == null)
             return "";
         
