@@ -131,7 +131,6 @@ public final class Config extends MartConfiguratorObject {
 		
 		org.jdom.Attribute dinoEl = element.getAttribute(XMLElements.DINO.toString());
 		if (dinoEl != null) { 
-			// Probably i should use the value, not the name.
 			Log.debug(this.getClass().getName() + " setting dino with name "+ dinoEl.getValue());
 			dino = dinoEl.getValue();
 		}

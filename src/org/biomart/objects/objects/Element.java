@@ -179,7 +179,7 @@ public abstract class Element extends MartConfiguratorObject {
 		if(McUtils.isStringEmpty(this.getPropertyValue(XMLElements.POINTEDDATASET)))
 			return new ArrayList<String>();
 		String[] pointedDatasets = this.getPropertyValue(XMLElements.POINTEDDATASET).split(",");
-		return Arrays.asList(pointedDatasets);
+		return new ArrayList<String>(Arrays.asList(pointedDatasets));
 	}
 
 	public boolean isPointerInSource() {

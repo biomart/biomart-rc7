@@ -434,13 +434,6 @@ public class Validation {
 	}
 	
 	private ValidationStatus validateAttribute(Attribute attribute) {
-		//check for existence in source first
-		if(!attribute.getParentConfig().isMasterConfig() &&
-				attribute.getParentConfig().getMart().getMasterConfig().getAttributeByName(attribute.getName(), null) == null) {
-			attribute.setObjectStatus(ValidationStatus.INVALID);
-			attribute.setProperty(XMLElements.ERROR, ErrorMessage.get("10005"));
-			return ValidationStatus.INVALID;
-		}
 		//check pointer
 		//if it is a pointer, the pointedElement should not be null
 		if(attribute.isPointer()) {
@@ -464,6 +457,12 @@ public class Validation {
 				result = ValidationStatus.INVALID;
 				errorMessage = ErrorMessage.get("10006");
 			}*/
+		} else if(!attribute.getParentConfig().isMasterConfig() &&
+		        attribute.getParentConfig().getMart().getMasterConfig().getAttributeByName(attribute.getName(), null) == null) {
+		    attribute.setObjectStatus(ValidationStatus.INVALID);
+		    attribute.setProperty(XMLElements.ERROR, ErrorMessage.get("10005"));
+		    return ValidationStatus.INVALID;
+
 		} else if(attribute.isAttributeList()) {
 			//it is valid if one of the attribute in the list is valid
 /*			boolean b = false;
@@ -513,13 +512,6 @@ public class Validation {
 		//ignore validation if is hidden
 		/*if(this.isHidden())
 			return true;*/
-		if(!filter.getParentConfig().isMasterConfig() && 
-				filter.getParentConfig().getMart().getMasterConfig().getFilterByName(filter.getName(), null) == null)
-		{
-			filter.setObjectStatus(ValidationStatus.INVALID);
-			filter.setProperty(XMLElements.ERROR, ErrorMessage.get("10005"));
-			return ValidationStatus.INVALID;
-		}
 		if(filter.isPointer()) {
 			if(filter.getPointedFilter()== null || this.validateFilter(filter.getPointedFilter())!=ValidationStatus.VALID) {
 				filter.setObjectStatus(ValidationStatus.INVALID);
@@ -531,7 +523,12 @@ public class Validation {
 				filter.setProperty(XMLElements.ERROR, ErrorMessage.get("10014"));
 				return ValidationStatus.INVALID;
 			}
-		} else if(filter.isFilterList()) {
+		} else if(!filter.getParentConfig().isMasterConfig() && 
+                filter.getParentConfig().getMart().getMasterConfig().getFilterByName(filter.getName(), null) == null) {
+            filter.setObjectStatus(ValidationStatus.INVALID);
+            filter.setProperty(XMLElements.ERROR, ErrorMessage.get("10005"));
+            return ValidationStatus.INVALID;
+        } else if(filter.isFilterList()) {
 			//it is valid if one of the filter in the list is valid
 			boolean b = false;
 			for(Filter fil: filter.getFilterList()) {
