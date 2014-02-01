@@ -35,7 +35,7 @@ import org.biomart.objects.enums.FilterType;
 import org.biomart.queryEngine.OperatorType;
 
 
-public class Filter extends Element	{
+public class Filter extends Element	implements Comparable<Filter> {
 	
 	private Map<String,Map<String,FilterData>> optionsList;
 	public static String EMPTYDATASET="";
@@ -45,6 +45,11 @@ public class Filter extends Element	{
 		this.optionsList = new LinkedHashMap<String,Map<String,FilterData>>();
 		this.setNodeType(McNodeType.FILTER);
 	}
+	
+	@Override
+    public int compareTo(Filter f) {
+        return this.getDisplayName().compareTo(f.getDisplayName());
+    }
 
 	public void setPointedInfo(String pointedFilterName, String pointedDatasetName,
 			String pointedConfigName, String pointedMartName) {
@@ -800,9 +805,23 @@ public class Filter extends Element	{
 	}
 
 	public Filter cloneMyself() {
-		org.jdom.Element e = this.generateXml();
-		return new Filter(e);
-	}
+        org.jdom.Element e = this.generateXml();
+        return new Filter(e);
+    }
+	
+	public Filter cloneMyself(boolean rename) {
+        org.jdom.Element e = this.generateXml();
+        Filter newFilter = new Filter(e);
+        if (rename) {
+            Config cfg = this.getParentConfig();
+            if (null != cfg) {
+                String newName =  McUtils.getUniqueFilterName(cfg, this.getName());
+                newFilter.setName(newName);
+            }
+        }
+        
+        return newFilter;
+    }
 
 	public void clearFilterList() {
 		this.setProperty(XMLElements.FILTERLIST, "");

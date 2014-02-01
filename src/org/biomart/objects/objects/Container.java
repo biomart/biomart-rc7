@@ -95,6 +95,8 @@ public class Container extends MartConfiguratorObject {
 
 	public void addFilter(Filter filter) {
 		this.addFilter(this.filterList.size(), filter);
+		if(this.getParentConfig() != null)
+            this.getParentConfig().syncWithMasterconfig();
 	}
 	public void addFilter( int index, Filter filter) {
 		filter.setParent(this);
