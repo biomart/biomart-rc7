@@ -481,8 +481,12 @@ public class McTreeNode extends DefaultMutableTreeNode {
     				nextFilter.addPointedDataset(ds);
     			}
       		}else {
-      			nextFilter = ((Filter)source).cloneMyself();
+      		    Filter sourceFilter = ((Filter)source);
+      			nextFilter = sourceFilter.cloneMyself(false);
       			nextFilter.setName(tmpName);
+      			if (sourceFilter.isFilterList()) {
+      			    copyFilterList(nextFilter, sourceFilter);
+      			}
       			//just make a copy
       			/*if(sourceFilter.isPointer())
       				nextFilter.setPointedElement(sourceFilter.getPointedFilter());
@@ -874,37 +878,33 @@ public class McTreeNode extends DefaultMutableTreeNode {
      * @param al attribute list to copy.
      * @return 
      */
-    public boolean copyAttributeList(Attribute head, Attribute al) {
+    public void copyAttributeList(Attribute head, Attribute al) {
 
-        if(al!=null) {
-            Container c = addContainerForCopies(head);
-            List<String> attrListNames = new ArrayList<String>();
-            //create all sub attributes if they don't exist in the config
-            Config parentConfig = c.getParentConfig();
-            if(!parentConfig.isMasterConfig()) {
-                Config masterConfig = parentConfig.getMart().getMasterConfig();
-                String listStr = al.getAttributeListString();
-                String[] atts = listStr.split(",");
-                for(String att: atts) {
-                    Attribute attInSource = masterConfig.getAttributeByName(att, new ArrayList<String>());
-                    if(attInSource!=null) {
-                        Attribute copy = attInSource.cloneMyself(true);
-                        c.addAttribute(copy);
-                        attrListNames.add(copy.getName());
-                    }
+        Container c = addContainerForCopies(head.getName());
+        List<String> attrListNames = new ArrayList<String>();
+        //create all sub attributes if they don't exist in the config
+        Config parentConfig = c.getParentConfig();
+        if(!parentConfig.isMasterConfig()) {
+            Config masterConfig = parentConfig.getMart().getMasterConfig();
+            String listStr = al.getAttributeListString();
+            String[] atts = listStr.split(",");
+            for(String att: atts) {
+                Attribute attInSource = masterConfig.getAttributeByName(att, new ArrayList<String>());
+                if(attInSource!=null) {
+                    Attribute copy = attInSource.cloneMyself(true);
+                    c.addAttribute(copy);
+                    attrListNames.add(copy.getName());
                 }
             }
-            head.setAttributeListString(McUtils.StrListToStr(attrListNames, ","));
-            McEventBus.getInstance().fire(McEventProperty.SYNC_NEW_LIST.toString(), head);
-            McTreeNode alTreeNode = new McTreeNode(head);
-            this.add(alTreeNode);
-            return true;
         }
-        return false;
+        head.setAttributeListString(McUtils.StrListToStr(attrListNames, ","));
+//        McEventBus.getInstance().fire(McEventProperty.SYNC_NEW_LIST.toString(), head);
+        McTreeNode alTreeNode = new McTreeNode(head);
+        this.add(alTreeNode);
     }
     
-    public Container addContainerForCopies(Attribute head) {
-        String s = head.getName() + "_Container";
+    public Container addContainerForCopies(String baseName) {
+        String s = baseName + "_Container";
 
         Container parent = (Container)this.getObject();
         Container c = new Container(s);
@@ -913,6 +913,30 @@ public class McTreeNode extends DefaultMutableTreeNode {
         McTreeNode gcNode = new McTreeNode(c);
         this.add(gcNode);
         return c;
+    }
+    
+    public void copyFilterList(Filter head, Filter fl) {
+        //this is a container
+        Container c = addContainerForCopies(head.getName());
+        List<String> filtListNames = new ArrayList<String>();
+        Config parentConfig = c.getParentConfig();
+        if(!parentConfig.isMasterConfig()) {
+            Config masterConfig = parentConfig.getMart().getMasterConfig();
+            String listStr = fl.getFilterListString();
+            String[] atts = listStr.split(",");
+            for(String att: atts) {
+                Filter filterInSource = masterConfig.getFilterByName(att, new ArrayList<String>());
+                if(filterInSource !=null) {
+                    Filter copy = filterInSource.cloneMyself(true);
+                    c.addFilter(copy);
+                    filtListNames.add(copy.getName());
+                }
+            }
+        }
+        head.setFilterListString(McUtils.StrListToStr(filtListNames, ","));
+//        McEventBus.getInstance().fire(McEventProperty.SYNC_NEW_LIST.toString(), head);
+        McTreeNode alTreeNode = new McTreeNode(head);
+        this.add(alTreeNode);
     }
     
     public boolean createFilterList() {

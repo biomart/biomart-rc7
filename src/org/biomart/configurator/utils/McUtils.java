@@ -858,6 +858,15 @@ public class McUtils {
 		return tmpName;
 	}
 
+	public static String getUniqueFilterName(Config config, String baseName) {
+        String tmpName = baseName;
+        int i = 1;
+        while (config.getFilterByName(null, tmpName, true) != null) {
+            tmpName = baseName + "_" + i++;
+        }
+        return tmpName;
+    }
+	
 	public static String getUniqueLinkName(Config config, String baseName){
 		String tmpName = baseName;
 		int i = 1;
