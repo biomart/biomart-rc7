@@ -4,14 +4,18 @@ import org.apache.commons.lang.StringUtils;
 import org.biomart.api.Portal;
 import org.biomart.api.Query;
 import org.biomart.api.factory.MartRegistryFactory;
-import org.biomart.dino.command.CommandRunner;
+import org.biomart.dino.annotations.EnrichmentConfig;
 import org.biomart.dino.command.HypgCommand;
 import org.biomart.dino.command.HypgRunner;
+import org.biomart.dino.configreader.ConfigReader;
+import org.biomart.dino.configreader.AttributesConfig;
+import org.biomart.dino.configreader.ShellCommandReader;
 import org.biomart.dino.querybuilder.JavaQueryBuilder;
 import org.biomart.dino.querybuilder.QueryBuilder;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 
 public class DinoModule extends AbstractModule {
@@ -35,6 +39,7 @@ public class DinoModule extends AbstractModule {
         bind(String.class)
             .annotatedWith(Names.named("Enrichment File Config Path"))
             .toInstance(p);
+
     }
                 
 
@@ -47,4 +52,15 @@ public class DinoModule extends AbstractModule {
     Query provideQuery(MartRegistryFactory factory) {
         return new Query(new Portal(factory));
     }
+    
+    @Provides @EnrichmentConfig
+    ConfigReader provideEnrichmentDinoConfig(
+            @Named("Enrichment File Config Path") String configPath) {
+        
+        ConfigReader attrsReader = new AttributesConfig(),
+                     binReader = new ShellCommandReader(attrsReader);
+        
+        return binReader.setConfigFile(configPath);
+    }
+    
 }

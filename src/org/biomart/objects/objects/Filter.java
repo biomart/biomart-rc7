@@ -15,18 +15,14 @@ import java.util.Set;
 import javax.swing.JOptionPane;
 
 import org.biomart.common.exceptions.MartBuilderException;
-import org.biomart.common.resources.ErrorMessage;
 import org.biomart.common.resources.Log;
 import org.biomart.common.resources.Resources;
 import org.biomart.common.utils.MartConfiguratorUtils;
 import org.biomart.common.utils.XMLElements;
-import org.biomart.configurator.controller.MartController;
 import org.biomart.configurator.model.object.FilterData;
 import org.biomart.configurator.utils.ConnectionPool;
 import org.biomart.configurator.utils.JdbcLinkObject;
-import org.biomart.configurator.utils.McGuiUtils;
 import org.biomart.configurator.utils.McUtils;
-import org.biomart.configurator.utils.Validation;
 import org.biomart.configurator.utils.type.DataLinkType;
 import org.biomart.configurator.utils.type.ValidationStatus;
 import org.biomart.configurator.utils.type.McNodeType;

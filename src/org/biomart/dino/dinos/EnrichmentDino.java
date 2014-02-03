@@ -17,12 +17,11 @@ import org.biomart.common.exceptions.TechnicalException;
 import org.biomart.common.resources.Log;
 import org.biomart.dino.Binding;
 import org.biomart.dino.Utils;
+import org.biomart.dino.annotations.EnrichmentConfig;
 import org.biomart.dino.annotations.Func;
 import org.biomart.dino.command.HypgCommand;
 import org.biomart.dino.command.HypgRunner;
-import org.biomart.dino.configreader.AttributesConfig;
 import org.biomart.dino.configreader.ConfigReader;
-import org.biomart.dino.configreader.EntryReader;
 import org.biomart.dino.configreader.ShellCommandReader;
 import org.biomart.dino.querybuilder.QueryBuilder;
 import org.biomart.objects.objects.Attribute;
@@ -77,18 +76,14 @@ public class EnrichmentDino implements Dino {
                           HypgRunner cmdRunner,
                           @Named("JavaApi") 
                           QueryBuilder qbuilder,
-                          @Named("Enrichment File Config Path") 
-                          String configPath) throws IOException {
+                          @EnrichmentConfig 
+                          ConfigReader cfgReader) throws IOException {
         this.cmd = cmd;
         this.cmdRunner = cmdRunner;
         this.qbuilder = qbuilder;
         
-        ConfigReader attrsReader = new AttributesConfig();
-        ConfigReader binReader = new ShellCommandReader(attrsReader);
-        EntryReader entryPoint = new EntryReader(binReader);
-        
         try {
-            config = entryPoint.setConfigFile(configPath).getConfig();
+            config = cfgReader.getConfig();
         } catch (IOException e) {
             Log.error(e);
             throw e;
@@ -251,8 +246,8 @@ public class EnrichmentDino implements Dino {
             Log.error(this.getClass().getName() + "enrichment interrupted ", e);
             throw new IOException(e);
         } finally {
-//            if (backgroundInput != null) backgroundInput.delete();
-//            if (setsInput != null) setsInput.delete();
+            if (backgroundInput != null) backgroundInput.delete();
+            if (setsInput != null) setsInput.delete();
         }
         
     }
@@ -271,11 +266,8 @@ public class EnrichmentDino implements Dino {
             Log.error(this.getClass().getName() + "#translateFilters() "
                     + "impossible to write on temporary file or the file is missing .", e);
             
-//            if (backgroundInput.exists()) 
-//                backgroundInput.delete();
-//            if (setsInput.exists()) 
-//                setsInput.delete();
-            
+            if (backgroundInput.exists()) backgroundInput.delete();
+            if (setsInput.exists()) setsInput.delete();
             
             throw e;
         }
