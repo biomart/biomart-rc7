@@ -878,7 +878,7 @@ public class McTreeNode extends DefaultMutableTreeNode {
      * @param al attribute list to copy.
      * @return 
      */
-    public void copyAttributeList(Attribute head, Attribute al) {
+    private void copyAttributeList(Attribute head, Attribute al) {
 
         Container c = addContainerForCopies(head.getName());
         List<String> attrListNames = new ArrayList<String>();
@@ -903,11 +903,12 @@ public class McTreeNode extends DefaultMutableTreeNode {
         this.add(alTreeNode);
     }
     
-    public Container addContainerForCopies(String baseName) {
+    private Container addContainerForCopies(String baseName) {
         String s = baseName + "_Container";
 
         Container parent = (Container)this.getObject();
         Container c = new Container(s);
+        c.setHideValue(true);
         parent.addContainer(c);
         //add tree node
         McTreeNode gcNode = new McTreeNode(c);
@@ -915,7 +916,7 @@ public class McTreeNode extends DefaultMutableTreeNode {
         return c;
     }
     
-    public void copyFilterList(Filter head, Filter fl) {
+    private void copyFilterList(Filter head, Filter fl) {
         //this is a container
         Container c = addContainerForCopies(head.getName());
         List<String> filtListNames = new ArrayList<String>();
