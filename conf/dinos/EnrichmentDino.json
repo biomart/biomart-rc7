@@ -1,0 +1,19 @@
+{
+    "enrichment_bin": "preprocesses/enrichment/hypg",
+
+    "display": {
+        "gene": {
+            "attributes": ["external_gene_id", "status", "gene_biotype", "description", "chromosome_name", "start_position", "end_position", "strand", "transcript_count"],
+            "filter": "ensembl_gene_id"
+        },
+
+        "annotation": {
+            "Gene Ontology (GO)": {
+                "attributes": ["goslim_goa_accession", "goslim_goa_description"],
+                "filter": "goslim_goa_accession"
+            }
+        }
+    },
+
+    "front-end": "/dist/dinos/app/index.html"
+}

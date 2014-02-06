@@ -42,6 +42,25 @@ public class Filter extends Element	implements Comparable<Filter> {
 		this.setNodeType(McNodeType.FILTER);
 	}
 	
+	private void propagateProperty(XMLElements pro, String value) {
+        // This is a hack to avoid a NullPointerException while propagating a property
+        //  at MartConfigurator boot-time.
+        if (pro.equals(XMLElements.FUNCTION) && this.isFilterList() && this.getParentConfig() != null) {
+            Log.debug("propagateProperty() filter name = "+ this.getName());
+            List<Filter> fs = this.getFilterList();
+            for (Filter f : fs) {
+                f.setProperty(pro, value);
+            }
+        }
+    }
+    
+    @Override
+    public void setProperty(XMLElements pro, String value) {
+        super.setProperty(pro, value);
+        
+        propagateProperty(pro, value);
+    }
+	
 	@Override
     public int compareTo(Filter f) {
         return this.getDisplayName().compareTo(f.getDisplayName());

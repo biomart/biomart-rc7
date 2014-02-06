@@ -17,17 +17,15 @@ import org.biomart.common.exceptions.TechnicalException;
 import org.biomart.common.resources.Log;
 import org.biomart.dino.Binding;
 import org.biomart.dino.Utils;
-import org.biomart.dino.annotations.EnrichmentConfig;
 import org.biomart.dino.annotations.Func;
 import org.biomart.dino.command.HypgCommand;
 import org.biomart.dino.command.HypgRunner;
-import org.biomart.dino.configreader.ConfigReader;
-import org.biomart.dino.configreader.ShellCommandReader;
 import org.biomart.dino.querybuilder.QueryBuilder;
 import org.biomart.objects.objects.Attribute;
 import org.biomart.objects.objects.Element;
 import org.biomart.queryEngine.Query;
 import org.biomart.queryEngine.QueryElement;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -39,14 +37,21 @@ import com.google.inject.name.Named;
  * 
  */
 public class EnrichmentDino implements Dino {
-    static public final String BACKGROUND = "background", SETS = "sets",
-            ANNOTATION = "annotation", CUTOFF = "cutoff";
+    static public final String BACKGROUND = "background", 
+                               SETS = "sets",
+                               ANNOTATION = "annotation", 
+                               CUTOFF = "cutoff";
 
     // Key: dataset_config_name + attribute_list name
     // Value: path of the annotation file
-    static private Map<String, String> 
-        annotationsFilePaths = new HashMap<String, String>(),
-        config = null;
+    static private Map<String, String> annotationsFilePaths = 
+                                                new HashMap<String, String>();
+    
+    static ObjectMapper mapper = new ObjectMapper();
+    
+    static final List<String> resultsSeparator = 
+                                    new ArrayList<String>(1) {{ add("---"); }};
+    
 
     // NOTE: these will contain filter values and attribute names.
     @Func(id = BACKGROUND)
@@ -69,67 +74,46 @@ public class EnrichmentDino implements Dino {
     // Temporary files.
     File backgroundInput, setsInput;
     
+    // These are dataset and configuration used for annotation retrieval 
+    // at the time of this request.
+    String annotationDatasetName = "", annotationConfigName = "";
+    
+    Map<String, List<List<String>>> results = new HashMap<String, List<List<String>>>();
+    // These are collections to use when the request comes from a web browser
+    List<List<String>> nodes = new ArrayList<List<String>>();
+    
+    Map<String, List<String>> headers = new HashMap<String, List<String>>();
+    
+    List<int[]> edges = new ArrayList<int[]>();
+    
     OutputStream sink;
+    
+    Map<String, Object> config;
 
     @Inject
     public EnrichmentDino(HypgCommand cmd, 
                           HypgRunner cmdRunner,
                           @Named("JavaApi") 
                           QueryBuilder qbuilder,
-                          @EnrichmentConfig 
-                          ConfigReader cfgReader) throws IOException {
+                          @Named("Enrichment File Config Path")
+                          String configPath) throws IOException {
         this.cmd = cmd;
         this.cmdRunner = cmdRunner;
         this.qbuilder = qbuilder;
         
-        try {
-            config = cfgReader.getConfig();
-        } catch (IOException e) {
-            Log.error(e);
-            throw e;
+        config = mapper.readValue(new File(configPath), Map.class);
+        if (config == null) {
+            config = new HashMap<String, Object>();
         }
     }
 
     @Override
-    public void run(OutputStream out) throws TechnicalException {
+    public void run(OutputStream out) throws TechnicalException, IOException {
         Log.debug(this.getClass().getName() + "#run(OutputStream) invoked");
         
         sink = out;
         
         iterate();
-//        translateFilters();
-//        String annFile = getAnnotationsFilePath(annotation);
-//        
-//        try {
-//            if (annFile.isEmpty()) {
-//                throw new IOException("Cannot find annotations file nor retrieve them");
-//            }
-//            
-//            if (q.getClient().equalsIgnoreCase("false")) {
-//                // serve plain results
-//                // The bin path is sat within the DinoModule as a constant.
-//                cmd.setAnnotations(new File(annFile))
-//                    .setBackground(backgroundInput)
-//                    .setSets(setsInput)
-//                    .setCutoff(cutoff);
-//    
-//                @SuppressWarnings("unchecked")
-//                List<String[]> results = (List<String[]>) cmdRunner.setCmd(cmd)
-//                        .run()
-//                        .getResults();
-//            } else {
-//                // serve app
-//            }
-//            
-//        } catch (IOException e) {
-//            throw e;
-//        } catch (InterruptedException e) {
-//            Log.error(this.getClass().getName() + "enrichment interrupted ", e);
-//            throw new IOException(e);
-//        } finally {
-//            backgroundInput.delete();
-//            setsInput.delete();
-//        }
     }
 
     /**
@@ -140,9 +124,10 @@ public class EnrichmentDino implements Dino {
      * + get annotations
      * + run enrichment and get results 
      * @throws TechnicalException 
+     * @throws IOException 
      * 
      */
-    private void iterate() throws TechnicalException {
+    private void iterate() throws TechnicalException, IOException {
         for (QueryElement attrList : q.getAttributeListList()) {
             iteration(attrList);
         }
@@ -189,6 +174,113 @@ public class EnrichmentDino implements Dino {
     private void tasks() throws IOException {
         translateFilters();
         enrich();
+        if (isGuiClient()) {
+            handleGuiRequest();
+        } else {
+            handleWebServiceRequest();
+        }
+    }
+    
+    private void handleGuiRequest() {
+        List<List<String>> data = results.get(annotation);
+        
+        // Truncate results
+        if (data.size() > 50) {
+            data = data.subList(0, 50);
+        }
+        
+        // Translate ensembl ids into hgnc symbols and gather further attributes
+        // specified within the configuration.
+        
+        
+        // Extract header
+        
+        
+        // format results
+    }
+    
+    private void translateResults(List<List<String>> data) throws IOException {
+        ByteArrayOutputStream tmpStream;
+        
+        int sourceIndex = -1, targetIndex = -1;
+        List<List<String>> tr = null;
+            
+        for (List<String> row : data) {
+            
+            if (row.size() > 0) {
+                tmpStream = byteStream();
+                // It has the header too.
+                toAnnotationHgncSymbol(row.get(0), tmpStream);
+                tr = getTranslatedResults(tmpStream);
+                // It's only one line.
+                targetIndex = addNodes(tr);
+                tmpStream.close();
+            } else {
+                Log.error(this.getClass().getName() + "#translateResults(): " 
+                        + "skipping bad-formatted row");
+            }
+            
+            // If there are genes involved with this annotation.
+            // Genes should be comma separated
+            if (! row.get(3).isEmpty()) {
+                tmpStream = byteStream();
+                toGeneHgncSymbol(row.get(3), tmpStream);
+                tr = getTranslatedResults(tmpStream);
+                sourceIndex = addNodes(tr);
+            }
+            
+            if (sourceIndex != -1 && targetIndex != -1) {
+                for (int i = 0, len = tr.size(); i < len; ++i) {
+                    edges.add(new int[]{ sourceIndex + i, targetIndex });
+                }
+            }
+        }
+    }
+    
+    /**
+     * 
+     * @param nodeList
+     * @return the index of the first line inside the collection nodeList has been inserted into.
+     */
+    private int addNodes(List<List<String>> nodeList) {
+        int i = nodes.size();
+        nodes.addAll(nodeList);
+        return i;
+    }
+    
+    private List<String> getResultsHeader(ByteArrayOutputStream oStream) {
+        java.util.StringTokenizer lineSt = 
+                new java.util.StringTokenizer(oStream.toString(), "\\n");
+        if (lineSt.hasMoreTokens()) {
+            return tokenizeLine(lineSt.nextToken());
+        } else {
+            return new ArrayList<String>();
+        }
+    }
+    
+    // TODO: use a piped stream with threads
+    private List<List<String>> getTranslatedResults(ByteArrayOutputStream oStream) {
+        
+        java.util.StringTokenizer lineSt = 
+                new java.util.StringTokenizer(oStream.toString(), "\\n");
+        
+        List<List<String>> data = new ArrayList<List<String>>(lineSt.countTokens());
+        
+        while(lineSt.hasMoreTokens()) {
+            data.add(tokenizeLine(lineSt.nextToken()));
+        }
+        
+        return data;
+    }
+    
+    private List<String> tokenizeLine(String line) {
+        java.util.StringTokenizer colSt = 
+                new java.util.StringTokenizer(line);
+        List<String> list = new ArrayList<String>(colSt.countTokens());
+        
+        while(colSt.hasMoreElements()) { list.add(colSt.nextToken()); }
+        
+        return list;
     }
     
  // TODO: print the header if requested.
@@ -216,10 +308,11 @@ public class EnrichmentDino implements Dino {
 //        
 //    }
     
+    @SuppressWarnings("unchecked")
     private void enrich() throws IOException {
         String annPath = this.getAnnotationsFilePath(ANNOTATION);
         File bin = new File(System.getProperty("biomart.basedir"),
-                            config.get(ShellCommandReader.BIN));
+                            getEnrichmentBinPath(config));
         try {
             if (annPath.isEmpty()) {
                 throw new IOException("Cannot find annotations file nor retrieve them");
@@ -232,13 +325,10 @@ public class EnrichmentDino implements Dino {
                 .setCutoff(cutoff)
                 .setCmdBinPath(bin);
 
-            @SuppressWarnings("unchecked")
-            List<String[]> results = (List<String[]>) cmdRunner.setCmd(cmd)
-                                                                .run()
-                                                                .getResults();
-            // If gui client
-            sendResults(results, sink);
-            // else 
+            List<List<String>> newResult = 
+                    (List<List<String>>) cmdRunner.setCmd(cmd).run().getResults(); 
+            
+            results.put(annotation, newResult); 
 
         } catch (IOException e) {
             throw e;
@@ -341,34 +431,126 @@ public class EnrichmentDino implements Dino {
             return;
         }
 
-        submitToEnsemblIdQuery(elem, forTransAttr, filterName, filterValue, o);
+        submitToEnsemblIdQuery(forTransAttr, filterName, filterValue, o);
+    }
+    
+    @SuppressWarnings("unchecked")
+    private List<String> getDisplayAttributes(Map<String, Object> cfg) {
+        Object o = cfg.get("attributes");
+        List<Object> atts = n((List<Object>) o); 
+        List<String> attNames = new ArrayList<String>(atts.size());
+        for (Object oo : atts) attNames.add(((String) oo));
+        
+        return attNames;
+    }
+    
+    private String getDisplayFilter(Map<String, Object> cfg) {
+        Object o = cfg.get("filter");
+        return o == null ? "" : o.toString(); 
+    }
+    
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getDisplayGeneOptions(Map<String, Object> cfg) {
+        Object o = cfg.get("gene");
+        return n((Map<String, Object>) o);
+    }
+    
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getDisplayAnnotationOptions(Map<String, Object> cfg) {
+        Object o = cfg.get("annotation");
+        return n((Map<String, Object>) o);
+    }
+    
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getDisplayOptions() {
+        Object o = config.get("display");
+        return n((Map<String, Object>) o);
+    }
+    
+    private Map<String, Object> n(Map<String, Object> m) {
+        return m == null ? new HashMap<String, Object>() : m;
+    }
+    
+    private List<Object> n(List<Object> l) {
+        return l == null ? new ArrayList<Object>() : l;
+    }
+    
+    private String getEnrichmentBinPath(Map<String, Object> cfg) {
+        String s = (String) cfg.get("enrichment_bin");
+        return s == null ? "" : s;
+    }
+    
+    
+    private void toGeneHgncSymbol(String filterValue, OutputStream out) {
+        Map<String, Object> opt = getDisplayOptions(),
+                gene = (Map<String, Object>) getDisplayGeneOptions(opt);
+        
+        List<String> atts = getDisplayAttributes(gene);
+        String fName = getDisplayFilter(gene),
+               ds = getDatasetName(),
+               cfg = getConfigName();
+        
+        submitToHgncSymbolQuery(ds, cfg, fName, filterValue, atts, out);
+        
+    }
+    
+    private void toAnnotationHgncSymbol(String filterValue, OutputStream out) {
+        
+        Log.debug("toAnnotationHgncSymbol "+ annotation);
+        
+        
+        @SuppressWarnings("unchecked")
+        Map<String, Object> opt = getDisplayOptions(),
+                ann = (Map<String, Object>) getDisplayAnnotationOptions(opt).get(annotation);
+        
+        if (ann == null) {
+            ann = new HashMap<String, Object>();
+        }
+        
+        List<String> atts = getDisplayAttributes(ann);
+        String fName = getDisplayFilter(ann);
+        
+        submitToHgncSymbolQuery(annotationDatasetName, 
+                                annotationConfigName, 
+                                fName, 
+                                filterValue, 
+                                atts, 
+                                out);
+        
+//        List<Map<String, Object>> filters = getDisplayFilters();
+        
+    }
+    
+    
+    private void submitToHgncSymbolQuery(String datasetName, 
+                              String configName,
+                              String filterName,
+                              String filterValue,
+                              List<String> attributes,
+                              OutputStream out) {
+        initQueryBuilder();
+        qbuilder.setHeader(true)
+                .setDataset(datasetName, configName)
+                .addFilter(filterName, filterValue);
+        for (String att : attributes) {
+            qbuilder.addAttribute(att);
+        }
+        
+        qbuilder.getResults(out);
     }
     
     private Attribute getAttributeForIdTranslation(Attribute attr) {
         return Utils.getAttributeForEnsemblGeneIdTranslation(attr);
     }
-
-    private void submitToEnsemblIdQuery(Attribute attr,
-                                        Attribute transAttr, 
-                                        String filterName, 
-                                        String filterValue,
-                                        OutputStream o) {
-        
-        initQueryBuilder();
-        qbuilder.setDataset(getDatasetName(attr), getConfigName(attr))
-                .addAttribute(transAttr.getName())
-                .addFilter(filterName, filterValue)
-                .getResults(o);
-    }
     
-    private String getDatasetName(Attribute attr) {
+    private String getDatasetName() {
         return this.q.getQueryElementList()
                 .get(0)
                 .getDataset()
                 .getName();
     }
     
-    private String getConfigName(Attribute attr) {
+    private String getConfigName() {
         return this.q.getQueryElementList()
                 .get(0)
                 .getConfig()
@@ -391,18 +573,16 @@ public class EnrichmentDino implements Dino {
             datasetName = getDatasetNameForSpecieTranslation(attrListElem);
             configName = getConfigNameForSpecieTranslation(attrListElem);
         } else {
-            QueryElement qe = this.q.getQueryElementList().get(0);
-            datasetName = qe.getDataset()
-                            .getName();
-            configName = qe.getConfig()
-                           .getName();
+            datasetName = getDatasetName();
+            configName = getConfigName();
         }
+        
+        annotationDatasetName = datasetName;
+        annotationConfigName = configName;
         
         Attribute a2 = Utils.getAttributeForAnnotationRetrieval(attrListElem);
         String key = annFilePathMapKey(datasetName, configName, a2.getName()),
                path = annotationsFilePaths.get(key);
-        
-        Log.debug(this.getClass().getName() + "#getAnnotationsFilePath("+ attributeList +") key: "+ key + " path "+ path );
         
         if (path == null) {
             // 1.1 get annotations and put them on disk
@@ -411,9 +591,6 @@ public class EnrichmentDino implements Dino {
             try {
 
                 annotationFile = File.createTempFile(key, "annotations");
-                Log.info(this.getClass().getName() 
-                        + "#getAnnotationsFilePath("+attributeList+") "
-                        + "created temp file "+ annotationFile.getPath());
                 annotationFile.deleteOnExit();
 
             } catch (IOException ex) {
@@ -442,6 +619,7 @@ public class EnrichmentDino implements Dino {
             }
         }
 
+        Log.debug(this.getClass().getName() + "#getAnnotationsFilePath() temp file "+ path);
         return path;
     }
     
@@ -486,40 +664,6 @@ public class EnrichmentDino implements Dino {
         return datasetName + datasetConfigName + attributeName;
     }
 
-    /**
-     * Retrieves annotations based on the input attribute from the query.
-     * 
-     * @param attributeList
-     * @param o
-     */
-//    public void queryForAnnotations(String attributeList, OutputStream o) {
-//        Element annRetr = null, geneRetr;
-//        Attribute elem = null;
-//
-//        // We can get the queryelement from the function of element it wraps.
-//        Map<String, Element> bindings = this.metadata.getBindings();
-//
-//        elem = (Attribute) bindings.get(attributeList);
-//
-//        // This is for the annotation column
-//        annRetr = Utils.getAttributeForAnnotationRetrieval(elem);
-//
-//        // It means it didn't find a filter list or qelem doesn't wrap an
-//        // attribute list.
-//        if (annRetr == null) {
-//            Log.error(this.getClass().getName()
-//                    + "#toEnsemblGeneId(): "
-//                    + "cannot get the necesary attribute needed for translation. "
-//                    + "Maybe " + attributeList + " is not an attribute list?");
-//            return;
-//        }
-//
-//        // This is for the gene column
-//        geneRetr = Utils.getAttributeForEnsemblGeneIdTranslation(elem);
-//
-//        submitAnnotationsQuery((Attribute) annRetr, (Attribute) geneRetr, o);
-//    }
-
     private void submitAnnotationsQuery(String dataset, 
                                         String config,
                                         String attribute,
@@ -530,30 +674,26 @@ public class EnrichmentDino implements Dino {
                 .addAttribute(attribute)
                 .getResults(o);
     }
+    
+    private void submitToEnsemblIdQuery(Attribute transAttr, 
+                                        String filterName, 
+                                        String filterValue,
+                                        OutputStream o) {
+
+        initQueryBuilder();
+        qbuilder.setDataset(getDatasetName(), getConfigName())
+        .addAttribute(transAttr.getName())
+        .addFilter(filterName, filterValue)
+        .getResults(o);
+    }
 
     private void initQueryBuilder() {
         qbuilder.init()
             .setUseDino(false);
     }
 
-    public ByteArrayOutputStream byteStream() {
+    private ByteArrayOutputStream byteStream() {
         return new ByteArrayOutputStream();
-    }
-
-    public String getBackground() {
-        return background;
-    }
-
-    public String getSets() {
-        return sets;
-    }
-
-    public String getClient() {
-        return client;
-    }
-
-    public String getCutoff() {
-        return cutoff;
     }
 
     public String toString() {
@@ -590,6 +730,10 @@ public class EnrichmentDino implements Dino {
 
     public QueryBuilder getQueryBuilder() {
         return this.qbuilder;
+    }
+    
+    private boolean isGuiClient() {
+        return Boolean.valueOf(client) || client.equalsIgnoreCase("webbrowser");
     }
     
 //    private List<QueryElement> 

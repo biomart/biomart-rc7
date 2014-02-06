@@ -26,7 +26,7 @@ public class DinoModule extends AbstractModule {
                p = StringUtils.join(new String[] {
                        System.getProperty("biomart.basedir"),
                        System.getProperty("file.separator"),
-                       "conf", "dinos", "EnrichmentDino.properties"
+                       "conf", "dinos", "EnrichmentDino.json"
                }, s);
         
         bind(QueryBuilder.class)

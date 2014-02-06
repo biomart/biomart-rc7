@@ -223,6 +223,7 @@ public abstract class MartConfiguratorObject extends AbstractModel {
 		} else
 			mcProperty.setValue(value);		
 	}
+	
 	//FIXME remove
 	@Deprecated
 	public void synchronizedFromXML() {

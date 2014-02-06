@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
+import java.util.StringTokenizer;
+
 import org.biomart.common.resources.Log;
 
 public class HypgRunner extends ShellRunner {
@@ -31,25 +34,32 @@ public class HypgRunner extends ShellRunner {
         // string float float string*
         
         File fin = new File(this.dir, "hypg.pv");
-        ArrayList<String[]> results = new ArrayList<String[]>();
+        List<List<String>> results = new ArrayList<List<String>>();
+        StringTokenizer st;
         
         try (BufferedReader in = new BufferedReader(new FileReader(fin))) {
-            String[] tokens = null;
+            List<String> row = new ArrayList<String>(4);
             String line = null;
+        
             while((line = in.readLine()) != null) {
-                tokens = line.trim().split("\t");
+                st = new StringTokenizer(line);
                 
-                if (tokens.length < 3) {
+                if (st.countTokens() < 3) {
                     Log.error(this.getClass().getName()
                         + "#getResults() bad input: "+ line);
                     continue;
                 }
                 
-                for (int i = 0; i < tokens.length; ++i) {
-                    // Ignoring possibility of empty items
-                    tokens[i] = tokens[i].trim();
+                for (int i = 0; i < 3; ++i) { row.add(st.nextToken()); }
+                
+                StringBuilder sb = new StringBuilder();
+                while(st.hasMoreTokens()) {
+                    sb.append(st.nextToken());
                 }
-                results.add(tokens);
+                
+                row.add(sb.toString());
+                results.add(row);
+                row.clear();
             }
             
         } catch (FileNotFoundException e) {
@@ -58,17 +68,14 @@ public class HypgRunner extends ShellRunner {
             throw e;
         }
         
-        Collections.sort(results, new Comparator<String[]>() {
+        Collections.sort(results, new Comparator<List<String>>() {
             @Override
-            public int compare(String[] a, String[] b) {
-                return a[1].compareTo(b[1]);
+            public int compare(List<String> a, List<String> b) {
+                return a.get(0).compareTo(b.get(0));
             }
         });
         
-        return new ArrayList<String[]>(
-                results.size() > 50 
-                    ? results.subList(0, 50)
-                    : results);
+        return results;
     }
 
 }

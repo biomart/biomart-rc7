@@ -6,7 +6,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.swing.JOptionPane;
+
 import org.biomart.common.resources.Log;
 import org.biomart.common.resources.Resources;
 import org.biomart.common.utils.MartConfiguratorUtils;
@@ -23,6 +25,25 @@ import org.biomart.configurator.utils.type.McNodeType;
  */
 public class Attribute extends Element implements Comparable<Attribute> {
 	
+    
+    private void propagateProperty(XMLElements pro, String value) {
+        // This is a hack to avoid a NullPointerException while propagating a property
+        //  at MartConfigurator boot-time.
+        if (pro.equals(XMLElements.FUNCTION) && this.isAttributeList() && this.getParentConfig() != null) {
+            List<Attribute> atts = this.getAttributeList();
+            for (Attribute a : atts) {
+                a.setProperty(pro, value);
+            }
+        }
+    }
+    
+    @Override
+    public void setProperty(XMLElements pro, String value) {
+        super.setProperty(pro, value);
+        
+        propagateProperty(pro, value);
+    }
+    
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
