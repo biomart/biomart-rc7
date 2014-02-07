@@ -8,11 +8,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
+import org.apache.commons.lang.StringUtils;
 import org.biomart.common.exceptions.TechnicalException;
 import org.biomart.common.resources.Log;
 import org.biomart.dino.Binding;
@@ -82,7 +85,7 @@ public class EnrichmentDino implements Dino {
     // These are collections to use when the request comes from a web browser
     List<List<String>> nodes = new ArrayList<List<String>>();
     
-    Map<String, List<String>> headers = new HashMap<String, List<String>>();
+    Map<String, String[]> headers = new HashMap<String, String[]>();
     
     List<int[]> edges = new ArrayList<int[]>();
     
@@ -179,7 +182,37 @@ public class EnrichmentDino implements Dino {
         } else {
             handleWebServiceRequest();
         }
+        
+        // Separator between results of different attribute lists
+        sink.write("\n\n\n".getBytes());
     }
+    
+    
+    private void handleWebServiceRequest() {
+        String processor = this.q.getProcessor();
+        List<List<String>> res = results.get(annotation);
+        // This modifies res as we want
+        this.webServiceToAnnotationHgncSymbol(res);
+        List<String[]> ares = new ArrayList<String[]>(res.size());
+        
+        if (this.q.hasHeader())
+            ares.add(new String[] { "Annotation", "Description", "P-Value", "Bonferroni p-value", "Genes" });
+        
+        for (List<String> r : res) {
+            ares.add(r.toArray(new String[r.size()]));
+        }
+        
+        results.remove(res);
+        res = null;
+        
+        try {
+            org.biomart.dino.Processor.runProcessor(ares, processor, q, sink);
+        } catch (IllegalArgumentException | InstantiationException
+                | IllegalAccessException | InvocationTargetException e) {
+            Log.error("EnrichmentDino#handleWebServiceRequest(): cannot send results: ",e);
+        }
+    }
+    
     
     private void handleGuiRequest() {
         List<List<String>> data = results.get(annotation);
@@ -199,43 +232,44 @@ public class EnrichmentDino implements Dino {
         // format results
     }
     
-    private void translateResults(List<List<String>> data) throws IOException {
-        ByteArrayOutputStream tmpStream;
-        
-        int sourceIndex = -1, targetIndex = -1;
-        List<List<String>> tr = null;
-            
-        for (List<String> row : data) {
-            
-            if (row.size() > 0) {
-                tmpStream = byteStream();
-                // It has the header too.
-                toAnnotationHgncSymbol(row.get(0), tmpStream);
-                tr = getTranslatedResults(tmpStream);
-                // It's only one line.
-                targetIndex = addNodes(tr);
-                tmpStream.close();
-            } else {
-                Log.error(this.getClass().getName() + "#translateResults(): " 
-                        + "skipping bad-formatted row");
-            }
-            
-            // If there are genes involved with this annotation.
-            // Genes should be comma separated
-            if (! row.get(3).isEmpty()) {
-                tmpStream = byteStream();
-                toGeneHgncSymbol(row.get(3), tmpStream);
-                tr = getTranslatedResults(tmpStream);
-                sourceIndex = addNodes(tr);
-            }
-            
-            if (sourceIndex != -1 && targetIndex != -1) {
-                for (int i = 0, len = tr.size(); i < len; ++i) {
-                    edges.add(new int[]{ sourceIndex + i, targetIndex });
-                }
-            }
-        }
-    }
+//    private void translateResults(List<List<String>> data) throws IOException {
+//        ByteArrayOutputStream tmpStream;
+//        
+//        int sourceIndex = -1, targetIndex = -1;
+//        ICsvMapReader reader = null;
+//        List<String> header = null;
+//            
+//        for (List<String> row : data) {
+//            
+//            if (row.size() > 0) {
+//                tmpStream = byteStream();
+//                // It has the header too.
+//                toAnnotationHgncSymbol(row.get(0), tmpStream);
+//                reader = getTranslatedResults(tmpStream);
+//                // It's only one line.
+//                targetIndex = addNodes(tr);
+//                tmpStream.close();
+//            } else {
+//                Log.error(this.getClass().getName() + "#translateResults(): " 
+//                        + "skipping bad-formatted row");
+//            }
+//            
+//            // If there are genes involved with this annotation.
+//            // Genes should be comma separated
+//            if (! row.get(3).isEmpty()) {
+//                tmpStream = byteStream();
+//                toGeneHgncSymbol(row.get(3), tmpStream);
+//                tr = getTranslatedResults(tmpStream);
+//                sourceIndex = addNodes(tr);
+//            }
+//            
+//            if (sourceIndex != -1 && targetIndex != -1) {
+//                for (int i = 0, len = tr.size(); i < len; ++i) {
+//                    edges.add(new int[]{ sourceIndex + i, targetIndex });
+//                }
+//            }
+//        }
+//    }
     
     /**
      * 
@@ -259,19 +293,14 @@ public class EnrichmentDino implements Dino {
     }
     
     // TODO: use a piped stream with threads
-    private List<List<String>> getTranslatedResults(ByteArrayOutputStream oStream) {
-        
-        java.util.StringTokenizer lineSt = 
-                new java.util.StringTokenizer(oStream.toString(), "\\n");
-        
-        List<List<String>> data = new ArrayList<List<String>>(lineSt.countTokens());
-        
-        while(lineSt.hasMoreTokens()) {
-            data.add(tokenizeLine(lineSt.nextToken()));
-        }
-        
-        return data;
-    }
+//    private ICsvMapReader getTranslatedResults(ByteArrayOutputStream oStream) throws IOException {
+//        
+//        java.io.StringReader sr = new java.io.StringReader(oStream.toString());
+//        ICsvMapReader mapReader = new CsvMapReader(sr, CsvPreference.TAB_PREFERENCE);
+//        this.headers.put(annotation, mapReader.getHeader(true));
+//        
+//        return mapReader;
+//    }
     
     private List<String> tokenizeLine(String line) {
         java.util.StringTokenizer colSt = 
@@ -481,6 +510,18 @@ public class EnrichmentDino implements Dino {
     }
     
     
+    /**
+     * If the current request is coming from GUI, it sends a query for hgnc
+     * symbol translation with filterValue as value of the filter, plus all
+     * attributes specified within the display section of the configuration 
+     * of this Dino.
+     * 
+     * Otherwise, it just translates filterValue considering only the filter
+     * and the *first* attribute specified within the configuration.
+     * 
+     * @param filterValue
+     * @param out
+     */
     private void toGeneHgncSymbol(String filterValue, OutputStream out) {
         Map<String, Object> opt = getDisplayOptions(),
                 gene = (Map<String, Object>) getDisplayGeneOptions(opt);
@@ -490,10 +531,21 @@ public class EnrichmentDino implements Dino {
                ds = getDatasetName(),
                cfg = getConfigName();
         
-        submitToHgncSymbolQuery(ds, cfg, fName, filterValue, atts, out);
+        submitToHgncSymbolQuery(ds, 
+                                cfg, 
+                                fName, 
+                                filterValue,
+                                isGuiClient() ? atts : atts.subList(0, 1), 
+                                out);
         
     }
     
+    /**
+     * Same as toGeneHgncSymbol.
+     * 
+     * @param filterValue
+     * @param out
+     */
     private void toAnnotationHgncSymbol(String filterValue, OutputStream out) {
         
         Log.debug("toAnnotationHgncSymbol "+ annotation);
@@ -514,10 +566,85 @@ public class EnrichmentDino implements Dino {
                                 annotationConfigName, 
                                 fName, 
                                 filterValue, 
-                                atts, 
+                                isGuiClient() ? atts : atts.subList(0, 1), 
                                 out);
         
-//        List<Map<String, Object>> filters = getDisplayFilters();
+    }
+    
+    private void webServiceToAnnotationHgncSymbol(List<List<String>> data) {
+        
+        Log.debug("toAnnotationHgncSymbol "+ annotation);
+        
+        @SuppressWarnings("unchecked")
+        Map<String, Object> opt = getDisplayOptions(),
+                ann = (Map<String, Object>) getDisplayAnnotationOptions(opt).get(annotation),
+                gene = (Map<String, Object>) getDisplayGeneOptions(opt);
+        
+        if (ann == null || gene == null) {
+            return;
+        }
+        
+        List<String> annAtts = new ArrayList<String>();
+        
+        annAtts.add(ann.get("annotation_attribute").toString());
+        annAtts.add(ann.get("description_attribute").toString());
+        String annFilterName = getDisplayFilter(ann);
+        String geneAtt = gene.get("gene_attribute").toString();
+        String geneFilterName = getDisplayFilter(gene);
+        StringTokenizer st;
+        StringBuilder sb;
+        String[] atmp;
+        
+        try(ByteArrayOutputStream out = byteStream()) {
+
+            for (List<String> line : data) {
+                out.reset();
+                
+                submitToHgncSymbolQuery(annotationDatasetName, 
+                        annotationConfigName, 
+                        annFilterName, line.get(0),  
+                        annAtts, 
+                        out);
+                
+                st = new StringTokenizer(out.toString());
+
+                line.set(0, st.nextToken());
+                line.add(1, st.nextToken());
+                
+                if (line.size() > 4) {
+                    out.reset();
+                    
+                    initQueryBuilder();
+                    qbuilder.setProcessor("TSV")
+                            .setDataset(getDatasetName(), getConfigName())
+                            .addFilter(geneFilterName, line.get(4))
+                            .addAttribute(geneAtt)
+                            .getResults(out);
+                    
+                    st = new StringTokenizer(out.toString());
+                    atmp = new String[st.countTokens()];
+//                    sb = new StringBuilder();
+                    
+//                    while(st.hasMoreTokens()) { 
+//                        sb.append(st.nextToken());
+//                        sb.append(",");
+//                    }
+//                    
+//                    sb.deleteCharAt(sb.length() - 1);
+                    int i = 0;
+                    while (st.hasMoreTokens()) {
+                        atmp[i++] = st.nextToken();
+                    }
+                    
+//                    line.set(4, sb.toString());
+                    line.set(4, StringUtils.join(atmp, ","));
+                    atmp = null;
+                }
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         
     }
     
@@ -529,8 +656,7 @@ public class EnrichmentDino implements Dino {
                               List<String> attributes,
                               OutputStream out) {
         initQueryBuilder();
-        qbuilder.setHeader(true)
-                .setDataset(datasetName, configName)
+        qbuilder.setDataset(datasetName, configName)
                 .addFilter(filterName, filterValue);
         for (String att : attributes) {
             qbuilder.addAttribute(att);
@@ -600,7 +726,8 @@ public class EnrichmentDino implements Dino {
                 return "";
             }
 
-            try (FileOutputStream oStream = new FileOutputStream(annotationFile)) {
+            try (org.biomart.dino.SkipEmptyOutputStream oStream = 
+                    new org.biomart.dino.SkipEmptyOutputStream(new FileOutputStream(annotationFile))) {
                 
                 path = annotationFile.getPath();
                 // TODO: check file content.
@@ -710,6 +837,8 @@ public class EnrichmentDino implements Dino {
     @Override
     public Dino setQuery(org.biomart.queryEngine.Query query) {
         q = query;
+        client = this.q.getClient();
+        
         return this;
     }
 

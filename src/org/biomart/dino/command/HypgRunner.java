@@ -22,6 +22,9 @@ public class HypgRunner extends ShellRunner {
      * Results are sorted in increasing order based on p-value and filtered: 
      * only the first 50 results are returned.
      * 
+     * The format of a line is: ["annotation", "p-value", "bp-value", "g0,g1,..."]
+     * where the last item can be missing.
+     * 
      * @throws IOException 
      * 
      */
@@ -38,7 +41,7 @@ public class HypgRunner extends ShellRunner {
         StringTokenizer st;
         
         try (BufferedReader in = new BufferedReader(new FileReader(fin))) {
-            List<String> row = new ArrayList<String>(4);
+            List<String> row;
             String line = null;
         
             while((line = in.readLine()) != null) {
@@ -50,16 +53,20 @@ public class HypgRunner extends ShellRunner {
                     continue;
                 }
                 
+                row = new ArrayList<String>(4);
+                
+                // Annotation   p-value bonferroni_p-value
                 for (int i = 0; i < 3; ++i) { row.add(st.nextToken()); }
                 
                 StringBuilder sb = new StringBuilder();
                 while(st.hasMoreTokens()) {
                     sb.append(st.nextToken());
+                    sb.append(',');
                 }
                 
+                sb.deleteCharAt(sb.length() - 1);
                 row.add(sb.toString());
                 results.add(row);
-                row.clear();
             }
             
         } catch (FileNotFoundException e) {
