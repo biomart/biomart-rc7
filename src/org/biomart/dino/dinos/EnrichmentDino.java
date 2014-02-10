@@ -10,10 +10,16 @@ import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
 import org.biomart.common.exceptions.TechnicalException;
@@ -28,6 +34,10 @@ import org.biomart.objects.objects.Attribute;
 import org.biomart.objects.objects.Element;
 import org.biomart.queryEngine.Query;
 import org.biomart.queryEngine.QueryElement;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.google.inject.Inject;
@@ -83,15 +93,21 @@ public class EnrichmentDino implements Dino {
     
     Map<String, List<List<String>>> results = new HashMap<String, List<List<String>>>();
     // These are collections to use when the request comes from a web browser
-    List<List<String>> nodes = new ArrayList<List<String>>();
+//    List<Map<String, String>> nodes = new ArrayList<Map<String, String>>();
     
-    Map<String, String[]> headers = new HashMap<String, String[]>();
+    Map<String, List<String>> annotationKeys = new HashMap<String, List<String>>();
+    Map<String, List<String>> geneKeys = new HashMap<String, List<String>>();
+    
+    Map<String, List<List<String>>> annotations = new HashMap<String, List<List<String>>>();
+    Map<String, List<List<String>>> genes = new HashMap<String, List<List<String>>>();
     
     List<int[]> edges = new ArrayList<int[]>();
     
     OutputStream sink;
     
     Map<String, Object> config;
+    
+    JsonGenerator g;
 
     @Inject
     public EnrichmentDino(HypgCommand cmd, 
@@ -133,6 +149,12 @@ public class EnrichmentDino implements Dino {
     private void iterate() throws TechnicalException, IOException {
         for (QueryElement attrList : q.getAttributeListList()) {
             iteration(attrList);
+        }
+        
+        if (isGuiClient()) {
+            initJson();
+            mkJson();
+            closeJson();
         }
     }
     
@@ -181,10 +203,9 @@ public class EnrichmentDino implements Dino {
             handleGuiRequest();
         } else {
             handleWebServiceRequest();
+         // Separator between results of different attribute lists
+            sink.write("\n\n\n".getBytes());
         }
-        
-        // Separator between results of different attribute lists
-        sink.write("\n\n\n".getBytes());
     }
     
     
@@ -204,6 +225,7 @@ public class EnrichmentDino implements Dino {
         
         results.remove(res);
         res = null;
+        results.remove(annotation);
         
         try {
             org.biomart.dino.Processor.runProcessor(ares, processor, q, sink);
@@ -224,14 +246,26 @@ public class EnrichmentDino implements Dino {
         
         // Translate ensembl ids into hgnc symbols and gather further attributes
         // specified within the configuration.
-        
-        
-        // Extract header
-        
-        
-        // format results
+        this.guiToAnnotationHgncSymbol(data);
     }
     
+    private void initJson() {
+        try (ByteArrayOutputStream out = byteStream()) {
+            g = new JsonFactory().createGenerator(out);
+            g.writeStartObject();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+    
+    private void mkJson() {
+        List<List<String>> anns = annotations.get(annotation);
+        List<List<String>> gs = genes.get(annotation);
+        List<String> gKeys = geneKeys.get(annotation);
+        List<String> aKyes = annotationKeys.get(annotation);
+        
+    }
 //    private void translateResults(List<List<String>> data) throws IOException {
 //        ByteArrayOutputStream tmpStream;
 //        
@@ -270,17 +304,6 @@ public class EnrichmentDino implements Dino {
 //            }
 //        }
 //    }
-    
-    /**
-     * 
-     * @param nodeList
-     * @return the index of the first line inside the collection nodeList has been inserted into.
-     */
-    private int addNodes(List<List<String>> nodeList) {
-        int i = nodes.size();
-        nodes.addAll(nodeList);
-        return i;
-    }
     
     private List<String> getResultsHeader(ByteArrayOutputStream oStream) {
         java.util.StringTokenizer lineSt = 
@@ -522,23 +545,23 @@ public class EnrichmentDino implements Dino {
      * @param filterValue
      * @param out
      */
-    private void toGeneHgncSymbol(String filterValue, OutputStream out) {
-        Map<String, Object> opt = getDisplayOptions(),
-                gene = (Map<String, Object>) getDisplayGeneOptions(opt);
-        
-        List<String> atts = getDisplayAttributes(gene);
-        String fName = getDisplayFilter(gene),
-               ds = getDatasetName(),
-               cfg = getConfigName();
-        
-        submitToHgncSymbolQuery(ds, 
-                                cfg, 
-                                fName, 
-                                filterValue,
-                                isGuiClient() ? atts : atts.subList(0, 1), 
-                                out);
-        
-    }
+//    private void toGeneHgncSymbol(String filterValue, OutputStream out) {
+//        Map<String, Object> opt = getDisplayOptions(),
+//                gene = (Map<String, Object>) getDisplayGeneOptions(opt);
+//        
+//        List<String> atts = getDisplayAttributes(gene);
+//        String fName = getDisplayFilter(gene),
+//               ds = getDatasetName(),
+//               cfg = getConfigName();
+//        
+//        submitToHgncSymbolQuery(ds, 
+//                                cfg, 
+//                                fName, 
+//                                filterValue,
+//                                isGuiClient() ? atts : atts.subList(0, 1), 
+//                                out);
+//        
+//    }
     
     /**
      * Same as toGeneHgncSymbol.
@@ -546,34 +569,34 @@ public class EnrichmentDino implements Dino {
      * @param filterValue
      * @param out
      */
-    private void toAnnotationHgncSymbol(String filterValue, OutputStream out) {
-        
-        Log.debug("toAnnotationHgncSymbol "+ annotation);
-        
-        
-        @SuppressWarnings("unchecked")
-        Map<String, Object> opt = getDisplayOptions(),
-                ann = (Map<String, Object>) getDisplayAnnotationOptions(opt).get(annotation);
-        
-        if (ann == null) {
-            ann = new HashMap<String, Object>();
-        }
-        
-        List<String> atts = getDisplayAttributes(ann);
-        String fName = getDisplayFilter(ann);
-        
-        submitToHgncSymbolQuery(annotationDatasetName, 
-                                annotationConfigName, 
-                                fName, 
-                                filterValue, 
-                                isGuiClient() ? atts : atts.subList(0, 1), 
-                                out);
-        
-    }
+//    private void toAnnotationHgncSymbol(String filterValue, OutputStream out) {
+//        
+//        Log.debug("toAnnotationHgncSymbol "+ annotation);
+//        
+//        
+//        @SuppressWarnings("unchecked")
+//        Map<String, Object> opt = getDisplayOptions(),
+//                ann = (Map<String, Object>) getDisplayAnnotationOptions(opt).get(annotation);
+//        
+//        if (ann == null) {
+//            ann = new HashMap<String, Object>();
+//        }
+//        
+//        List<String> atts = getDisplayAttributes(ann);
+//        String fName = getDisplayFilter(ann);
+//        
+//        submitToHgncSymbolQuery(annotationDatasetName, 
+//                                annotationConfigName, 
+//                                fName, 
+//                                filterValue, 
+//                                isGuiClient() ? atts : atts.subList(0, 1), 
+//                                out);
+//        
+//    }
     
     private void guiToAnnotationHgncSymbol(List<List<String>> data) {
         
-        Log.debug("toAnnotationHgncSymbol "+ annotation);
+        Log.debug("guiToAnnotationHgncSymbol "+ annotation);
         
         @SuppressWarnings("unchecked")
         Map<String, Object> opt = getDisplayOptions(),
@@ -584,71 +607,123 @@ public class EnrichmentDino implements Dino {
             return;
         }
         
-        List<String> annAtts = new ArrayList<String>((List<String>) ann.get("other_attributes"));
-        annAtts.add(0, ann.get("annotation_attribute").toString());
-        annAtts.add(1, ann.get("description_attribute").toString());
+        String lineDelim = "\n", colDelim = "\t";
+        List<String> annAtts = new ArrayList<String>(),
+                     geneAtts = new ArrayList<String>();
+        
+        annAtts.add(ann.get("annotation_attribute").toString());
+        annAtts.add(ann.get("description_attribute").toString());
+        annAtts.addAll((List<String>)ann.get("other_attributes"));
+        
         String annFilterName = getDisplayFilter(ann);
         
-        List<String> geneAtts = new ArrayList<String>((List<String>) gene.get("other_attributes"));
-        geneAtts.add(0, gene.get("gene_attribute").toString());
-        geneAtts.add(1, gene.get("description_attribute").toString());
+        geneAtts.add(gene.get("gene_attribute").toString());
+        geneAtts.add(gene.get("description_attribute").toString());
+        geneAtts.addAll((List<String>)gene.get("other_attributes"));
         String geneFilterName = getDisplayFilter(gene);
-        StringTokenizer st;
-        String[] atmp;
+        
+        String[] lines;
+        
+        List<List<String>> annotationNodes = new ArrayList<List<String>>(data.size());
+        List<List<String>> geneNodes = genes.get(annotation);
+        if (geneNodes == null) {
+            geneNodes = new ArrayList<List<String>>();
+            genes.put(annotation, geneNodes);
+        }
+        List<String> cols;
+        String[] colsArray;
+        
+        int annotationTargetIdx;
         
         try(ByteArrayOutputStream out = byteStream()) {
-
+            
             for (List<String> line : data) {
                 out.reset();
                 
-                submitToHgncSymbolQuery(annotationDatasetName, 
-                        annotationConfigName, 
-                        annFilterName, line.get(0),  
-                        annAtts, 
+                submitToHgncSymbolQuery(
+                        annotationDatasetName,
+                        annotationConfigName,
+                        annFilterName, line.get(0),
+                        annAtts, true,
                         out);
                 
-                st = new StringTokenizer(out.toString());
+                // There are two lines: header and the converted annotation
+                // each with k columns.
+                lines = out.toString().split(lineDelim);
 
-                line.set(0, st.nextToken());
-                line.add(1, st.nextToken());
+                // Keys
+                colsArray = lines[0].split(colDelim);
+                cols = Arrays.asList("_id", "p-value", "bp-value");
+                cols.addAll(Arrays.asList(Arrays.copyOfRange(colsArray, 1, colsArray.length)));
+                
+                // Put keys somewhere for later
+                annotationKeys.put(annotation, cols);
+                
+                // The actual content
+                colsArray = lines[1].split(colDelim);
+                
+                // Add annotation, p-value, bp-value 
+                cols = Arrays.asList(colsArray[0], line.get(1), line.get(2));
+                // Add the rest of the columns
+                cols.addAll(Arrays.asList(Arrays.copyOfRange(colsArray, 1, colsArray.length)));
+                
+                List<List<String>> a = annotations.get(annotation);
+                annotationTargetIdx = a == null ? 0 : a.size();
+                
+                annotationNodes.add(cols);
+                
+                lines = null; colsArray = null; cols = null;
                 
                 if (line.size() > 4) {
                     out.reset();
                     
-                    submitToHgncSymbolQuery(getDatasetName(), getConfigName(),
+                    submitToHgncSymbolQuery(
+                            annotationDatasetName,
+                            annotationConfigName,
                             geneFilterName, line.get(4),
-                            geneAtts,
+                            geneAtts, true,
                             out);
+                
+                    lines = out.toString().split(lineDelim);
+                    colsArray = lines[0].split(colDelim);
+                    cols = Arrays.asList("_id");
+                    cols.addAll(Arrays.asList(Arrays.copyOfRange(colsArray, 1, colsArray.length)));
                     
-                    st = new StringTokenizer(out.toString());
-                    atmp = new String[st.countTokens()];
-//                    sb = new StringBuilder();
+                    geneKeys.put(annotation, cols);
                     
-//                    while(st.hasMoreTokens()) { 
-//                        sb.append(st.nextToken());
-//                        sb.append(",");
-//                    }
-//                    
-//                    sb.deleteCharAt(sb.length() - 1);
-                    int i = 0;
-                    while (st.hasMoreTokens()) {
-                        atmp[i++] = st.nextToken();
+                    colsArray = null; cols = null;
+                    
+                    for (int i = 1, len = lines.length; i < len; ++i) {
+                        String geneLine = lines[i];
+                        colsArray = geneLine.split(colDelim);
+                        cols = Arrays.asList(colsArray);
+                        for (int j = 0, jlen = geneNodes.size(); j < jlen; ++j) {
+                            String str = colsArray[0];
+                            List<String> l = geneNodes.get(j);
+                            if (l.get(0).equals(str)) {
+                                edges.add(new int[] { j, annotationTargetIdx });
+                            } else {
+                                int index = geneNodes.size();
+                                geneNodes.add(cols);
+                                edges.add(new int[] { index, annotationTargetIdx });
+                            }
+                        }
                     }
-                    
-//                    line.set(4, sb.toString());
-                    line.set(4, StringUtils.join(atmp, ","));
-                    atmp = null;
+
                 }
             }
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        
+        annotations.put(annotation, annotationNodes);
     }
+
     
     private void webServiceToAnnotationHgncSymbol(List<List<String>> data) {
         
-        Log.debug("toAnnotationHgncSymbol "+ annotation);
+        Log.debug("webServiceToAnnotationHgncSymbol "+ annotation);
         
         @SuppressWarnings("unchecked")
         Map<String, Object> opt = getDisplayOptions(),
@@ -679,7 +754,7 @@ public class EnrichmentDino implements Dino {
                         annotationDatasetName, 
                         annotationConfigName, 
                         annFilterName, line.get(0),  
-                        annAtts, 
+                        annAtts, false,
                         out);
                 
                 atmp = out.toString().split(delim);
@@ -696,20 +771,10 @@ public class EnrichmentDino implements Dino {
                             annotationDatasetName,
                             annotationConfigName,
                             geneFilterName, line.get(4),
-                            geneAtts,
+                            geneAtts, false,
                             out);
                     
                     atmp = out.toString().split(delim);
-//                    sb = new StringBuilder();
-                    
-//                    while(st.hasMoreTokens()) { 
-//                        sb.append(st.nextToken());
-//                        sb.append(",");
-//                    }
-//                    
-//                    sb.deleteCharAt(sb.length() - 1);
-                    
-//                    line.set(4, sb.toString());
                     line.set(4, StringUtils.join(atmp, ","));
                     atmp = null;
                 }
@@ -721,14 +786,17 @@ public class EnrichmentDino implements Dino {
     }
     
     
-    private void submitToHgncSymbolQuery(String datasetName, 
+    private void submitToHgncSymbolQuery(
+                              String datasetName, 
                               String configName,
                               String filterName,
                               String filterValue,
                               List<String> attributes,
+                              boolean header,
                               OutputStream out) {
         initQueryBuilder();
-        qbuilder.setDataset(datasetName, configName)
+        qbuilder.setHeader(header)
+                .setDataset(datasetName, configName)
                 .addFilter(filterName, filterValue);
         for (String att : attributes) {
             qbuilder.addAttribute(att);
