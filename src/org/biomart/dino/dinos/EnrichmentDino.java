@@ -571,7 +571,7 @@ public class EnrichmentDino implements Dino {
         
     }
     
-    private void webServiceToAnnotationHgncSymbol(List<List<String>> data) {
+    private void guiToAnnotationHgncSymbol(List<List<String>> data) {
         
         Log.debug("toAnnotationHgncSymbol "+ annotation);
         
@@ -584,15 +584,16 @@ public class EnrichmentDino implements Dino {
             return;
         }
         
-        List<String> annAtts = new ArrayList<String>();
-        
-        annAtts.add(ann.get("annotation_attribute").toString());
-        annAtts.add(ann.get("description_attribute").toString());
+        List<String> annAtts = new ArrayList<String>((List<String>) ann.get("other_attributes"));
+        annAtts.add(0, ann.get("annotation_attribute").toString());
+        annAtts.add(1, ann.get("description_attribute").toString());
         String annFilterName = getDisplayFilter(ann);
-        String geneAtt = gene.get("gene_attribute").toString();
+        
+        List<String> geneAtts = new ArrayList<String>((List<String>) gene.get("other_attributes"));
+        geneAtts.add(0, gene.get("gene_attribute").toString());
+        geneAtts.add(1, gene.get("description_attribute").toString());
         String geneFilterName = getDisplayFilter(gene);
         StringTokenizer st;
-        StringBuilder sb;
         String[] atmp;
         
         try(ByteArrayOutputStream out = byteStream()) {
@@ -614,12 +615,10 @@ public class EnrichmentDino implements Dino {
                 if (line.size() > 4) {
                     out.reset();
                     
-                    initQueryBuilder();
-                    qbuilder.setProcessor("TSV")
-                            .setDataset(getDatasetName(), getConfigName())
-                            .addFilter(geneFilterName, line.get(4))
-                            .addAttribute(geneAtt)
-                            .getResults(out);
+                    submitToHgncSymbolQuery(getDatasetName(), getConfigName(),
+                            geneFilterName, line.get(4),
+                            geneAtts,
+                            out);
                     
                     st = new StringTokenizer(out.toString());
                     atmp = new String[st.countTokens()];
@@ -645,7 +644,80 @@ public class EnrichmentDino implements Dino {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
+    
+    private void webServiceToAnnotationHgncSymbol(List<List<String>> data) {
         
+        Log.debug("toAnnotationHgncSymbol "+ annotation);
+        
+        @SuppressWarnings("unchecked")
+        Map<String, Object> opt = getDisplayOptions(),
+                ann = (Map<String, Object>) getDisplayAnnotationOptions(opt).get(annotation),
+                gene = (Map<String, Object>) getDisplayGeneOptions(opt);
+        
+        if (ann == null || gene == null) {
+            return;
+        }
+        
+        String delim = "[\t\n]";
+        List<String> annAtts = new ArrayList<String>(),
+                     geneAtts = new ArrayList<String>();
+        
+        annAtts.add(ann.get("annotation_attribute").toString());
+        annAtts.add(ann.get("description_attribute").toString());
+        String annFilterName = getDisplayFilter(ann);
+        geneAtts.add(gene.get("gene_attribute").toString());
+        String geneFilterName = getDisplayFilter(gene);
+        String[] atmp;
+        
+        try(ByteArrayOutputStream out = byteStream()) {
+
+            for (List<String> line : data) {
+                out.reset();
+                
+                submitToHgncSymbolQuery(
+                        annotationDatasetName, 
+                        annotationConfigName, 
+                        annFilterName, line.get(0),  
+                        annAtts, 
+                        out);
+                
+                atmp = out.toString().split(delim);
+
+                if (atmp.length > 1) {
+                    line.set(0, atmp[0]);
+                    line.add(1, atmp[1]);
+                }
+                
+                if (line.size() > 4) {
+                    out.reset();
+                    
+                    submitToHgncSymbolQuery(
+                            annotationDatasetName,
+                            annotationConfigName,
+                            geneFilterName, line.get(4),
+                            geneAtts,
+                            out);
+                    
+                    atmp = out.toString().split(delim);
+//                    sb = new StringBuilder();
+                    
+//                    while(st.hasMoreTokens()) { 
+//                        sb.append(st.nextToken());
+//                        sb.append(",");
+//                    }
+//                    
+//                    sb.deleteCharAt(sb.length() - 1);
+                    
+//                    line.set(4, sb.toString());
+                    line.set(4, StringUtils.join(atmp, ","));
+                    atmp = null;
+                }
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
     
     
