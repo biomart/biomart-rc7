@@ -23,6 +23,13 @@ public class Processor {
     initProc(String type, Query q, OutputStream out) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
         ProcessorImpl proc = getProcInstance(getProcClass(type));
         
+        String value = "";
+        for (String field : proc.getFieldNames()) {
+            value = proc.getDefaultValueForField(field);
+            if (value != null)
+                proc.setFieldValue(field, value);
+        }
+        
         proc.setQuery(q);
         proc.setOutputStream(out);
         return proc;
