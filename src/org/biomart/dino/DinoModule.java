@@ -10,6 +10,7 @@ import org.biomart.dino.command.HypgRunner;
 import org.biomart.dino.configreader.ConfigReader;
 import org.biomart.dino.configreader.AttributesConfig;
 import org.biomart.dino.configreader.ShellCommandReader;
+import org.biomart.dino.dinos.enrichment.GuiResponseCompiler;
 import org.biomart.dino.querybuilder.JavaQueryBuilder;
 import org.biomart.dino.querybuilder.QueryBuilder;
 
@@ -39,6 +40,8 @@ public class DinoModule extends AbstractModule {
         bind(String.class)
             .annotatedWith(Names.named("Enrichment File Config Path"))
             .toInstance(p);
+        
+        bind(GuiResponseCompiler.class);
 
     }
                 
