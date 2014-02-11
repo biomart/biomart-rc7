@@ -187,8 +187,18 @@ public class EnrichmentDino implements Dino {
     }
 
     private void tasks() throws IOException {
+        long start = System.nanoTime();
         translateFilters();
+        long end = System.nanoTime();
+        
+        Log.info("ENRICHMENT TIMES:"+annotation+": ensembl translation took "+ ((end - start) / 1_000_000.0) + "ms");
+        
+        start = System.nanoTime();
         enrich();
+        end = System.nanoTime();
+        
+        Log.info("ENRICHMENT TIMES:"+annotation+": enrichment took "+ ((end - start) / 1_000_000.0) + "ms");
+        
         if (isGuiClient()) {
             handleGuiRequest();
         } else {
@@ -202,8 +212,13 @@ public class EnrichmentDino implements Dino {
     private void handleWebServiceRequest() {
         String processor = this.q.getProcessor();
         List<List<String>> res = results.get(annotation);
+        long start = System.nanoTime();
         // This modifies res as we want
         this.webServiceToAnnotationHgncSymbol(res);
+        long end = System.nanoTime();
+        
+        Log.info("ENRICHMENT TIMES:"+annotation+": hgnc translation took "+ ((end - start) / 1_000_000.0) + "ms");
+        
         List<String[]> ares = new ArrayList<String[]>(res.size());
 
         if (this.q.hasHeader())
@@ -213,12 +228,15 @@ public class EnrichmentDino implements Dino {
             ares.add(r.toArray(new String[r.size()]));
         }
 
-        results.remove(res);
+//        results.remove(res);
         res = null;
         results.remove(annotation);
 
         try {
+            start = System.nanoTime(); 
             org.biomart.dino.Processor.runProcessor(ares, processor, q, sink);
+            end = System.nanoTime();
+            Log.info("ENRICHMENT TIMES:"+annotation+": sending the result through processor took "+ ((end - start) / 1_000_000.0) + "ms");
         } catch (IllegalArgumentException | InstantiationException
                 | IllegalAccessException | InvocationTargetException e) {
             Log.error("EnrichmentDino#handleWebServiceRequest(): cannot send results: ",e);
@@ -628,6 +646,8 @@ public class EnrichmentDino implements Dino {
         String geneFilterName = getDisplayFilter(gene);
         String[] atmp;
 
+        Log.debug("webServiceToAnnotationHgncSymbol data = "+ data.toString().substring(0, 4));
+        
         try(ByteArrayOutputStream out = byteStream()) {
 
             for (List<String> line : data) {
