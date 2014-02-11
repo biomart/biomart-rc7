@@ -112,6 +112,10 @@ public class EnrichmentDino implements Dino {
                           @Named("Enrichment File Config Path")
                           String configPath,
                           GuiResponseCompiler compiler) throws IOException {
+        
+        // This is an ugly trick to avoid undesired html...
+        org.biomart.api.rest.IframeOutputStream.useIframe(false);
+        
         this.cmd = cmd;
         this.cmdRunner = cmdRunner;
         this.qbuilder = qbuilder;
@@ -249,7 +253,7 @@ public class EnrichmentDino implements Dino {
     
     private void sendGuiResponse() throws IOException {
         try(ByteArrayOutputStream out = byteStream()) {
-            String p = config.get("front-end").toString();
+            String p = System.getProperty("user.dir") + System.getProperty("file.separator") + config.get("front-end").toString();
             mkJson(out);
             Map<String, Object> scope = new HashMap<String, Object>();
             scope.put("data", out.toString());
@@ -268,7 +272,7 @@ public class EnrichmentDino implements Dino {
         
         for (String ann : links.keySet()) {
             edges = new HashMap<String, Object>();
-            tabs.put("links", links.get(ann));
+            edges.put("links", links.get(ann));
             tabs.put(ann, edges);
         }
         
