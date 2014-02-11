@@ -96,7 +96,7 @@ public class PortalResource implements PortalService {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     @Cache(maxAge = MAX_AGE)
     @Override
-    public List<Dataset> getDatasets(@QueryParam("mart") String martName) {
+    public List<Dataset> getDatasets(@QueryParam("config") String martName) {
         return getPortal().getDatasets(martName);
     }
 
