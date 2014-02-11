@@ -25,9 +25,10 @@ import org.biomart.objects.objects.Dataset;
  * There is no need to execute importable only subqueries multiple times as their
  * resultset remains the same
  */
-public final class Query {
+public class Query {
 
 	private final String processor;
+	private final String dino;
     private final Map<Dataset, SubQuery> importableOnlySubqueries = new HashMap<Dataset,SubQuery>();
 	private Map<Dataset, Set<SubQuery>> datasetSubqueries;
 	//private LinkIndex linkIndex = new LinkIndex();
@@ -48,6 +49,9 @@ public final class Query {
     public List<QueryElement> pseudoAttributes = new ArrayList<QueryElement>();
 
 	private final boolean isCountQuery;
+	
+	private List<QueryElement> attributeListList = null;
+	private List<QueryElement> filtersGroup = null;
 
     public Query(QueryValidator qv, boolean isCountQuery) {
 		this.isCountQuery = isCountQuery;
@@ -62,6 +66,7 @@ public final class Query {
 		this.datasetSubqueries = new HashMap<Dataset, Set<SubQuery>>();
 		this.limit = (qv.getLimit());
 		this.processor = (qv.getProcessor());
+		this.dino = qv.getDino();
 		this.queryElementList = qv.getQueryElementList();
 		this.pseudoAttributes =  qv.getPseudoAttributes();
 		this.originalAttributeOrder = qv.getOriginalAttributeOrder();
@@ -70,8 +75,23 @@ public final class Query {
         this.outputOrder = new int[this.originalAttributeOrder.size()];
         this.isAttributeList = qv.getAttributeListSizes().toArray(new Integer[qv.getAttributeListSizes().size()]);
 		this.outputDisplayNames = new String[this.originalAttributeOrder.size()];
+		
+		attributeListList = qv.getAttributeListList();
+		filtersGroup = qv.getFilters();
 	}
 
+    public String getDino() {
+    		return dino;
+    }
+    
+    public List<QueryElement> getAttributeListList() {
+        return attributeListList;
+    }
+    
+    public List<QueryElement> getFilters() {
+        return filtersGroup;
+    }
+    
     public Map<Dataset, SubQuery> getImportableOnlySubqueries() {
 		return importableOnlySubqueries;
 	}

@@ -1,6 +1,7 @@
 package org.biomart.queryEngine;
 
 import org.biomart.common.exceptions.BioMartException;
+
 import java.io.EOFException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -13,7 +14,6 @@ import java.util.Date;
 import org.biomart.common.exceptions.FunctionalException;
 import org.biomart.objects.objects.MartRegistry;
 import org.biomart.common.resources.Log;
-
 import org.jdom.Document;
 import org.jdom.input.SAXBuilder;
 import org.xml.sax.InputSource;
@@ -22,10 +22,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.biomart.common.exceptions.TechnicalException;
 import org.biomart.common.exceptions.ValidationException;
 import org.biomart.configurator.utils.McUtils;
+import org.biomart.dino.DinoHandler;
 import org.biomart.objects.objects.Attribute;
 import org.biomart.processors.ProcessorInterface;
 import org.biomart.processors.ProcessorRegistry;
@@ -67,10 +69,16 @@ public final class QueryController {
 	private final QueryValidator queryValidator;
 	private final Query query;
 	private boolean isCountQuery;
+	
+	private String[] mimes;
+	private String user;
 
     public QueryController(String xml, final MartRegistry registryObj, String user, String[] mimes, boolean isCountQuery) {
 		Log.info("Incoming XML query: " + xml);
 
+		this.mimes = mimes;
+		this.user = user;
+		
 		this.isCountQuery = isCountQuery;
 		this.registryObj = registryObj;
         userGroup = McUtils.getUserGroup(registryObj, user, "").getName();
@@ -104,21 +112,25 @@ public final class QueryController {
 
             queryValidator.setQueryDocument(queryXMLobject);
             queryValidator.validateQuery();
-			query = splitQuery();
+            
+            if (queryValidator.hasDino() && queryValidator.getUseDino()) {
+                    query = null;
+            } else {
+                query = splitQuery();
+                
+                Log.debug("Unplanned: " + query);
 
-			Log.debug("Unplanned: " + query);
+                // This is commented because it does not work anymore
+                // essentially there is no query planning happening anymore
+                // to be replaced with an intelligent query planner at some stage
+                // query.planQuery();
 
-			// This is commented because it does not work anymore
-            // esentially there is no query planning happening anymore
-            // to be replaced with an intelligent query planner at some stage
-            // query.planQuery();
+                Log.debug("Planned:" + query);
 
-			Log.debug("Planned:" + query);
+                generateAttributePositions();
 
-			generateAttributePositions();
-
-			Log.debug("LIMIT: " + query.getLimit());
-
+                Log.debug("LIMIT: " + query.getLimit());
+            }
 		} catch (Exception e) {
             throw new ValidationException(e.getMessage(), e);
 		}
@@ -137,16 +149,20 @@ public final class QueryController {
         // 4. Run query
         // 5. Call done (cleanup) on Processor
         try {
-            QueryRunner queryRunnerObj = new QueryRunner(query,
-                    processorObj.getCallback(), processorObj.getErrorHandler(), isCountQuery);
-
-            processorObj.setQuery(queryRunnerObj.query);
-            processorObj.setOutputStream(outputHandle);
-
-            queryRunnerObj.runQuery();
-
-            processorObj.done();
-
+        		if (queryValidator.hasDino() && queryValidator.getUseDino()) {
+        			Query q = new Query(queryValidator, false);
+        			DinoHandler.runDino(q, user, mimes, outputHandle);
+        		} else {
+                    QueryRunner queryRunnerObj = new QueryRunner(query,
+                            processorObj.getCallback(), processorObj.getErrorHandler(), isCountQuery);
+    
+                    processorObj.setQuery(queryRunnerObj.query);
+                    processorObj.setOutputStream(outputHandle);
+    
+                    queryRunnerObj.runQuery();
+    
+                    processorObj.done();
+        		}
         } catch (BioMartException e) {
             if (!(e.getCause() instanceof EOFException)) {
                 throw e;
@@ -155,7 +171,7 @@ public final class QueryController {
             throw new TechnicalException(e);
         } catch (InterruptedException e) {
             throw new TechnicalException(e);
-        } finally {
+		} finally {
             long end = new Date().getTime();
             Log.info(String.format("Total query time is %s ms", end-start));
         }

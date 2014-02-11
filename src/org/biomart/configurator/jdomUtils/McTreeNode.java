@@ -405,6 +405,7 @@ public class McTreeNode extends DefaultMutableTreeNode {
      */
     private boolean doCopyPaste(MartConfigTree tree, List<MartConfiguratorObject> mcObjectList, Container targetContainer,  boolean isCrossConfig) {
     	for(MartConfiguratorObject oldObj: mcObjectList) {
+    	    Log.debug("testingcopy "+ this.getClass().getName() + "#doCopyPaste() ");
     		MartConfiguratorObject newObj = this.deepClone(oldObj, isCrossConfig);
     		//add it to the object model and tree
     		if(newObj.getNodeType().equals(McNodeType.ATTRIBUTE))
@@ -450,8 +451,12 @@ public class McTreeNode extends DefaultMutableTreeNode {
     			//set pointeddataset, pointedmart, pointedconfig
     		}
     		else {
-    			nextAtt = ((Attribute)source).cloneMyself(false);
+    		    Attribute sourceAttr = ((Attribute)source);
+    			nextAtt = sourceAttr.cloneMyself(false);
     			nextAtt.setName(tmpName);
+    			if (sourceAttr.isAttributeList()) {
+    			    copyAttributeList(nextAtt, sourceAttr);
+    			}
     			//nextAtt = new Attribute(((Attribute)source).getDataSetColumn(),tmpName);
     		}
     		nextAtt.setDisplayName(source.getDisplayName());
@@ -476,8 +481,12 @@ public class McTreeNode extends DefaultMutableTreeNode {
     				nextFilter.addPointedDataset(ds);
     			}
       		}else {
-      			nextFilter = ((Filter)source).cloneMyself();
+      		    Filter sourceFilter = ((Filter)source);
+      			nextFilter = sourceFilter.cloneMyself(false);
       			nextFilter.setName(tmpName);
+      			if (sourceFilter.isFilterList()) {
+      			    copyFilterList(nextFilter, sourceFilter);
+      			}
       			//just make a copy
       			/*if(sourceFilter.isPointer())
       				nextFilter.setPointedElement(sourceFilter.getPointedFilter());
@@ -828,36 +837,107 @@ public class McTreeNode extends DefaultMutableTreeNode {
     }
 
     public boolean createAttributeList() {
-    	//this is a container
-    	Container container = (Container)this.getUserObject();
-    	JDialog parentDlg = ((McTreeNode)this.getRoot()).getParentDialog();
-    	AddAttributeListDialog ald = new AddAttributeListDialog(container.getParentConfig(),parentDlg);  
-    	Attribute al = ald.getCreatedAttributeList();
-    	if(al!=null) {
-    		Container c = (Container) this.userObject;
-    		c.addAttribute(al);
-    		//create all sub attributes if they don't exist in the config
-    		Config parentConfig = c.getParentConfig();
-    		if(!parentConfig.isMasterConfig()) {
-    			Config masterConfig = parentConfig.getMart().getMasterConfig();
-    			String listStr = al.getAttributeListString();
-    			String[] atts = listStr.split(",");
-    			for(String att: atts) {
-    				if(null==parentConfig.getAttributeByName(att, new ArrayList<String>())){
-    					Attribute attInSource = masterConfig.getAttributeByName(att, new ArrayList<String>());
-    					if(attInSource!=null) {
-    						Attribute copy = attInSource.cloneMyself(false);
-    						c.addAttribute(copy);
-    					}
-    				}
-    			}
-    		}
-    		McEventBus.getInstance().fire(McEventProperty.SYNC_NEW_LIST.toString(), al);
-    		McTreeNode alTreeNode = new McTreeNode(al);
-    		this.add(alTreeNode);
-    		return true;
-    	}
-    	return false;
+        //this is a container
+        Container container = (Container)this.getUserObject();
+        JDialog parentDlg = ((McTreeNode)this.getRoot()).getParentDialog();
+        AddAttributeListDialog ald = new AddAttributeListDialog(container.getParentConfig(),parentDlg);  
+        Attribute al = ald.getCreatedAttributeList();
+        if(al!=null) {
+            Container c = (Container) this.userObject;
+            c.addAttribute(al);
+            //create all sub attributes if they don't exist in the config
+            Config parentConfig = c.getParentConfig();
+            if(!parentConfig.isMasterConfig()) {
+                Config masterConfig = parentConfig.getMart().getMasterConfig();
+                String listStr = al.getAttributeListString();
+                String[] atts = listStr.split(",");
+                for(String att: atts) {
+                    if(null==parentConfig.getAttributeByName(att, new ArrayList<String>())){
+                        Attribute attInSource = masterConfig.getAttributeByName(att, new ArrayList<String>());
+                        if(attInSource!=null) {
+                            Attribute copy = attInSource.cloneMyself(false);
+                            c.addAttribute(copy);
+                        }
+                    }
+                }
+            }
+            McEventBus.getInstance().fire(McEventProperty.SYNC_NEW_LIST.toString(), al);
+            McTreeNode alTreeNode = new McTreeNode(al);
+            this.add(alTreeNode);
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * 
+     * Creates a new container and places a copy c of al into it then set c
+     * as attribute list of head. 
+     * 
+     * @param head attribute that owns the attribute list.
+     * @param al attribute list to copy.
+     * @return 
+     */
+    private void copyAttributeList(Attribute head, Attribute al) {
+
+        Container c = addContainerForCopies(head.getName());
+        List<String> attrListNames = new ArrayList<String>();
+        //create all sub attributes if they don't exist in the config
+        Config parentConfig = c.getParentConfig();
+        if(!parentConfig.isMasterConfig()) {
+            Config masterConfig = parentConfig.getMart().getMasterConfig();
+            String listStr = al.getAttributeListString();
+            String[] atts = listStr.split(",");
+            for(String att: atts) {
+                Attribute attInSource = masterConfig.getAttributeByName(att, new ArrayList<String>());
+                if(attInSource!=null) {
+                    Attribute copy = attInSource.cloneMyself(true);
+                    c.addAttribute(copy);
+                    attrListNames.add(copy.getName());
+                }
+            }
+        }
+        head.setAttributeListString(McUtils.StrListToStr(attrListNames, ","));
+//        McEventBus.getInstance().fire(McEventProperty.SYNC_NEW_LIST.toString(), head);
+        McTreeNode alTreeNode = new McTreeNode(head);
+        this.add(alTreeNode);
+    }
+    
+    private Container addContainerForCopies(String baseName) {
+        String s = baseName + "_Container";
+
+        Container parent = (Container)this.getObject();
+        Container c = new Container(s);
+        c.setHideValue(true);
+        parent.addContainer(c);
+        //add tree node
+        McTreeNode gcNode = new McTreeNode(c);
+        this.add(gcNode);
+        return c;
+    }
+    
+    private void copyFilterList(Filter head, Filter fl) {
+        //this is a container
+        Container c = addContainerForCopies(head.getName());
+        List<String> filtListNames = new ArrayList<String>();
+        Config parentConfig = c.getParentConfig();
+        if(!parentConfig.isMasterConfig()) {
+            Config masterConfig = parentConfig.getMart().getMasterConfig();
+            String listStr = fl.getFilterListString();
+            String[] atts = listStr.split(",");
+            for(String att: atts) {
+                Filter filterInSource = masterConfig.getFilterByName(att, new ArrayList<String>());
+                if(filterInSource !=null) {
+                    Filter copy = filterInSource.cloneMyself(true);
+                    c.addFilter(copy);
+                    filtListNames.add(copy.getName());
+                }
+            }
+        }
+        head.setFilterListString(McUtils.StrListToStr(filtListNames, ","));
+//        McEventBus.getInstance().fire(McEventProperty.SYNC_NEW_LIST.toString(), head);
+        McTreeNode alTreeNode = new McTreeNode(head);
+        this.add(alTreeNode);
     }
     
     public boolean createFilterList() {

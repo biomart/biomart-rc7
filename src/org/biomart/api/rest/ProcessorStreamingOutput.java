@@ -13,7 +13,7 @@ import javax.ws.rs.core.StreamingOutput;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.biomart.api.Portal;
 import org.biomart.common.resources.Log;
-import org.biomart.queryEngine.QueryControllerProxy;
+import org.biomart.queryEngine.QueryController;
 
 /**
  *
@@ -24,7 +24,7 @@ public final class ProcessorStreamingOutput implements StreamingOutput {
     private final String scope;
     private final String uuid;
 
-    private QueryControllerProxy qc;
+    private QueryController qc;
 
     public ProcessorStreamingOutput(String query, Portal portal,
             boolean iframe, String uuid, String scope, String[] mimes) {
@@ -33,7 +33,7 @@ public final class ProcessorStreamingOutput implements StreamingOutput {
         this.scope =  StringEscapeUtils.escapeJavaScript(scope);
 
         try {
-            qc = new QueryControllerProxy(query, portal._registry.getFullRegistry(),
+            qc = new QueryController(query, portal._registry.getFullRegistry(),
                     portal._user== null ? "" : portal._user, mimes, false);
         } catch(Exception e) {
             handleException(e);

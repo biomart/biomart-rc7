@@ -387,6 +387,8 @@ public class TreeNodeMenuConstructor implements ActionListener {
 			node.cut(nodeList);
 		} else if (e.getActionCommand().equals("paste")) {
 			node.paste((MartConfigTree) ltree);
+			((DefaultTreeModel) ltree.getModel()).nodeStructureChanged(node);
+			McEventBus.getInstance().fire(McEventProperty.REFRESH_OTHERTREE.toString(), ltree);
 		} else if (e.getActionCommand().equals("addGuiContainer")) {
 			if (node.addGuiContainer())
 				((DefaultTreeModel) ltree.getModel())

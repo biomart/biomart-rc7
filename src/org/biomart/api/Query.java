@@ -23,6 +23,7 @@ public class Query {
     private boolean _header = true;
     private String _client = "biomartclient";
     private final List<Dataset> _datasets = new ArrayList<Dataset>();
+    private boolean _useDino = true;
 
 	private boolean isCountQuery;
 
@@ -115,6 +116,15 @@ public class Query {
 	public boolean getisCountQuery() {
 		return isCountQuery;
 	}
+	
+	public Query setUseDino(boolean use) {
+	    _useDino = use;
+	    return this;
+	}
+	
+	public boolean getUseDino() {
+	    return _useDino;
+	}
 
     /*
      * e.g.
@@ -139,7 +149,8 @@ public class Query {
                 .setAttribute("client", _client)
                 .setAttribute("processor", _processor)
                 .setAttribute("limit", ""+_limit)
-                .setAttribute("header", _header ? "1" : "0");
+                .setAttribute("header", _header ? "1" : "0")
+                .setAttribute("useDino", Boolean.toString(_useDino));
 
             for (Dataset d : _datasets) {
                 Element ds = new Element("Dataset").setAttribute("name", d.name);

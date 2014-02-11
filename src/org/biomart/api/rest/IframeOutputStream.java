@@ -12,6 +12,7 @@ import org.biomart.common.constants.OutputConstants;
  */
 public class IframeOutputStream extends FilterOutputStream implements OutputConstants {
     private final byte[][] HTML;
+    private static boolean html = true, firstWrite = false;
 
     public IframeOutputStream(String uuid, OutputStream out, String scope) throws IOException {
         super(out);
@@ -23,9 +24,6 @@ public class IframeOutputStream extends FilterOutputStream implements OutputCons
         HTML[2] = ("')</script>\n<script>parent." + scope + ".write('" + uuid + "','").getBytes();
         HTML[3] = ("')</script>\n<script>parent." + scope + ".done('" + uuid + "')</script></body></html>").getBytes();
         HTML[4] = "<span></span>".getBytes();
-
-        out.write(HTML[0]);
-        out.write(HTML[1]);
     }
 
 	// Buffer the results so we don't stream line by line to the iframe's 
@@ -41,13 +39,21 @@ public class IframeOutputStream extends FilterOutputStream implements OutputCons
 	 */
     @Override
     public void write(byte[] bytes) throws IOException {
+        if (html && firstWrite) {
+            firstWrite = false;
+            out.write(HTML[0]);
+            out.write(HTML[1]);
+        }
+        
 		String line = StringEscapeUtils.escapeJavaScript(new String(bytes));
 
 		sb.append(line);
 
 		if (pos == WRITE_LIMIT-1) {
-			out.write(sb.toString().getBytes());
-			out.write(HTML[2]);
+		    if (html) {
+		        out.write(sb.toString().getBytes());
+	            out.write(HTML[2]);
+		    }
 			pos = 0;
 			sb = new StringBuilder();
 		} else {
@@ -58,7 +64,11 @@ public class IframeOutputStream extends FilterOutputStream implements OutputCons
     @Override
     public void close() throws IOException {
 		out.write(sb.toString().getBytes());
-        out.write(HTML[3]);
+        if (html) out.write(HTML[3]);
         super.close();
+    }
+    
+    public static void useIframe(boolean iframe) {
+        html = iframe;
     }
 }

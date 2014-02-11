@@ -15,18 +15,14 @@ import java.util.Set;
 import javax.swing.JOptionPane;
 
 import org.biomart.common.exceptions.MartBuilderException;
-import org.biomart.common.resources.ErrorMessage;
 import org.biomart.common.resources.Log;
 import org.biomart.common.resources.Resources;
 import org.biomart.common.utils.MartConfiguratorUtils;
 import org.biomart.common.utils.XMLElements;
-import org.biomart.configurator.controller.MartController;
 import org.biomart.configurator.model.object.FilterData;
 import org.biomart.configurator.utils.ConnectionPool;
 import org.biomart.configurator.utils.JdbcLinkObject;
-import org.biomart.configurator.utils.McGuiUtils;
 import org.biomart.configurator.utils.McUtils;
-import org.biomart.configurator.utils.Validation;
 import org.biomart.configurator.utils.type.DataLinkType;
 import org.biomart.configurator.utils.type.ValidationStatus;
 import org.biomart.configurator.utils.type.McNodeType;
@@ -35,7 +31,7 @@ import org.biomart.objects.enums.FilterType;
 import org.biomart.queryEngine.OperatorType;
 
 
-public class Filter extends Element	{
+public class Filter extends Element	implements Comparable<Filter> {
 	
 	private Map<String,Map<String,FilterData>> optionsList;
 	public static String EMPTYDATASET="";
@@ -45,6 +41,30 @@ public class Filter extends Element	{
 		this.optionsList = new LinkedHashMap<String,Map<String,FilterData>>();
 		this.setNodeType(McNodeType.FILTER);
 	}
+	
+	private void propagateProperty(XMLElements pro, String value) {
+        // This is a hack to avoid a NullPointerException while propagating a property
+        //  at MartConfigurator boot-time.
+        if (pro.equals(XMLElements.FUNCTION) && this.isFilterList() && this.getParentConfig() != null) {
+            Log.debug("propagateProperty() filter name = "+ this.getName());
+            List<Filter> fs = this.getFilterList();
+            for (Filter f : fs) {
+                f.setProperty(pro, value);
+            }
+        }
+    }
+    
+    @Override
+    public void setProperty(XMLElements pro, String value) {
+        super.setProperty(pro, value);
+        
+        propagateProperty(pro, value);
+    }
+	
+	@Override
+    public int compareTo(Filter f) {
+        return this.getDisplayName().compareTo(f.getDisplayName());
+    }
 
 	public void setPointedInfo(String pointedFilterName, String pointedDatasetName,
 			String pointedConfigName, String pointedMartName) {
@@ -632,6 +652,9 @@ public class Filter extends Element	{
 		MartConfiguratorUtils.addAttribute(element, XMLElements.CONFIG.toString(), this.getParentConfig().getName());
 		MartConfiguratorUtils.addAttribute(element, XMLElements.DEFAULT.toString(), this.getPropertyValue(XMLElements.DEFAULT));
 		MartConfiguratorUtils.addAttribute(element, XMLElements.POINTER.toString(), this.isPointer().toString());
+		
+		element.setAttribute(XMLElements.FUNCTION.toString(), this.getPropertyValue(XMLElements.FUNCTION));
+		
 		if (this.isPointer()) {
 			element.setAttribute(XMLElements.POINTEDDATASET.toString(),this.getPropertyValue(XMLElements.POINTEDDATASET));
 			element.setAttribute(XMLElements.POINTEDFILTER.toString(),this.getPropertyValue(XMLElements.POINTEDFILTER));
@@ -797,9 +820,23 @@ public class Filter extends Element	{
 	}
 
 	public Filter cloneMyself() {
-		org.jdom.Element e = this.generateXml();
-		return new Filter(e);
-	}
+        org.jdom.Element e = this.generateXml();
+        return new Filter(e);
+    }
+	
+	public Filter cloneMyself(boolean rename) {
+        org.jdom.Element e = this.generateXml();
+        Filter newFilter = new Filter(e);
+        if (rename) {
+            Config cfg = this.getParentConfig();
+            if (null != cfg) {
+                String newName =  McUtils.getUniqueFilterName(cfg, this.getName());
+                newFilter.setName(newName);
+            }
+        }
+        
+        return newFilter;
+    }
 
 	public void clearFilterList() {
 		this.setProperty(XMLElements.FILTERLIST, "");

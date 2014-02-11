@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.biomart.common.exceptions.FunctionalException;
+import org.biomart.common.resources.Log;
 import org.biomart.common.resources.Resources;
 import org.biomart.common.utils.PartitionUtils;
 import org.biomart.common.utils.XMLElements;
@@ -41,6 +42,11 @@ public class Dataset extends MartConfiguratorObject implements Serializable, Com
 	
 	public Mart getParentMart() {
 		return (Mart)this.parent;
+	}
+	
+	public String getDino(String configName) {
+		Log.debug(this.getClass().getName() + "#getDino("+configName+")");
+		return this.getParentMart().getConfigByName(configName).getDino();
 	}
 	
 	public Attribute getAttributeByName(String name, String configName, String userGroup){

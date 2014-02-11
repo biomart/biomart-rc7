@@ -42,16 +42,26 @@ public class QueryValidator {
     private List<String> queryStartingPoints;
     private int limit;
     private String processor;
+    private String dino = null;
     private List<QueryElement> originalAttributeOrder = new ArrayList<QueryElement>();
     private List<QueryElement> pseudoAttributes = new ArrayList<QueryElement>();
     private List<Integer> attributeList = new ArrayList<Integer>();
     private String client;
     private boolean hasHeader;
     private String userGroup;
+    
+    private boolean useDino;
 
     private Map<String,String> processorParams;
     private Map<String,String> processorConfig;
+    
+    private List<QueryElement> attributeListList = new ArrayList<QueryElement>();
+    private List<QueryElement> filtersGroup = new ArrayList<QueryElement>();
 
+    public boolean getUseDino() {
+        return useDino;
+    }
+    
     public String getClient() {
         return client;
     }
@@ -74,6 +84,24 @@ public class QueryValidator {
 
     public List<QueryElement> getQueryElementList() {
         return queryElementList;
+    }
+    
+    public boolean hasDino() {
+    		Log.debug(this.getClass().getName() + "#hasDino() == "+ (dino != null && !dino.isEmpty()));
+    		return dino != null && !dino.isEmpty();
+    }
+    
+    public String getDino() {
+    		Log.debug(this.getClass().getName() + "#getDino");
+		return dino;
+    }
+    
+    public List<QueryElement> getAttributeListList() {
+        return this.attributeListList;
+    }
+    
+    public List<QueryElement> getFilters() {
+        return this.filtersGroup;
     }
 
     public QueryValidator(Document queryXMLobject, MartRegistry registryObj, String userGroup) {
@@ -98,6 +126,8 @@ public class QueryValidator {
 
         client = root.getAttributeValue("client", "");
         String headerAttributeValue = root.getAttributeValue("header", "");
+        
+        useDino = Boolean.parseBoolean(root.getAttributeValue("useDino", "true"));
 
         if ("1".equals(headerAttributeValue) || Boolean.parseBoolean(headerAttributeValue)) {
             hasHeader = true;
@@ -162,7 +192,7 @@ public class QueryValidator {
             }
 
             List<Element> attributesXML = datasetElement.getChildren("Attribute");
-
+            
             for (Element attributeXML : attributesXML) {
                 List<String> linkAttributeNames = new ArrayList<String>();
                 Set<String> seenAttributes = new HashSet<String>();
@@ -180,6 +210,7 @@ public class QueryValidator {
                     }
 
                     if (attribute.isAttributeList()) {
+                        attributeListList.add(new QueryElement(attribute, dataset));
                         for (Attribute subAttribute : attribute.getAttributeList()) {
                             processAttribute(seenAttributes, pseudoAttributeMap, dataset, subAttribute, isMultiple, processLinkOut, linkAttributeNames);
                         }
@@ -220,10 +251,14 @@ public class QueryValidator {
             // Check and add filters
             List filtersXML = datasetElement.getChildren("Filter");
             Iterator filtersXMLIterator = filtersXML.iterator();
+            QueryElement ff;
             // Get and iterate over the filter objects in the XML
             while (filtersXMLIterator.hasNext()) {
                 Element filterXML = (Element) filtersXMLIterator.next();
                 for (Dataset dataset : datasets.keySet()) {
+                	
+                		dino = dataset.getDino(configName);
+                	
                     String name = StringEscapeUtils.escapeSql(filterXML.getAttributeValue("name"));
                     String value = StringEscapeUtils.escapeSql(filterXML.getAttributeValue("value"));
 
@@ -235,10 +270,12 @@ public class QueryValidator {
                         throw new ValidationException("Filter " + name + " not found in " + dataset.getDisplayName());
                     }
                     if (isMultiple) {
-                        queryElementList.add(0, new QueryElement(filter, value, dataset));
+                        queryElementList.add(0, ff = new QueryElement(filter, value, dataset));
                     } else {
-                        queryElementList.add(new QueryElement(filter, value, dataset));
+                        queryElementList.add(ff = new QueryElement(filter, value, dataset));
                     }
+                    
+                    filtersGroup.add(ff);
                 }
             }
             isFirst = false;
