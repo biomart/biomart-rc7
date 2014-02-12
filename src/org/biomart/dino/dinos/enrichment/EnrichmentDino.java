@@ -193,11 +193,7 @@ public class EnrichmentDino implements Dino {
         
         Log.info("ENRICHMENT TIMES:"+annotation+": ensembl translation took "+ ((end - start) / 1_000_000.0) + "ms");
         
-        start = System.nanoTime();
         enrich();
-        end = System.nanoTime();
-        
-        Log.info("ENRICHMENT TIMES:"+annotation+": enrichment took "+ ((end - start) / 1_000_000.0) + "ms");
         
         if (isGuiClient()) {
             handleGuiRequest();
@@ -318,6 +314,8 @@ public class EnrichmentDino implements Dino {
 
     @SuppressWarnings("unchecked")
     private void enrich() throws IOException {
+        long start, end;
+        
         String annPath = this.getAnnotationsFilePath(ANNOTATION);
         File bin = new File(System.getProperty("biomart.basedir"),
                             getEnrichmentBinPath(config));
@@ -333,10 +331,19 @@ public class EnrichmentDino implements Dino {
                 .setCutoff(cutoff)
                 .setCmdBinPath(bin);
 
+            start = System.nanoTime();
             List<List<String>> newResult =
                     (List<List<String>>) cmdRunner.setCmd(cmd).run().getResults();
-
+            end = System.nanoTime();
+            
+            Log.info("ENRICHMENT TIMES:"+annotation+": running hpgy took "+ ((end - start) / 1_000_000.0) + "ms");
+            
+            start = System.nanoTime();
             results.put(annotation, newResult);
+            end = System.nanoTime();
+            
+            Log.info("ENRICHMENT TIMES:"+annotation+": parsing results took "+ ((end - start) / 1_000_000.0) + "ms");
+            
 
         } catch (IOException e) {
             throw e;
@@ -625,6 +632,8 @@ public class EnrichmentDino implements Dino {
     private void webServiceToAnnotationHgncSymbol(List<List<String>> data) {
 
         Log.debug("webServiceToAnnotationHgncSymbol "+ annotation);
+        
+        long start, end;
 
         @SuppressWarnings("unchecked")
         Map<String, Object> opt = getDisplayOptions(),
@@ -653,12 +662,16 @@ public class EnrichmentDino implements Dino {
             for (List<String> line : data) {
                 out.reset();
 
+                start = System.nanoTime();
                 submitToHgncSymbolQuery(
                         annotationDatasetName,
                         annotationConfigName,
                         annFilterName, line.get(0),
                         annAtts, false,
                         out);
+                end = System.nanoTime();
+                
+                Log.info("ENRICHMENT TIMES:"+annotation+": annotation translation query took "+ ((end - start) / 1_000_000.0) + "ms");
 
                 atmp = out.toString().split(delim);
 
@@ -670,12 +683,18 @@ public class EnrichmentDino implements Dino {
                 if (line.size() > 4) {
                     out.reset();
 
+                    start = System.nanoTime();
+                    
                     submitToHgncSymbolQuery(
                             annotationDatasetName,
                             annotationConfigName,
                             geneFilterName, line.get(4),
                             geneAtts, false,
                             out);
+                    
+                    end = System.nanoTime();
+                    
+                    Log.info("ENRICHMENT TIMES:"+annotation+": genes translation query for this annotation took "+ ((end - start) / 1_000_000.0) + "ms");
 
                     atmp = out.toString().split(delim);
                     line.set(4, StringUtils.join(atmp, ","));
