@@ -30,5 +30,5 @@
 
     },
 
-    "front-end": "/dist/dinos/app/index.html"
+    "front-end": "conf/dinos/enrichment/app/index.html"
 }
