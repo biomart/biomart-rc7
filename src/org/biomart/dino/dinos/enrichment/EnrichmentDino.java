@@ -1,12 +1,10 @@
 package org.biomart.dino.dinos.enrichment;
 
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -31,6 +29,8 @@ import org.biomart.objects.objects.Element;
 import org.biomart.queryEngine.Query;
 import org.biomart.queryEngine.QueryElement;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -53,10 +53,6 @@ public class EnrichmentDino implements Dino {
                                                 new HashMap<String, String>();
 
     static ObjectMapper mapper = new ObjectMapper();
-
-    static final List<String> resultsSeparator =
-                                    new ArrayList<String>(1) {{ add("---"); }};
-
 
     // NOTE: these will contain filter values and attribute names.
     @Func(id = BACKGROUND)
@@ -149,7 +145,7 @@ public class EnrichmentDino implements Dino {
         
         if (this.isGuiClient()) {
             results = null;
-            sendGuiResponse();
+            sendGuiResponse(sink);
         }
     }
 
@@ -255,10 +251,10 @@ public class EnrichmentDino implements Dino {
     }
     
     
-    private void sendGuiResponse() throws IOException {
+    private void sendGuiResponse(OutputStream sink) throws IOException {
         try(ByteArrayOutputStream out = byteStream()) {
             String p = System.getProperty("user.dir") + System.getProperty("file.separator") + config.get("front-end").toString();
-            mkJson(out);
+            mkJson(nodes, links, out);
             Map<String, Object> scope = new HashMap<String, Object>();
             scope.put("data", out.toString());
             GuiResponseCompiler.compile(new File(p), sink, scope);
@@ -266,7 +262,9 @@ public class EnrichmentDino implements Dino {
     }
     
 
-    private void mkJson(OutputStream out) {
+    private void 
+    mkJson(List<Map<String, Object>> nodes, Map<String, List<Map<String, Object>>> links, OutputStream out) 
+            throws JsonGenerationException, JsonMappingException, IOException {
         com.fasterxml.jackson.databind.ObjectMapper m = new com.fasterxml.jackson.databind.ObjectMapper();
         
         Map<String, Object> root = new HashMap<String, Object>(),
@@ -282,34 +280,7 @@ public class EnrichmentDino implements Dino {
         
         root.put("tabs", tabs);
         
-        try {
-            m.writeValue(out, root);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-
-    private List<String> getResultsHeader(ByteArrayOutputStream oStream) {
-        java.util.StringTokenizer lineSt =
-                new java.util.StringTokenizer(oStream.toString(), "\\n");
-        if (lineSt.hasMoreTokens()) {
-            return tokenizeLine(lineSt.nextToken());
-        } else {
-            return new ArrayList<String>();
-        }
-    }
-
-
-    private List<String> tokenizeLine(String line) {
-        java.util.StringTokenizer colSt =
-                new java.util.StringTokenizer(line);
-        List<String> list = new ArrayList<String>(colSt.countTokens());
-
-        while(colSt.hasMoreElements()) { list.add(colSt.nextToken()); }
-
-        return list;
+        m.writeValue(out, root);
     }
 
 
