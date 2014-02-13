@@ -17,11 +17,11 @@ public class EnrichmentDinoTest {
 	Command cmd;
 	CommandRunner cmdRunner;
 	
-	@Before
-	public void setUp() throws Exception {
-		cmd = new HypgCommand();
-		cmdRunner = new HypgRunner();
-	}
+//	@Before
+//	public void setUp() throws Exception {
+//		cmd = new HypgCommand();
+//		cmdRunner = new HypgRunner();
+//	}
 
 	@Test
 	public void test() {

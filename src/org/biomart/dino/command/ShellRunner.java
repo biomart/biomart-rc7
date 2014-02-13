@@ -5,29 +5,36 @@ import java.io.IOException;
 
 import org.biomart.common.resources.Log;
 
-public abstract class ShellRunner implements CommandRunner {
+public abstract class ShellRunner {
 
     protected ShellCommand cmd;
     protected int nIter = 0, maxWait = 15000, errorResult = -42,
             waitTime = 200;
-    protected String dir = System.getProperty("java.io.tmpdir");
+    protected File dir;
+//    static File dir;
+//    static {
+//
+//        dir = new File(System.getProperty("user.dir") + System.getProperty("file.separator") + ".enrichment");
+//        // If it went wrong it'll raise an error
+//        dir.mkdir();
+//        
+//    }
 
     public ShellRunner setCmd(ShellCommand cmd) {
         this.cmd = cmd;
         return this;
     }
 
-    public CommandRunner run() throws IOException, InterruptedException {
+    public ShellRunner run() throws ShellException {
 
         Runtime rt = Runtime.getRuntime();
         Process pr = null;
         String command = cmd.build();
 
         Log.debug(this.getClass().getName() + "#run() running command "+ command);
-        
         try {
-            pr = rt.exec(command, null, new File(dir));
-
+            pr = rt.exec(command, null, dir);
+    
             while (true) {
                 Thread.sleep(waitTime);
                 Log.debug(this.getClass().getName() + "#run() iteration");
@@ -43,23 +50,22 @@ public abstract class ShellRunner implements CommandRunner {
                     break;
                 }
             }
-
-            if (errorResult != 0) {
-                IOException e = new IOException(
-                        "Process didn't terminate or retured a value of error: "
-                                + errorResult);
-                Log.error(this.getClass().getName()+ "#run() ", e);
-                throw e;
-            }
-        } catch (IOException e) {
-            Log.error(e);
-            throw e;
-        } catch (InterruptedException e) {
-            Log.error(this.getClass().getName()
-                    + "#run() runner has been interrupted", e);
-            throw e;
+        
+        } catch (InterruptedException | IOException e) {
+            throw new ShellException(e.getMessage());
         }
 
+        if (errorResult != 0) {
+            throw new ShellException(errorResult);
+        }
+
+        return this;
+    }
+    
+    abstract public Object getResults() throws IOException;
+    
+    public ShellRunner setWorkingDir(File dir) {
+        this.dir = dir;
         return this;
     }
 }

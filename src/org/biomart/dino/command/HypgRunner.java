@@ -6,18 +6,19 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.StringTokenizer;
 
+import org.apache.commons.lang.StringUtils;
 import org.biomart.common.resources.Log;
 
 public class HypgRunner extends ShellRunner {
 
     /**
      * It parses the output file, hypg.pv, living in the working directory,
-     * and returns a __sorted__ List of string arrays.
+     * and returns a __sorted__ List of string lists.
      * 
      * Results are sorted in increasing order based on p-value and filtered: 
      * only the first 50 results are returned.
@@ -38,35 +39,27 @@ public class HypgRunner extends ShellRunner {
         
         File fin = new File(this.dir, "hypg.pv");
         List<List<String>> results = new ArrayList<List<String>>();
-        StringTokenizer st;
+        final String colDelim = "\t";
+        String genes;
+        List<String> tks;
+        String[] lineTks;
         
         try (BufferedReader in = new BufferedReader(new FileReader(fin))) {
-            List<String> row;
             String line = null;
         
             while((line = in.readLine()) != null) {
-                st = new StringTokenizer(line);
+                lineTks = line.split(colDelim);
+                tks = take(lineTks, 3);
                 
-                if (st.countTokens() < 3) {
+                if (lineTks.length < 3) {
                     Log.error(this.getClass().getName()
                         + "#getResults() bad input: "+ line);
                     continue;
                 }
                 
-                row = new ArrayList<String>(4);
-                
-                // Annotation   p-value bonferroni_p-value
-                for (int i = 0; i < 3; ++i) { row.add(st.nextToken()); }
-                
-                StringBuilder sb = new StringBuilder();
-                while(st.hasMoreTokens()) {
-                    sb.append(st.nextToken());
-                    sb.append(',');
-                }
-                
-                sb.deleteCharAt(sb.length() - 1);
-                row.add(sb.toString());
-                results.add(row);
+                genes = takeGenes(lineTks);
+                if (! genes.isEmpty()) tks.add(genes);
+                results.add(tks);
             }
             
         } catch (FileNotFoundException e) {
@@ -78,11 +71,25 @@ public class HypgRunner extends ShellRunner {
         Collections.sort(results, new Comparator<List<String>>() {
             @Override
             public int compare(List<String> a, List<String> b) {
-                return a.get(0).compareTo(b.get(0));
+                return a.get(1).compareTo(b.get(1));
             }
         });
         
         return results;
+    }
+    
+    private String takeGenes(String[] tks) {
+        if (tks.length > 3) {
+            return StringUtils.join(Arrays.copyOfRange(tks, 3, tks.length), ",");
+        } else {
+            return "";
+        }
+    }
+    
+    private List<String> take(String[] tks, int nth) {
+        int n;
+        n = tks.length < nth ? tks.length : nth;
+        return new ArrayList<String>(Arrays.asList(Arrays.copyOfRange(tks, 0, n)));
     }
 
 }

@@ -9,7 +9,7 @@ import org.biomart.dino.tests.querybuilder.JavaQueryBuilderTest;
 @RunWith(Suite.class)
 @SuiteClasses({
     // EnrichmentDinoTest.class,
-    DinoHandlerTest.class, AttributesConfigTest.class, BindingTest.class,
+    DinoHandlerTest.class, BindingTest.class,
     JavaQueryBuilderTest.class, UtilsTest.class, HypgCommandTest.class })
 public class DinoTestSuite {
 

@@ -23,6 +23,7 @@ import org.biomart.dino.Utils;
 import org.biomart.dino.annotations.Func;
 import org.biomart.dino.command.HypgCommand;
 import org.biomart.dino.command.HypgRunner;
+import org.biomart.dino.command.ShellException;
 import org.biomart.dino.dinos.Dino;
 import org.biomart.dino.querybuilder.QueryBuilder;
 import org.biomart.objects.objects.Attribute;
@@ -345,11 +346,10 @@ public class EnrichmentDino implements Dino {
             Log.info("ENRICHMENT TIMES:"+annotation+": parsing results took "+ ((end - start) / 1_000_000.0) + "ms");
             
 
+        } catch (ShellException e) {
+            throw new IOException(e);
         } catch (IOException e) {
             throw e;
-        } catch (InterruptedException e) {
-            Log.error(this.getClass().getName() + "enrichment interrupted ", e);
-            throw new IOException(e);
         } finally {
             if (backgroundInput != null) backgroundInput.delete();
             if (setsInput != null) setsInput.delete();

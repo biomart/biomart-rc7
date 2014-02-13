@@ -27,7 +27,7 @@ import org.biomart.common.resources.Log;
 import org.biomart.configurator.model.object.FilterData;
 import org.biomart.queryEngine.QueryController;
 
-public final class Portal {
+public class Portal {
     public final MartRegistry _registry;
     public final String _user;
 
