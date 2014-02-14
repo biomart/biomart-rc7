@@ -24,6 +24,13 @@
                 "annotation_attribute": "mims__mim_morbid_accession_101",
                 "description_attribute": "mims__mim_morbid_description_101",
                 "other_attributes": []
+            },
+
+            "OMIMDiseases": {
+                "filter": "mims__mim_morbid_accession_101",
+                "annotation_attribute": "mims__mim_morbid_accession_101",
+                "description_attribute": "mims__mim_morbid_description_101",
+                "other_attributes": []
             }
 
         }
