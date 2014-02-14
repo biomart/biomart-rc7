@@ -1,8 +1,13 @@
 package org.biomart.dino.tests;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -116,6 +121,53 @@ public class EnrichmentDinoTest {
         Map<String, Object> r = (Map<String, Object>) method.invoke(dino, nodeList, links);
         
         assertEquals(scope, r);
+    }
+    
+    @Test
+    public void mkJsonTest() throws IOException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        String s = "{\"nodes\":[],\"tabs\":{\"ann2\":{\"links\":[]},\"ann1\":{\"links\":[]}}}";
+        try(ByteArrayOutputStream o = new ByteArrayOutputStream()) {
+//            Field nodes = dino.getClass().getDeclaredField("nodes");
+//            nodes.setAccessible(true);
+//            nodes.set(dino, nodeList);
+//            Field edges = dino.getClass().getDeclaredField("links");
+//            edges.setAccessible(true);
+//            edges.set(dino, links);
+            Method method = dino.getClass().getDeclaredMethod("mkJson", List.class, Map.class, OutputStream.class);
+            method.setAccessible(true);
+
+            method.invoke(dino, nodeList, links, o);
+            
+            assertEquals(s, o.toString());
+        }
+    }
+
+    
+    @Test
+    public void sendGuiResponseTest() throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, IOException {
+
+        try(ByteArrayOutputStream o = new ByteArrayOutputStream()) {
+            Field nodes = dino.getClass().getDeclaredField("nodes");
+            nodes.setAccessible(true);
+            nodes.set(dino, nodeList);
+            Field edges = dino.getClass().getDeclaredField("links");
+            edges.setAccessible(true);
+            edges.set(dino, links);
+            Method method = dino.getClass().getDeclaredMethod("sendGuiResponse", OutputStream.class);
+            method.setAccessible(true);
+
+            method.invoke(dino, o);
+            
+            String s = o.toString();
+            assertTrue(s.contains("html"));
+            assertTrue(s.contains("body"));
+            assertTrue(s.contains("nodes"));
+            assertTrue(s.contains("links"));
+            assertTrue(s.contains("tabs"));
+            assertTrue(s.contains("ann1"));
+            assertTrue(s.contains("ann2"));
+            assertTrue(s.contains("links"));
+        }
     }
 
 }

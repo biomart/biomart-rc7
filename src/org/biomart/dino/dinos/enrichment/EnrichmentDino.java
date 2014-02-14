@@ -163,7 +163,7 @@ public class EnrichmentDino implements Dino {
      *
      */
     private void iterate() throws IOException {
-        // Interreupt if there's any problem with one of the queries...
+        // Interrupt if there's any problem with one of the queries...
         try {
             for (QueryElement attrList : q.getAttributeListList()) {
                 iteration(attrList);
