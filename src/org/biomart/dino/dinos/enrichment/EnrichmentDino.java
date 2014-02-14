@@ -18,11 +18,13 @@ import org.biomart.common.exceptions.TechnicalException;
 import org.biomart.common.resources.Log;
 import org.biomart.dino.Binding;
 import org.biomart.dino.Utils;
+import org.biomart.dino.annotations.EnrichmentConfig;
 import org.biomart.dino.annotations.Func;
 import org.biomart.dino.command.HypgCommand;
-import org.biomart.dino.command.HypgRunner;
 import org.biomart.dino.command.ShellException;
+import org.biomart.dino.command.ShellRunner;
 import org.biomart.dino.dinos.Dino;
+import org.biomart.dino.exceptions.ConfigException;
 import org.biomart.dino.querybuilder.QueryBuilder;
 import org.biomart.objects.objects.Attribute;
 import org.biomart.objects.objects.Element;
@@ -31,6 +33,7 @@ import org.biomart.queryEngine.QueryElement;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -45,7 +48,17 @@ public class EnrichmentDino implements Dino {
     static public final String BACKGROUND = "background",
                                SETS = "sets",
                                ANNOTATION = "annotation",
-                               CUTOFF = "cutoff";
+                               CUTOFF = "cutoff",
+                               EN_BIN_OPT = "enrichment_bin",
+                               DISPL_OPT = "display",
+                               GENE_OPT = "gene",
+                               ANN_OPT = "annotation",
+                               GENE_A_OPT = "gene_attribute",
+                               ANN_A_OPT = "annotation_attribute",
+                               DESC_A_OPT = "description_attribute",
+                               FILT_OPT = "filter",
+                               OTHER_A_OPT = "other_attribute",
+                               APP_OPT = "front-end";
 
     // Key: dataset_config_name + attribute_list name
     // Value: path of the annotation file
@@ -68,7 +81,7 @@ public class EnrichmentDino implements Dino {
     Query q;
 
     HypgCommand cmd;
-    HypgRunner cmdRunner;
+    ShellRunner cmdRunner;
     QueryBuilder qbuilder;
     Binding metadata;
 
@@ -91,15 +104,16 @@ public class EnrichmentDino implements Dino {
 
     OutputStream sink;
 
-    Map<String, Object> config;
+    JsonNode config;
     GuiResponseCompiler compiler;
 
     @Inject
     public EnrichmentDino(HypgCommand cmd,
-                          HypgRunner cmdRunner,
-                          @Named("JavaApi")
+                          @EnrichmentConfig
+                          ShellRunner cmdRunner,
+                          @Named("java_api")
                           QueryBuilder qbuilder,
-                          @Named("Enrichment File Config Path")
+                          @EnrichmentConfig
                           String configPath,
                           GuiResponseCompiler compiler) throws IOException {
         
@@ -110,10 +124,7 @@ public class EnrichmentDino implements Dino {
         this.cmdRunner = cmdRunner;
         this.qbuilder = qbuilder;
 
-        config = mapper.readValue(new File(configPath), Map.class);
-        if (config == null) {
-            config = new HashMap<String, Object>();
-        }
+        config = mapper.readTree(new File(configPath));
         
         this.compiler = compiler;
     }
@@ -138,9 +149,15 @@ public class EnrichmentDino implements Dino {
      * @throws IOException
      *
      */
-    private void iterate() throws TechnicalException, IOException {
-        for (QueryElement attrList : q.getAttributeListList()) {
-            iteration(attrList);
+    private void iterate() throws IOException {
+        // Interreupt if there's any problem with one of the queries...
+        try {
+            for (QueryElement attrList : q.getAttributeListList()) {
+                iteration(attrList);
+            }
+        } catch (Exception e) {
+            sink.write(e.getMessage().getBytes());
+            return;
         }
         
         if (this.isGuiClient()) {
@@ -149,7 +166,7 @@ public class EnrichmentDino implements Dino {
         }
     }
 
-    private void iteration(QueryElement queryAttrList) throws TechnicalException {
+    private void iteration(QueryElement queryAttrList) throws IllegalArgumentException, IllegalAccessException, IOException, ShellException, ConfigException {
 
         this.metadata.clear();
 
@@ -162,28 +179,24 @@ public class EnrichmentDino implements Dino {
 
         List<QueryElement> boundAttrs, boundFilts;
 
-        try {
-            // This is necessary since the only way to get hold of filter
-            // values is from a QueryElement and we have a unique method for
-            // Attributes and Filters.
-            // The translation isn't even expensive since there are usually
-            // few Attributes.
-            boundAttrs = Binding.setFieldValues(this, myFields, attrs);
-            boundFilts = Binding.setFieldValues(this, myFields, filters);
+        // This is necessary since the only way to get hold of filter
+        // values is from a QueryElement and we have a unique method for
+        // Attributes and Filters.
+        // The translation isn't even expensive since there are usually
+        // few Attributes.
+        boundAttrs = Binding.setFieldValues(this, myFields, attrs);
+        boundFilts = Binding.setFieldValues(this, myFields, filters);
 
-            this.metadata.setBindings(myFields, boundAttrs);
-            this.metadata.setBindings(myFields, boundFilts);
+        this.metadata.setBindings(myFields, boundAttrs);
+        this.metadata.setBindings(myFields, boundFilts);
 
-            // It throws a ValidationException if any field wasn't bound.
-            this.metadata.checkBinding(myFields);
+        // It throws a ValidationException if any field wasn't bound.
+        this.metadata.checkBinding(myFields);
 
-            tasks();
-        } catch (IOException | IllegalArgumentException | IllegalAccessException e) {
-            throw new TechnicalException(e);
-        }
+        tasks();
     }
 
-    private void tasks() throws IOException {
+    private void tasks() throws IOException, ShellException, ConfigException {
         long start = System.nanoTime();
         translateFilters();
         long end = System.nanoTime();
@@ -202,7 +215,7 @@ public class EnrichmentDino implements Dino {
     }
 
 
-    private void handleWebServiceRequest() {
+    private void handleWebServiceRequest() throws ConfigException {
         String processor = this.q.getProcessor();
         List<List<String>> res = results.get(annotation);
         long start = System.nanoTime();
@@ -237,7 +250,7 @@ public class EnrichmentDino implements Dino {
     }
 
 
-    private void handleGuiRequest() {
+    private void handleGuiRequest() throws ConfigException {
         List<List<String>> data = results.get(annotation);
 
         // Truncate results
@@ -265,7 +278,15 @@ public class EnrichmentDino implements Dino {
     private void 
     mkJson(List<Map<String, Object>> nodes, Map<String, List<Map<String, Object>>> links, OutputStream out) 
             throws JsonGenerationException, JsonMappingException, IOException {
+        
+        Map<String, Object> root = getScope(nodes, links);
         com.fasterxml.jackson.databind.ObjectMapper m = new com.fasterxml.jackson.databind.ObjectMapper();
+        
+        m.writeValue(out, root);
+    }
+    
+    private Map<String, Object>
+    getScope(List<Map<String, Object>> nodes, Map<String, List<Map<String, Object>>> links) {
         
         Map<String, Object> root = new HashMap<String, Object>(),
                 tabs = new HashMap<String, Object>(), edges;
@@ -279,18 +300,20 @@ public class EnrichmentDino implements Dino {
         }
         
         root.put("tabs", tabs);
-        
-        m.writeValue(out, root);
+        return root;
     }
 
 
     @SuppressWarnings("unchecked")
-    private void enrich() throws IOException {
+    private void enrich() throws IOException, ShellException, ConfigException {
         long start, end;
         
         String annPath = this.getAnnotationsFilePath(ANNOTATION);
-        File bin = new File(System.getProperty("biomart.basedir"),
-                            getEnrichmentBinPath(config));
+        String baseDir = System.getProperty("biomart.basedir");
+        JsonNode jBin = getOpt(config, EN_BIN_OPT);
+        
+        File bin = new File(baseDir, jBin.asText());
+        
         try {
             if (annPath.isEmpty()) {
                 throw new IOException("Cannot find annotations file nor retrieve them");
@@ -316,11 +339,6 @@ public class EnrichmentDino implements Dino {
             
             Log.info("ENRICHMENT TIMES:"+annotation+": parsing results took "+ ((end - start) / 1_000_000.0) + "ms");
             
-
-        } catch (ShellException e) {
-            throw new IOException(e);
-        } catch (IOException e) {
-            throw e;
         } finally {
             if (backgroundInput != null) backgroundInput.delete();
             if (setsInput != null) setsInput.delete();
@@ -421,41 +439,41 @@ public class EnrichmentDino implements Dino {
     }
 
 
-    private String getDisplayFilter(Map<String, Object> cfg) {
-        Object o = cfg.get("filter");
-        return o == null ? "" : o.toString();
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> getDisplayGeneOptions(Map<String, Object> cfg) {
-        Object o = cfg.get("gene");
-        return n((Map<String, Object>) o);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> getDisplayAnnotationOptions(Map<String, Object> cfg) {
-        Object o = cfg.get("annotation");
-        return n((Map<String, Object>) o);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> getDisplayOptions() {
-        Object o = config.get("display");
-        return n((Map<String, Object>) o);
-    }
-
-    private Map<String, Object> n(Map<String, Object> m) {
-        return m == null ? new HashMap<String, Object>() : m;
-    }
-
-    private List<Object> n(List<Object> l) {
-        return l == null ? new ArrayList<Object>() : l;
-    }
-
-    private String getEnrichmentBinPath(Map<String, Object> cfg) {
-        String s = (String) cfg.get("enrichment_bin");
-        return s == null ? "" : s;
-    }
+//    private String getDisplayFilter(Map<String, Object> cfg) {
+//        Object o = cfg.get("filter");
+//        return o == null ? "" : o.toString();
+//    }
+//
+//    @SuppressWarnings("unchecked")
+//    private Map<String, Object> getDisplayGeneOptions(Map<String, Object> cfg) {
+//        Object o = cfg.get("gene");
+//        return n((Map<String, Object>) o);
+//    }
+//
+//    @SuppressWarnings("unchecked")
+//    private Map<String, Object> getDisplayAnnotationOptions(Map<String, Object> cfg) {
+//        Object o = cfg.get("annotation");
+//        return n((Map<String, Object>) o);
+//    }
+//
+//    @SuppressWarnings("unchecked")
+//    private Map<String, Object> getDisplayOptions() {
+//        Object o = config.get("display");
+//        return n((Map<String, Object>) o);
+//    }
+//
+//    private Map<String, Object> n(Map<String, Object> m) {
+//        return m == null ? new HashMap<String, Object>() : m;
+//    }
+//
+//    private List<Object> n(List<Object> l) {
+//        return l == null ? new ArrayList<Object>() : l;
+//    }
+//
+//    private String getEnrichmentBinPath(Map<String, Object> cfg) {
+//        String s = (String) cfg.get("enrichment_bin");
+//        return s == null ? "" : s;
+//    }
 
 
     private Map<String, Object> mkNode(List<String> ks, List<String> vs) {
@@ -474,33 +492,34 @@ public class EnrichmentDino implements Dino {
         return n;
     }
 
-    private void guiToAnnotationHgncSymbol(List<List<String>> data) {
+    private void guiToAnnotationHgncSymbol(List<List<String>> data) throws ConfigException {
 
         Log.debug("guiToAnnotationHgncSymbol "+ annotation);
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> opt = getDisplayOptions(),
-                ann = (Map<String, Object>) getDisplayAnnotationOptions(opt).get(annotation),
-                gene = (Map<String, Object>) getDisplayGeneOptions(opt);
-
-        if (ann == null || gene == null) {
-            return;
-        }
-
-        String lineDelim = "\n", colDelim = "\t";
+        JsonNode display = getOpt(config, DISPL_OPT);
+        JsonNode displayAnnOpt = getOpt(display, ANN_OPT);
+        JsonNode gene = getOpt(display, GENE_OPT);
+        JsonNode ann = getOpt(displayAnnOpt, annotation);
+        
+        String aa = getOpt(ann, ANN_A_OPT).asText(), 
+               da = getOpt(ann, DESC_A_OPT).asText(),
+               ga = getOpt(gene, GENE_A_OPT).asText(),
+               lineDelim = "\n", colDelim = "\t", annFilterName, geneFilterName;
+        
         List<String> annAtts = new ArrayList<String>(),
-                     geneAtts = new ArrayList<String>();
+                     geneAtts = new ArrayList<String>(),
+                     supList = null;
 
-        annAtts.add(ann.get("annotation_attribute").toString());
-        annAtts.add(ann.get("description_attribute").toString());
-        annAtts.addAll((List<String>)ann.get("other_attributes"));
-
-        String annFilterName = getDisplayFilter(ann);
-
-        geneAtts.add(gene.get("gene_attribute").toString());
-        geneAtts.add(gene.get("description_attribute").toString());
-        geneAtts.addAll((List<String>)gene.get("other_attributes"));
-        String geneFilterName = getDisplayFilter(gene);
+        annAtts.add(aa); annAtts.add(da);
+        supList = ann.findValuesAsText(OTHER_A_OPT);
+        if (supList != null) annAtts.addAll(supList);
+        
+        geneAtts.add(ga);
+        supList = gene.findValuesAsText(OTHER_A_OPT);
+        if (supList != null) geneAtts.addAll(supList);
+        
+        annFilterName = getOpt(ann, FILT_OPT).asText();
+        geneFilterName = getOpt(gene, FILT_OPT).asText();
 
         String[] lines;
 
@@ -598,32 +617,47 @@ public class EnrichmentDino implements Dino {
             e.printStackTrace();
         }
     }
+    
+    private JsonNode getOpt(JsonNode opts, String k) throws ConfigException {
+        JsonNode n = opts.get(k);
+        
+        if (n == null) 
+            throw new ConfigException("Cannot find "+ k + " within the configuration");
+        
+        return n;
+    }
 
 
-    private void webServiceToAnnotationHgncSymbol(List<List<String>> data) {
+    private void webServiceToAnnotationHgncSymbol(List<List<String>> data) throws ConfigException {
 
         Log.debug("webServiceToAnnotationHgncSymbol "+ annotation);
         
         long start, end;
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> opt = getDisplayOptions(),
-                ann = (Map<String, Object>) getDisplayAnnotationOptions(opt).get(annotation),
-                gene = (Map<String, Object>) getDisplayGeneOptions(opt);
-
-        if (ann == null || gene == null) {
-            return;
-        }
-
-        String delim = "[\t\n]";
+        
+        JsonNode display = getOpt(config, DISPL_OPT);
+        JsonNode displayAnnOpt = getOpt(display, ANN_OPT);
+        JsonNode gene = getOpt(display, GENE_OPT);
+        JsonNode ann = getOpt(displayAnnOpt, annotation);
+        
+        String aa = getOpt(ann, ANN_A_OPT).asText(), 
+               da = getOpt(ann, DESC_A_OPT).asText(),
+               ga = getOpt(gene, GENE_A_OPT).asText(),
+               delim = "[\t\n]", annFilterName, geneFilterName;
+        
         List<String> annAtts = new ArrayList<String>(),
-                     geneAtts = new ArrayList<String>();
+                     geneAtts = new ArrayList<String>(),
+                     supList = null;
 
-        annAtts.add(ann.get("annotation_attribute").toString());
-        annAtts.add(ann.get("description_attribute").toString());
-        String annFilterName = getDisplayFilter(ann);
-        geneAtts.add(gene.get("gene_attribute").toString());
-        String geneFilterName = getDisplayFilter(gene);
+        annAtts.add(aa); annAtts.add(da);
+        supList = ann.findValuesAsText(OTHER_A_OPT);
+        if (supList != null) annAtts.addAll(supList);
+        
+        geneAtts.add(ga);
+
+        annFilterName = getOpt(ann, FILT_OPT).asText();
+        geneFilterName = getOpt(gene, FILT_OPT).asText();
+        
+        
         String[] atmp;
 
         Log.debug("webServiceToAnnotationHgncSymbol data = "+ data.toString().substring(0, 4));

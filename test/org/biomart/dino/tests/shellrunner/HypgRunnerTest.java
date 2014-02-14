@@ -6,25 +6,20 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.biomart.dino.command.HypgRunner;
 import org.biomart.dino.command.ShellRunner;
+import org.biomart.dino.tests.TestSupport;
 import org.junit.Before;
 import org.junit.Test;
 
 public class HypgRunnerTest {
 
     ShellRunner rn;
-    final String s = System.getProperty("file.separator");
-    final String dir = StringUtils.join(new String[] {
-            System.getProperty("user.dir"), "test", "org", "biomart", "dino",
-            "tests", "fixtures"
-    }, s);
     
     @Before
     public void setUp() {
         rn = new HypgRunner();
-        rn.setWorkingDir(new File(dir));
+        rn.setWorkingDir(new File(TestSupport.fixtureDir()));
     }
     
     @Test

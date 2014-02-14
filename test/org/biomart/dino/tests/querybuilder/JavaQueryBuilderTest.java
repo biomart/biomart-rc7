@@ -1,5 +1,4 @@
 package org.biomart.dino.tests.querybuilder;
-import java.io.ByteArrayOutputStream;
 
 import org.biomart.api.Portal;
 import org.biomart.api.Query;
