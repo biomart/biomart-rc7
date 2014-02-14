@@ -66,6 +66,8 @@ public class EnrichmentDino implements Dino {
                                                 new HashMap<String, String>();
 
     static ObjectMapper mapper = new ObjectMapper();
+    
+    static File workingDir = null;
 
     // NOTE: these will contain filter values and attribute names.
     @Func(id = BACKGROUND)
@@ -87,6 +89,7 @@ public class EnrichmentDino implements Dino {
 
     // Temporary files.
     File backgroundInput, setsInput;
+    
 
     // These are dataset and configuration used for annotation retrieval
     // at the time of this request.
@@ -103,7 +106,8 @@ public class EnrichmentDino implements Dino {
     String id = "_id", linkSource = "source", linkTarget = "target";
 
     OutputStream sink;
-
+    
+    // TODO set config as static and cache it.
     JsonNode config;
     GuiResponseCompiler compiler;
 
@@ -135,6 +139,15 @@ public class EnrichmentDino implements Dino {
 
         sink = out;
 
+        if (workingDir == null) {
+            workingDir = new File(System.getProperty("biomart.dir"), ".enrichment");
+            if (! workingDir.exists()) {
+                if (! workingDir.mkdir()) {
+                    throw new IOException("Cannot create working directory "+ workingDir.getPath());
+                }
+            }
+        }
+        
         iterate();
     }
 
@@ -155,14 +168,14 @@ public class EnrichmentDino implements Dino {
             for (QueryElement attrList : q.getAttributeListList()) {
                 iteration(attrList);
             }
+            
+            if (this.isGuiClient()) {
+                results = null;
+                sendGuiResponse(sink);
+            }
         } catch (Exception e) {
             sink.write(e.getMessage().getBytes());
             return;
-        }
-        
-        if (this.isGuiClient()) {
-            results = null;
-            sendGuiResponse(sink);
         }
     }
 
@@ -264,9 +277,9 @@ public class EnrichmentDino implements Dino {
     }
     
     
-    private void sendGuiResponse(OutputStream sink) throws IOException {
+    private void sendGuiResponse(OutputStream sink) throws IOException, ConfigException {
         try(ByteArrayOutputStream out = byteStream()) {
-            String p = System.getProperty("user.dir") + System.getProperty("file.separator") + config.get("front-end").toString();
+            String p = System.getProperty("user.dir") + System.getProperty("file.separator") + getOpt(config, "front-end").asText();
             mkJson(nodes, links, out);
             Map<String, Object> scope = new HashMap<String, Object>();
             scope.put("data", out.toString());
@@ -328,7 +341,9 @@ public class EnrichmentDino implements Dino {
 
             start = System.nanoTime();
             List<List<String>> newResult =
-                    (List<List<String>>) cmdRunner.setCmd(cmd).run().getResults();
+                    (List<List<String>>) cmdRunner.setCmd(cmd)
+                                                  .setWorkingDir(workingDir)
+                                                  .run().getResults();
             end = System.nanoTime();
             
             Log.info("ENRICHMENT TIMES:"+annotation+": running hpgy took "+ ((end - start) / 1_000_000.0) + "ms");
