@@ -167,17 +167,26 @@ public class EnrichmentDino implements Dino {
         // Interrupt if there's any problem with one of the queries...
         try {
             for (QueryElement attrList : q.getAttributeListList()) {
-                iteration(attrList);
+                    iteration(attrList);
             }
             
             if (this.isGuiClient()) {
                 results = null;
                 sendGuiResponse(sink);
             }
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            sink.write("The request cannot be processed due to an internal error".getBytes());
+            Log.error(e);
+        } catch (IllegalAccessException e) {
+            sink.write("The request cannot be processed due to an internal error".getBytes());
+            Log.error(e);
+        } catch (ShellException e) {
+            sink.write("The request cannot be processed due to an internal error".getBytes());
+            Log.error(e);
+        } catch (ConfigException e) {
             sink.write(e.getMessage().getBytes());
-            return;
-        }
+            Log.error(e);
+        } 
     }
 
     private void iteration(QueryElement queryAttrList) throws IllegalArgumentException, IllegalAccessException, IOException, ShellException, ConfigException {
@@ -264,7 +273,7 @@ public class EnrichmentDino implements Dino {
     }
 
 
-    private void handleGuiRequest() throws ConfigException {
+    private void handleGuiRequest() throws ConfigException, IOException {
         List<List<String>> data = results.get(annotation);
 
         // Truncate results
@@ -508,7 +517,7 @@ public class EnrichmentDino implements Dino {
         return n;
     }
 
-    private void guiToAnnotationHgncSymbol(List<List<String>> data) throws ConfigException {
+    private void guiToAnnotationHgncSymbol(List<List<String>> data) throws ConfigException, IOException {
 
         Log.debug("guiToAnnotationHgncSymbol "+ annotation);
 
@@ -575,6 +584,7 @@ public class EnrichmentDino implements Dino {
                     colsArray = lines[0].split(colDelim);
                     aKeys = new ArrayList<String>(Arrays.asList(id, "p-value", "bp-value"));
                     aKeys.addAll(Arrays.asList(Arrays.copyOfRange(colsArray, 1, colsArray.length)));
+                    aKeys.add("type");
                     wantHeader = false;
                 }
 
@@ -596,7 +606,6 @@ public class EnrichmentDino implements Dino {
 
                 if (annotationTargetIdx == -1) {
                     annotationTargetIdx = nodes.size();
-                    aKeys.add("type");
                     cols.add("term");
                     nodes.add(mkNode(aKeys, cols));
                 }
@@ -611,8 +620,8 @@ public class EnrichmentDino implements Dino {
 
                     lines = out.toString().split(lineDelim);
                     colsArray = lines[0].split(colDelim);
-                    gKeys = new ArrayList<String>(Arrays.asList(id));
-                    gKeys.addAll(Arrays.asList(Arrays.copyOfRange(colsArray, 1, colsArray.length)));
+                    gKeys = new ArrayList<String>(Arrays.asList(colsArray));
+                    gKeys.set(0, id); gKeys.add("type");
 
                     colsArray = null; cols = null;
 
@@ -631,8 +640,9 @@ public class EnrichmentDino implements Dino {
 
                         if (geneSourceIdx == -1) {
                             geneSourceIdx = nodes.size();
-                            gKeys.add("type");
                             cols.add("gene");
+                            Log.debug("guiresponse: gene ks"+ gKeys);
+                            Log.debug("guiresponse: gene vs"+ cols);
                             nodes.add(mkNode(gKeys, cols));
                         }
 
@@ -640,10 +650,7 @@ public class EnrichmentDino implements Dino {
                     }
                 }
             }
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        } 
     }
     
     private JsonNode getOpt(JsonNode opts, String k) throws ConfigException {
