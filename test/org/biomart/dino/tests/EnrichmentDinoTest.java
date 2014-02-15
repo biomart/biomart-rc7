@@ -144,7 +144,7 @@ public class EnrichmentDinoTest {
 
     
     @Test
-    public void sendGuiResponseTest() throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, IOException {
+    public void sendGuiResponseTest() throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException, NoSuchMethodException, IOException, InvocationTargetException {
 
         try(ByteArrayOutputStream o = new ByteArrayOutputStream()) {
             Field nodes = dino.getClass().getDeclaredField("nodes");
@@ -156,7 +156,12 @@ public class EnrichmentDinoTest {
             Method method = dino.getClass().getDeclaredMethod("sendGuiResponse", OutputStream.class);
             method.setAccessible(true);
 
-            method.invoke(dino, o);
+            try {
+                method.invoke(dino, o);
+            } catch(InvocationTargetException e) {
+                e.getTargetException().printStackTrace();
+                throw e;
+            }
             
             String s = o.toString();
             assertTrue(s.contains("html"));
