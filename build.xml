@@ -157,11 +157,6 @@
         <exclude name="**/src/**"/>
       </fileset>
     </copy>
-    <exec executable="cp">
-      <arg value="-Rp"/>
-      <arg value="${basedir}/preprocesses"/>
-      <arg value="${dist.dir}/"/>
-    </exec>
   </target>
   <target name="compile.icgc" depends="jar.start">
     <javac srcdir="${icgc.dir}" destdir="${build.classes}/icgc" deprecation="${build.deprecation}" depend="no" debug="true" source="1.6" includeantruntime="no">
