@@ -1,1 +1,0 @@
-<Query client="true" processor="ENRICHMENT" limit="-1" header="1"><Dataset name="hsapiens_gene_ensembl" config="gene_ensembl_config_3_1_2"><Filter name="background" value="foo"/><Filter name="sets" value="bar" /><Attribute name="Gene Ontology (GO)"/></Dataset></Query>
