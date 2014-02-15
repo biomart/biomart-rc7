@@ -35,6 +35,7 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
@@ -57,7 +58,7 @@ public class EnrichmentDino implements Dino {
                                ANN_A_OPT = "annotation_attribute",
                                DESC_A_OPT = "description_attribute",
                                FILT_OPT = "filter",
-                               OTHER_A_OPT = "other_attribute",
+                               OTHER_A_OPT = "other_attributes",
                                APP_OPT = "front-end";
 
     // Key: dataset_config_name + attribute_list name
@@ -519,19 +520,28 @@ public class EnrichmentDino implements Dino {
         String aa = getOpt(ann, ANN_A_OPT).asText(), 
                da = getOpt(ann, DESC_A_OPT).asText(),
                ga = getOpt(gene, GENE_A_OPT).asText(),
+               dg = getOpt(gene, DESC_A_OPT).asText(),
                lineDelim = "\n", colDelim = "\t", annFilterName, geneFilterName;
         
         List<String> annAtts = new ArrayList<String>(),
-                     geneAtts = new ArrayList<String>(),
-                     supList = null;
+                     geneAtts = new ArrayList<String>();
 
         annAtts.add(aa); annAtts.add(da);
-        supList = ann.findValuesAsText(OTHER_A_OPT);
-        if (supList != null) annAtts.addAll(supList);
         
-        geneAtts.add(ga);
-        supList = gene.findValuesAsText(OTHER_A_OPT);
-        if (supList != null) geneAtts.addAll(supList);
+        JsonNode oa = ann.get(OTHER_A_OPT);
+        if (oa.isArray()) {
+            for (JsonNode el : (ArrayNode) oa) {
+                annAtts.add(el.asText());
+            }
+        }
+        
+        geneAtts.add(ga); geneAtts.add(dg);
+        oa = gene.get(OTHER_A_OPT);
+        if (oa.isArray()) {
+            for (JsonNode el : (ArrayNode) oa) {
+                geneAtts.add(el.asText());
+            }
+        }
         
         annFilterName = getOpt(ann, FILT_OPT).asText();
         geneFilterName = getOpt(gene, FILT_OPT).asText();
@@ -586,6 +596,8 @@ public class EnrichmentDino implements Dino {
 
                 if (annotationTargetIdx == -1) {
                     annotationTargetIdx = nodes.size();
+                    aKeys.add("type");
+                    cols.add("term");
                     nodes.add(mkNode(aKeys, cols));
                 }
 
@@ -604,7 +616,6 @@ public class EnrichmentDino implements Dino {
 
                     colsArray = null; cols = null;
 
-
                     for (int i = 1, len = lines.length; i < len; ++i) {
                         int geneSourceIdx = -1;
                         String geneLine = lines[i];
@@ -620,6 +631,8 @@ public class EnrichmentDino implements Dino {
 
                         if (geneSourceIdx == -1) {
                             geneSourceIdx = nodes.size();
+                            gKeys.add("type");
+                            cols.add("gene");
                             nodes.add(mkNode(gKeys, cols));
                         }
 
@@ -660,12 +673,12 @@ public class EnrichmentDino implements Dino {
                delim = "[\t\n]", annFilterName, geneFilterName;
         
         List<String> annAtts = new ArrayList<String>(),
-                     geneAtts = new ArrayList<String>(),
-                     supList = null;
+                     geneAtts = new ArrayList<String>();
+//                     supList = null;
 
         annAtts.add(aa); annAtts.add(da);
-        supList = ann.findValuesAsText(OTHER_A_OPT);
-        if (supList != null) annAtts.addAll(supList);
+//        supList = ann.findValuesAsText(OTHER_A_OPT);
+//        if (supList != null) annAtts.addAll(supList);
         
         geneAtts.add(ga);
 
