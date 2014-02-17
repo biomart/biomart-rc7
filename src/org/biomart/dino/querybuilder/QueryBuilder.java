@@ -40,5 +40,5 @@ public interface QueryBuilder {
 	
 	public boolean getUseDino();
 
-	
+	public QueryBuilder clone();
 }

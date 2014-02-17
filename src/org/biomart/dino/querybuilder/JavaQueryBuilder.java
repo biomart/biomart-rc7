@@ -52,6 +52,15 @@ public class JavaQueryBuilder implements QueryBuilder {
 
         return this;
     }
+    
+    @Override
+    public QueryBuilder clone() {
+        QueryBuilder qb = new JavaQueryBuilder(this.portal);
+        return qb.setHeader(header)
+                .setClient(client)
+                .setProcessor(proc)
+                .setLimit(limit);
+    }
 
     @Override
     public QueryBuilder getResults(OutputStream out) {

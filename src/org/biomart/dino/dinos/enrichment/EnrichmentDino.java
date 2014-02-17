@@ -25,6 +25,7 @@ import org.biomart.dino.command.ShellException;
 import org.biomart.dino.command.ShellRunner;
 import org.biomart.dino.dinos.Dino;
 import org.biomart.dino.exceptions.ConfigException;
+import org.biomart.dino.querybuilder.Cache;
 import org.biomart.dino.querybuilder.QueryBuilder;
 import org.biomart.objects.objects.Attribute;
 import org.biomart.objects.objects.Element;
@@ -65,6 +66,7 @@ public class EnrichmentDino implements Dino {
     // Value: path of the annotation file
     static private Map<String, String> annotationsFilePaths =
                                                 new HashMap<String, String>();
+    static private Map<String, Cache> cache = new HashMap<String, Cache>();
 
     static ObjectMapper mapper = new ObjectMapper();
     
@@ -79,6 +81,10 @@ public class EnrichmentDino implements Dino {
     String annotation;
     @Func(id = CUTOFF)
     String cutoff;
+    
+    // This is the name of the attribute used for translating annotations to
+    // ensembl ids.
+    String a2Name;
 
     String client;
     Query q;
@@ -521,137 +527,164 @@ public class EnrichmentDino implements Dino {
 
         Log.debug("guiToAnnotationHgncSymbol "+ annotation);
 
-        JsonNode display = getOpt(config, DISPL_OPT);
-        JsonNode displayAnnOpt = getOpt(display, ANN_OPT);
-        JsonNode gene = getOpt(display, GENE_OPT);
-        JsonNode ann = getOpt(displayAnnOpt, annotation);
-        
-        String aa = getOpt(ann, ANN_A_OPT).asText(), 
-               da = getOpt(ann, DESC_A_OPT).asText(),
-               ga = getOpt(gene, GENE_A_OPT).asText(),
-               dg = getOpt(gene, DESC_A_OPT).asText(),
-               lineDelim = "\n", colDelim = "\t", annFilterName, geneFilterName;
-        
-        List<String> annAtts = new ArrayList<String>(),
-                     geneAtts = new ArrayList<String>();
-
-        annAtts.add(aa); annAtts.add(da);
-        
-        JsonNode oa = ann.get(OTHER_A_OPT);
-        if (oa.isArray()) {
-            for (JsonNode el : (ArrayNode) oa) {
-                annAtts.add(el.asText());
-            }
-        }
-        
-        geneAtts.add(ga); geneAtts.add(dg);
-        oa = gene.get(OTHER_A_OPT);
-        if (oa.isArray()) {
-            for (JsonNode el : (ArrayNode) oa) {
-                geneAtts.add(el.asText());
-            }
-        }
-        
-        annFilterName = getOpt(ann, FILT_OPT).asText();
-        geneFilterName = getOpt(gene, FILT_OPT).asText();
-
-        String[] lines;
+        String colDelim = "\t";
 
         List<String> cols, aKeys = null, gKeys = null, linkKeys = Arrays.asList(linkSource, linkTarget);
         String[] colsArray;
-
-        boolean wantHeader = true;
         
         links.put(annotation, new ArrayList<Map<String, Object>>());
+        
+        Cache annCache = getAnnCache();
+        Cache gCache = getGeneCache();
+        
+        colsArray = annCache.getHeader().split(colDelim);
+        aKeys = new ArrayList<String>(Arrays.asList(id, "p-value", "bp-value"));
+        aKeys.addAll(Arrays.asList(Arrays.copyOfRange(colsArray, 1, colsArray.length)));
+        aKeys.add("type");
 
-        try(ByteArrayOutputStream out = byteStream()) {
+        colsArray = gCache.getHeader().split(colDelim);
+        gKeys = new ArrayList<String>(Arrays.asList(colsArray));
+        gKeys.set(0, id); gKeys.add("type");
+        
+        for (List<String> line : data) {
+            
+            int annotationTargetIdx = -1;
 
-            for (List<String> line : data) {
-                out.reset();
-                int annotationTargetIdx = -1, contentLineIdx = 0;
+            // The actual content
+            colsArray = annCache.get(line.get(0)).split(colDelim);
 
-                if (wantHeader) contentLineIdx = 1;
+            // Add annotation, p-value, bp-value
+            cols = new ArrayList<String>(Arrays.asList(colsArray[0], line.get(1), line.get(2)));
+            // Add the rest of the columns
+            cols.addAll(Arrays.asList(Arrays.copyOfRange(colsArray, 1, colsArray.length)));
 
-                submitToHgncSymbolQuery(annotationDatasetName, annotationConfigName,
-                        annFilterName, line.get(0), annAtts, wantHeader, out);
-
-                // There are two lines: header and the converted annotation
-                // each with k columns.
-                lines = out.toString().split(lineDelim);
-
-                // Keys
-                if (wantHeader) {
-                    colsArray = lines[0].split(colDelim);
-                    aKeys = new ArrayList<String>(Arrays.asList(id, "p-value", "bp-value"));
-                    aKeys.addAll(Arrays.asList(Arrays.copyOfRange(colsArray, 1, colsArray.length)));
-                    aKeys.add("type");
-                    wantHeader = false;
+            for (int a = 0, alen = nodes.size(); a < alen; ++a) {
+                Map<String, Object> m = nodes.get(a);
+                if (m.get(id).equals(colsArray[0])) {
+                    annotationTargetIdx = a;
+                    break;
                 }
+            }
 
-                // The actual content
-                colsArray = lines[contentLineIdx].split(colDelim);
+            if (annotationTargetIdx == -1) {
+                annotationTargetIdx = nodes.size();
+                cols.add("term");
+                nodes.add(mkNode(aKeys, cols));
+            }
 
-                // Add annotation, p-value, bp-value
-                cols = new ArrayList<String>(Arrays.asList(colsArray[0], line.get(1), line.get(2)));
-                // Add the rest of the columns
-                cols.addAll(Arrays.asList(Arrays.copyOfRange(colsArray, 1, colsArray.length)));
+            colsArray = null; cols = null;
 
-                for (int a = 0, alen = nodes.size(); a < alen; ++a) {
-                    Map<String, Object> m = nodes.get(a);
-                    if (m.get(id).equals(colsArray[0])) {
-                        annotationTargetIdx = a;
-                        break;
-                    }
-                }
+            if (line.size() > 3) {
 
-                if (annotationTargetIdx == -1) {
-                    annotationTargetIdx = nodes.size();
-                    cols.add("term");
-                    nodes.add(mkNode(aKeys, cols));
-                }
+                colsArray = null; cols = null;
+                String[] origGenes = line.get(3).split(",");
 
-                lines = null; colsArray = null; cols = null;
-
-                if (line.size() > 3) {
-                    out.reset();
-
-                    submitToHgncSymbolQuery(annotationDatasetName, annotationConfigName,
-                            geneFilterName, line.get(3), geneAtts, true, out);
-
-                    lines = out.toString().split(lineDelim);
-                    colsArray = lines[0].split(colDelim);
-                    gKeys = new ArrayList<String>(Arrays.asList(colsArray));
-                    gKeys.set(0, id); gKeys.add("type");
-
-                    colsArray = null; cols = null;
-
-                    for (int i = 1, len = lines.length; i < len; ++i) {
-                        int geneSourceIdx = -1;
-                        String geneLine = lines[i];
-                        colsArray = geneLine.split(colDelim);
-                        cols = new ArrayList<String>(Arrays.asList(colsArray));
-                        for (int j = 0, jlen = nodes.size(); j < jlen; ++j) {
-                            Map<String, Object> m = nodes.get(j);
-                            if (m.get(id).equals(colsArray[0])) {
-                                geneSourceIdx = j;
-                                break;
-                            }
+                for (String og : origGenes) {
+                    int geneSourceIdx = -1;
+                    String geneLine = gCache.get(og);
+                    colsArray = geneLine.split(colDelim);
+                    cols = new ArrayList<String>(Arrays.asList(colsArray));
+                    for (int j = 0, jlen = nodes.size(); j < jlen; ++j) {
+                        Map<String, Object> m = nodes.get(j);
+                        if (m.get(id).equals(colsArray[0])) {
+                            geneSourceIdx = j;
+                            break;
                         }
-
-                        if (geneSourceIdx == -1) {
-                            geneSourceIdx = nodes.size();
-                            cols.add("gene");
-                            Log.debug("guiresponse: gene ks"+ gKeys);
-                            Log.debug("guiresponse: gene vs"+ cols);
-                            nodes.add(mkNode(gKeys, cols));
-                        }
-
-                        links.get(annotation).add(mkLink(linkKeys, Arrays.asList(geneSourceIdx, annotationTargetIdx)));
                     }
+
+                    if (geneSourceIdx == -1) {
+                        geneSourceIdx = nodes.size();
+                        cols.add("gene");
+                        Log.debug("guiresponse: gene ks"+ gKeys);
+                        Log.debug("guiresponse: gene vs"+ cols);
+                        nodes.add(mkNode(gKeys, cols));
+                    }
+
+                    links.get(annotation).add(mkLink(linkKeys, Arrays.asList(geneSourceIdx, annotationTargetIdx)));
                 }
             }
         } 
     }
+    
+    
+    private void handleCache() throws ConfigException, IOException {
+        createGeneCacheInstance(geneCacheKey());
+        createAnnotationCacheInstance(annotationCacheKey(annotation, annotationDatasetName));
+    }
+    
+    
+    private String annotationCacheKey(String annotation, String dataset) {
+        return annotation + dataset;
+    }
+    
+
+    private String geneCacheKey() {
+        return annotationDatasetName;
+    }
+    
+    
+    private Cache getGeneCache() {
+        return cache.get(geneCacheKey());
+    }
+    
+    
+    private Cache getAnnCache() {
+        return cache.get(annotationCacheKey(annotation, annotationDatasetName));
+    }
+    
+    
+    private void createAnnotationCacheInstance(String key) throws ConfigException, IOException {
+        
+        if (cache.get(key) == null) {
+            JsonNode display = getOpt(config, DISPL_OPT);
+            JsonNode displayAnnOpt = getOpt(display, ANN_OPT);
+            JsonNode ann = getOpt(displayAnnOpt, annotation);
+            
+            QueryBuilder qb = qbuilder.clone();
+            initQueryBuilder(qb);
+            qb.setHeader(true)
+              .setDataset(annotationDatasetName, annotationConfigName)
+              .addAttribute(a2Name)
+              .addAttribute(getOpt(ann, ANN_A_OPT).asText())
+              .addAttribute(getOpt(ann, DESC_A_OPT).asText());
+            Cache c = new Cache(qb);
+            cache.put(key, c);
+        }
+    }
+    
+    
+    private void createGeneCacheInstance(String key) throws ConfigException, IOException {
+        
+        if (cache.get(key) == null) {
+            JsonNode display = getOpt(config, DISPL_OPT);
+            JsonNode gene = getOpt(display, GENE_OPT);
+            JsonNode oa = gene.get(OTHER_A_OPT);
+            
+            String ga = getOpt(gene, GENE_A_OPT).asText(),
+                   dg = getOpt(gene, DESC_A_OPT).asText();
+            
+            List<String> geneAtts = new ArrayList<String>();
+            
+            geneAtts.add("ensembl_gene_id"); geneAtts.add(ga); geneAtts.add(dg);
+            
+            if (oa.isArray()) {
+                for (JsonNode el : (ArrayNode) oa) {
+                    geneAtts.add(el.asText());
+                }
+            }
+            
+            
+            QueryBuilder qb = qbuilder.clone();
+            initQueryBuilder(qb);
+            qb.setHeader(true)
+              .setDataset(annotationDatasetName, annotationConfigName);
+            
+            for (String a : geneAtts) { qb.addAttribute(a); }
+            Cache c = new Cache(qb);
+            cache.put(key, c);
+        }
+    }
+    
     
     private JsonNode getOpt(JsonNode opts, String k) throws ConfigException {
         JsonNode n = opts.get(k);
@@ -669,82 +702,51 @@ public class EnrichmentDino implements Dino {
         
         long start, end;
         
-        JsonNode display = getOpt(config, DISPL_OPT);
-        JsonNode displayAnnOpt = getOpt(display, ANN_OPT);
-        JsonNode gene = getOpt(display, GENE_OPT);
-        JsonNode ann = getOpt(displayAnnOpt, annotation);
+        Cache annCache = getAnnCache(), geneCache = getGeneCache();
         
-        String aa = getOpt(ann, ANN_A_OPT).asText(), 
-               da = getOpt(ann, DESC_A_OPT).asText(),
-               ga = getOpt(gene, GENE_A_OPT).asText(),
-               delim = "[\t\n]", annFilterName, geneFilterName;
-        
-        List<String> annAtts = new ArrayList<String>(),
-                     geneAtts = new ArrayList<String>();
-//                     supList = null;
-
-        annAtts.add(aa); annAtts.add(da);
-//        supList = ann.findValuesAsText(OTHER_A_OPT);
-//        if (supList != null) annAtts.addAll(supList);
-        
-        geneAtts.add(ga);
-
-        annFilterName = getOpt(ann, FILT_OPT).asText();
-        geneFilterName = getOpt(gene, FILT_OPT).asText();
-        
-        
-        String[] atmp;
+        String atmp[], genes[], delim = "\t";
+        List<String> geneTks;
 
         Log.debug("webServiceToAnnotationHgncSymbol data = "+ data.toString().substring(0, 4));
         
-        try(ByteArrayOutputStream out = byteStream()) {
 
             for (List<String> line : data) {
-                out.reset();
 
                 start = System.nanoTime();
-                submitToHgncSymbolQuery(
-                        annotationDatasetName,
-                        annotationConfigName,
-                        annFilterName, line.get(0),
-                        annAtts, false,
-                        out);
-                end = System.nanoTime();
-                
-                Log.info("ENRICHMENT TIMES:"+annotation+": annotation translation query took "+ ((end - start) / 1_000_000.0) + "ms");
 
-                atmp = out.toString().split(delim);
+                atmp = annCache.get(line.get(0)).split(delim);
 
                 if (atmp.length > 1) {
                     line.set(0, atmp[0]);
                     line.add(1, atmp[1]);
                 }
+                
+                end = System.nanoTime();
+                
+                Log.info("ENRICHMENT TIMES:"+annotation+": annotation translation query took "+ ((end - start) / 1_000_000.0) + "ms");
 
                 if (line.size() > 4) {
-                    out.reset();
 
                     start = System.nanoTime();
+                    genes = line.get(4).split(",");
+                    geneTks = new ArrayList<String>(genes.length);
                     
-                    submitToHgncSymbolQuery(
-                            annotationDatasetName,
-                            annotationConfigName,
-                            geneFilterName, line.get(4),
-                            geneAtts, false,
-                            out);
+                    for (String og : genes) {
+                        Log.debug("webServiceToAnnotationHgncSymbol gene: "+ og);
+                        String gLine = geneCache.get(og);
+                        atmp = gLine.split(delim);
+                        geneTks.add(atmp[0]);
+                    }
+                    
+                    line.set(4, StringUtils.join(geneTks, ","));
+                    atmp = null;
+                    geneTks = null;
                     
                     end = System.nanoTime();
-                    
                     Log.info("ENRICHMENT TIMES:"+annotation+": genes translation query for this annotation took "+ ((end - start) / 1_000_000.0) + "ms");
 
-                    atmp = out.toString().split(delim);
-                    line.set(4, StringUtils.join(atmp, ","));
-                    atmp = null;
                 }
             }
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
     }
 
 
@@ -791,8 +793,10 @@ public class EnrichmentDino implements Dino {
      *
      * @param attributeList
      * @return a path or empty list if something went wrong.
+     * @throws IOException 
+     * @throws ConfigException 
      */
-    private String getAnnotationsFilePath(String attributeList) {
+    private String getAnnotationsFilePath(String attributeList) throws ConfigException, IOException {
         // 1. check if already present on disk
         Attribute attrListElem = (Attribute) this.metadata.getBindings().get(attributeList);
         String datasetName = "", configName = "";
@@ -809,8 +813,12 @@ public class EnrichmentDino implements Dino {
         annotationConfigName = configName;
 
         Attribute a2 = Utils.getAttributeForAnnotationRetrieval(attrListElem);
-        String key = annFilePathMapKey(datasetName, configName, a2.getName()),
+        a2Name = a2.getName();
+        String key = annFilePathMapKey(datasetName, configName, a2Name),
                path = annotationsFilePaths.get(key);
+        
+        // Here because we need a2 name
+        handleCache();
 
         if (path == null) {
             // 1.1 get annotations and put them on disk
@@ -911,8 +919,11 @@ public class EnrichmentDino implements Dino {
     }
 
     private void initQueryBuilder() {
-        qbuilder.init()
-            .setUseDino(false);
+        initQueryBuilder(qbuilder);
+    }
+    
+    private void initQueryBuilder(QueryBuilder qb) {
+        qb.init().setUseDino(false);
     }
 
     private ByteArrayOutputStream byteStream() {

@@ -33,16 +33,12 @@
                 "other_attributes": []
             },
 
-
- 	"Reactome Pathways": {
+            "Reactome Pathways": {
                 "filter": "pathway_id_list",
                 "annotation_attribute": "stableidentifier_identifier",
                 "description_attribute": "_displayname",
                 "other_attributes": []
             }
-
-
-
         }
 
     },
