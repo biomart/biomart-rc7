@@ -22,7 +22,7 @@ $.namespace('biomart.martsearch', function(self) {
         pageNum = 1,
         searches = [],
         liveRequests = [],
-        
+
         noResults = true,
         inProgress = false,
         cancelled = false;
@@ -85,7 +85,7 @@ $.namespace('biomart.martsearch', function(self) {
                 }.partial(mart));
             }
 
-            $temp.one('queue.done.marts', function() { 
+            $temp.one('queue.done.marts', function() {
                 $('#biomart-loading').hide();
                 if (self.term) doSearch();
             });
@@ -108,7 +108,7 @@ $.namespace('biomart.martsearch', function(self) {
     function loadDatasets(mart, callback) {
         biomart.resource.load('datasets', function(json) {
             callback(json);
-        }, {mart: mart.name});
+        }, {config: mart.name});
     }
 
     function loadContainers(mart, datasets, callback) {
@@ -122,14 +122,14 @@ $.namespace('biomart.martsearch', function(self) {
             if (containers) {
                 for (var i=0, container; container=containers[i]; i++) {
                     queue.queue(function(container) {
-                        var search = { 
+                        var search = {
                             datasets: datasets,
                             container: container
                         };
 
                         if (mart.config) search.config = mart.config;
 
-                        loadFilters(mart, container, search.datasets, function(filters) { 
+                        loadFilters(mart, container, search.datasets, function(filters) {
                             search.filters = filters;
                             loadAttributes(mart, container, search.datasets, function(attributes) {
                                 search.attributes = attributes;
@@ -148,7 +148,7 @@ $.namespace('biomart.martsearch', function(self) {
 
     function loadFilters(mart, container, datasets, callback) {
         var params = {datasets: datasets, container: container.name};
-        if (mart.config) 
+        if (mart.config)
             params.config = mart.config;
         biomart.resource.load('filters', function(json) {
             var filterNames = flattenItems('filter', json);
@@ -158,7 +158,7 @@ $.namespace('biomart.martsearch', function(self) {
 
     function loadAttributes(mart, container, datasets, callback) {
         var params = {datasets: datasets, container: container.name};
-        if (mart.config) 
+        if (mart.config)
             params.config = mart.config;
         biomart.resource.load('attributes', function(json) {
             var attributeNames = flattenItems('attribute', json);
@@ -167,7 +167,7 @@ $.namespace('biomart.martsearch', function(self) {
     }
 
     // Returns an array of filter/attribute names
-    // Ignores any filter/attribute lists 
+    // Ignores any filter/attribute lists
     function flattenItems(type, list) {
         var arr = [],
             plural = type + 's';
@@ -190,8 +190,8 @@ $.namespace('biomart.martsearch', function(self) {
         }
 
         return arr;
-    }    
-    
+    }
+
     function queueSearch() {
         if (inProgress) {
             cancelled = true;
@@ -253,7 +253,7 @@ $.namespace('biomart.martsearch', function(self) {
                                 query: xml
                             },
                             type: 'POST',
-                            success: function(data) { 
+                            success: function(data) {
                                 if (biomart.errorRegex.test(data)) return;
                                 if (data) {
                                     var rows = data.split('\n'),
@@ -278,8 +278,8 @@ $.namespace('biomart.martsearch', function(self) {
                                                 match = regex.test(col);
                                             if (col) {
                                                 curr.push([
-                                                    '<span class="value', (match?' match':''), '" title="', search.attributes[j].displayName, '">', 
-                                                        col, 
+                                                    '<span class="value', (match?' match':''), '" title="', search.attributes[j].displayName, '">',
+                                                        col,
                                                     '</span>'
                                                 ].join(''));
                                             }
@@ -382,14 +382,14 @@ $.subscribe('biomart.init', biomart.martsearch, 'init');
 //
 //                        if (rStart > 1)
 //                            $pagination.children('.prev').removeClass('hide');
-//                         else 
+//                         else
 //                            $pagination.children('.prev').addClass('hide');
 //
-//                        if (rEnd < json.total) 
+//                        if (rEnd < json.total)
 //                            $pagination.children('.next').removeClass('hide');
-//                         else 
+//                         else
 //                            $pagination.children('.next').addClass('hide');
-//                            
+//
 //                        $results
 //                            .unblock()
 //                            .show()

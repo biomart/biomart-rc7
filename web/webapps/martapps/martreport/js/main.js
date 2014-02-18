@@ -39,8 +39,8 @@ $.namespace('biomart.martreport', function(self) {
 
         allFilters = {},
 
-        // Helper variables 
-        marts = [], 
+        // Helper variables
+        marts = [],
         datasetMap = {},
         totalContainers = 0; // used to track progress of page load
 
@@ -107,12 +107,12 @@ $.namespace('biomart.martreport', function(self) {
             biomart.resource.load('datasets', function(json) {
                 var arr = [];
                 for (var i=0, item; item=json[i]; i++) {
-                    datasetMap[item.name] = item; // for use later 
-                    arr.push(item.name); 
+                    datasetMap[item.name] = item; // for use later
+                    arr.push(item.name);
                 }
                 selectedMart.datasets = arr;
                 getContainersFromMart(selectedMart, drawContainers);
-            }, {mart: selectedMart.name});
+            }, {config: selectedMart.name});
         }, {name: reportName});
 
         $sidenav
@@ -157,7 +157,7 @@ $.namespace('biomart.martreport', function(self) {
                 rendered
                     .limitedfilter({value: allFilters[k].filter.value})
                     .appendTo($filters);
-            } else {    
+            } else {
                 biomart.error(_('There was a problem rendering filter: ' + allFilters[k].filter.displayName));
             }
         }
@@ -207,7 +207,7 @@ $.namespace('biomart.martreport', function(self) {
         }
     };
 
-    /* 
+    /*
      * =generateReport
      */
     self.generateReport = function() {
@@ -250,7 +250,7 @@ $.namespace('biomart.martreport', function(self) {
                 if (!c.data('loaded')) {
                     if (i==0) $loading.slideDown();
                     c.children('h3,h4').minimizer('show');
-                    loadContainer(c, function() { 
+                    loadContainer(c, function() {
                         if (--total == 0) {
                             self.unlock();
                             $loading.slideUp();
@@ -345,7 +345,7 @@ $.namespace('biomart.martreport', function(self) {
             // first container should contain global filters, and the descendents are for display
             var topContainer = json.containers[0];
             processFilters(topContainer);
-            for (var i=0, c; c=topContainer.containers[i]; i++) 
+            for (var i=0, c; c=topContainer.containers[i]; i++)
                 storeDisplayContainers(m, c);
             if (callback) callback();
         }, params);
@@ -378,19 +378,19 @@ $.namespace('biomart.martreport', function(self) {
             temp.attributes  = c.attributes;
             if (!p.containers) p.containers = [];
             p.containers.push(temp);
-        } else return; 
+        } else return;
 
         if (!c.containers) return;
-        
-        for (var i=0, child; child=c.containers[i]; i++) 
+
+        for (var i=0, child; child=c.containers[i]; i++)
             storeDisplayContainers(temp, child, d+1);
     }
 
     function processFilters(c) {
         for (var i=0, f; f=c.filters[i]; i++) {
-            if (!allFilters[f.displayName]) 
+            if (!allFilters[f.displayName])
                 allFilters[f.displayName] = { filter: f, containers: [c] };
-            else 
+            else
                 allFilters[f.displayName].containers.push(c);
         }
     }
@@ -448,11 +448,11 @@ $.namespace('biomart.martreport', function(self) {
         location = biomart.url.stringify(urlHash);
     }
 
-    /* 
+    /*
      * Loads data for the report given set filters
      * @param {object} mart: mart object
      * @param {object} container: container object
-     * @param {DOM element} element: DOM element 
+     * @param {DOM element} element: DOM element
      * @param {function} callback
      */
     function loadData(mart, container, element, callback) {
@@ -542,7 +542,7 @@ $.namespace('biomart.martreport', function(self) {
                     paginateBy: container.independent || !renderAsTable ? false : 10
                 }, extraOptions),
                 showEmpty: !renderAsTable,
-                done: function() { 
+                done: function() {
                     element.data('loaded', true);
                     doNext();
                 }
@@ -608,7 +608,7 @@ $.namespace('biomart.martreport', function(self) {
             } else {
                 hash[a.name] = a;
                 if (dataset && a.attributes.length) {
-                    a.datasets = [dataset]; 
+                    a.datasets = [dataset];
                 }
             }
         } // for
@@ -651,10 +651,10 @@ $.namespace('biomart.martreport', function(self) {
 
         queue.dequeue();
     }
-    
-    /* 
-     * Create new DOM element for given primary attribute 
-     * @param {DOM Element} parentElement 
+
+    /*
+     * Create new DOM element for given primary attribute
+     * @param {DOM Element} parentElement
      * @param {Object} container
      * @param {boolean} isSub
      */
@@ -675,24 +675,24 @@ $.namespace('biomart.martreport', function(self) {
             .appendTo(element)
             .wrap('<div class="content"/>');
 
-        
+
         var dlLink = $('<div align="right" style="display: none"><a href="javascript:;" class="report-download">Download</a></div>');
         dlLink.delegate('a.report-download','click',function(ev){
         	ev.stopPropagation();
-        	
+
        	 	var $form = $('<form style="height: 1; visibility: hidden" action="'+ BIOMART_CONFIG.service.url+'results">').appendTo(document.body);
-       	 
+
             $form
             	.append( $('<input type="hidden" name="download" value="true"/>'))
             	.append( $('<input type="hidden" name="query"/>'));
-            
+
             var datasets;
             if (container.independent) {
                 datasets = mart.datasets;
             } else {
                 datasets = userDatasets || mart.datasets.slice(0,1);
             }
-            
+
             var queryMart = $.extend({}, mart);
             queryMart.datasets = container.independent ? datasets : datasets[datasets.length > 10 ? 10 : 0];
             queryMart.filters = {};
@@ -710,7 +710,7 @@ $.namespace('biomart.martreport', function(self) {
                     queryMart.filters[f.name] = f;
                 }
             }
-            
+
             if (container.independent) {
                 var params = {datasets: datasets.join(','), container: container.name};
                 if (mart.config) {
@@ -722,11 +722,11 @@ $.namespace('biomart.martreport', function(self) {
             }else{
             	queryMart.attributes = container.attributes;
             }
-            
+
             var dlQueries = prepareXML('TSV', -1, true, queryClient, queryMart, container.independent)
-            
+
             $form.children('input[name=query]').val(dlQueries);
-            
+
             $form.submit();
         });
         // New header
@@ -757,7 +757,7 @@ $.namespace('biomart.martreport', function(self) {
         return element;
     }
 
-    /* 
+    /*
      * Generates query XML text (could be an array of XML strings)
      */
     function prepareXML(processor, limit, header, client, mart, perDataset) {

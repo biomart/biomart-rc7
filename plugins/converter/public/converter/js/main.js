@@ -18,15 +18,15 @@ $.namespace('biomart.converter', function(self) {
 
                     for (var i=1, row; row=rows[i]; i++) {
                         row = row.split('\t');
-                        from = row[0].toUpperCase(); 
+                        from = row[0].toUpperCase();
                         to = row[1].toUpperCase();
-                        
+
                         // Ensure the array exists
                         hash[from] = hash[from] || [];
 
                         hash[from].push(to);
                     }
-                    
+
                     for (i=0; input=inputs[i]; i++) {
                         // Use uppercase for case insensitivity
                         var upper = input.toUpperCase();
@@ -157,7 +157,7 @@ $.namespace('biomart.converter', function(self) {
 
 
                 datasetChange(datasets[0].name);
-            }, {mart: _state.mart.name});
+            }, {config: _state.mart.name});
         }, {name: _state.gui});
     };
 
@@ -237,12 +237,12 @@ $.namespace('biomart.converter', function(self) {
             biomart.error('Filter type "' + filter.type + '" not support for this GUI type');
         }
     }
-    
+
     function setup() {
         var div = biomart.renderer.filter('div', _state.filter),
             select = ['<select id="biomart-attributes">'];
 
-        // From 
+        // From
         _elements.fromDiv.find('.simplerfilter').simplerfilter('destroy').remove();
         div.appendTo(_elements.fromDiv).simplerfilter({chooseText: false});
         _elements.inputField = _elements.fromDiv.find('textarea.field,input.field,select.field');
@@ -354,7 +354,7 @@ $.namespace('biomart.converter', function(self) {
         _elements.results
             .queryResults($.extend({
                 queries: _state.xml,
-                done: function(total) { 
+                done: function(total) {
                     if (total) {
                         _elements.resultsActions.show();
                     } else {
