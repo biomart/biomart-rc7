@@ -1,7 +1,9 @@
 package org.biomart.dino.dinos.enrichment;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -64,8 +66,9 @@ public class EnrichmentDino implements Dino {
 
     // Key: dataset_config_name + attribute_list name
     // Value: path of the annotation file
-    static private Map<String, String> annotationsFilePaths =
-                                                new HashMap<String, String>();
+    static private Map<String, String> 
+        annotationsFilePaths = new HashMap<String, String>(),
+        defaultBackgrounds = new HashMap<String, String>();
     static private Map<String, Cache> cache = new HashMap<String, Cache>();
 
     static ObjectMapper mapper = new ObjectMapper();
@@ -73,7 +76,7 @@ public class EnrichmentDino implements Dino {
     static File workingDir = null;
 
     // NOTE: these will contain filter values and attribute names.
-    @Func(id = BACKGROUND)
+    @Func(id = BACKGROUND, optional = true)
     String background;
     @Func(id = SETS)
     String sets;
@@ -348,6 +351,8 @@ public class EnrichmentDino implements Dino {
                 throw new IOException("Cannot find annotations file nor retrieve them");
             }
 
+            if (!this.backgroundExists())
+                this.useDefaultBackground();
             // The bin path is sat within the DinoModule as a constant.
             cmd.setAnnotations(new File(annPath))
                 .setBackground(backgroundInput)
@@ -371,19 +376,70 @@ public class EnrichmentDino implements Dino {
             Log.info("ENRICHMENT TIMES:"+annotation+": parsing results took "+ ((end - start) / 1_000_000.0) + "ms");
             
         } finally {
-            if (backgroundInput != null) backgroundInput.delete();
-            if (setsInput != null) setsInput.delete();
+            this.deleteTempFiles();
         }
 
     }
+    
+    
+    private void deleteTempFiles() throws FileNotFoundException, ConfigException, IOException {
+        if (backgroundInput != null) {
+            String dfp = this.getDefaultBackgroundPath(), 
+                   p = backgroundInput.getPath();
+            if (! dfp.equals(p)) {
+                backgroundInput.delete();
+            }
+        }
+            
+        if (setsInput != null) setsInput.delete();
+    }
+    
+    
+    private boolean backgroundExists() {
+        return this.background != null && !this.background.isEmpty();
+    }
+    
+    
+    private void useDefaultBackground() throws ConfigException, FileNotFoundException, IOException {
+        backgroundInput = new File(this.getDefaultBackgroundPath());
+    }
+    
+    
+    private String getDefaultBackgroundPath() throws FileNotFoundException, IOException {
+        String path =  defaultBackgrounds.get(annotationDatasetName);
 
-    private void translateFilters() throws IOException {
-        Log.debug(this.getClass().getName() + "#translatesFilters()");
+        if (path == null) {
+            String suffix = "_default_background";
+            File defbk = new File(workingDir, annotationDatasetName + suffix);
+            
+            if (defbk.exists()) {
+                path = defbk.getCanonicalPath();
+                defaultBackgrounds.put(annotationDatasetName, path);
+            } else {
+                this.initQueryBuilder();
+                qbuilder.setHeader(false)
+                        .setDataset(annotationDatasetName, annotationConfigName)
+                        .addAttribute("ensembl_gene_id");
+                
+                try(OutputStream out = new BufferedOutputStream(new FileOutputStream(defbk))) {
+                    qbuilder.getResults(out);
+                }
+                path = defbk.getCanonicalPath();
+                defaultBackgrounds.put(annotationDatasetName, path);
+            }
+        }
+        
+        return path;
+    }
+    
+
+    private void translateFilters() throws IOException, ConfigException {
 
         try {
-
-            backgroundInput = File.createTempFile("background", "filter");
-            translateBackgroundFilter(BACKGROUND, background, backgroundInput);
+            if (this.backgroundExists()) {
+                backgroundInput = File.createTempFile("background", "filter");
+                translateBackgroundFilter(BACKGROUND, background, backgroundInput);
+            }
             setsInput = File.createTempFile("sets", "filter");
             translateSetsFilter(SETS, sets, setsInput);
 
@@ -391,8 +447,7 @@ public class EnrichmentDino implements Dino {
             Log.error(this.getClass().getName() + "#translateFilters() "
                     + "impossible to write on temporary file or the file is missing .", e);
 
-            if (backgroundInput.exists()) backgroundInput.delete();
-            if (setsInput.exists()) setsInput.delete();
+            this.deleteTempFiles();
 
             throw e;
         }
@@ -400,8 +455,6 @@ public class EnrichmentDino implements Dino {
     }
 
     private void translateSetsFilter(String filter, String filterValue, File outFile) throws IOException {
-        Log.debug("sets value: "+ filterValue);
-
         try (FileOutputStream oStream = new FileOutputStream(outFile)) {
             String setName = "set";
             oStream.write((">" + setName + "\n").getBytes());
@@ -419,10 +472,6 @@ public class EnrichmentDino implements Dino {
     private void translateSingleFilter(String filter, String filterValue, FileOutputStream out) {
         Map<String, Element> bind = this.metadata.getBindings();
         Element e = null;
-
-        Log.debug(bind);
-
-        Log.debug("EnrichmentDino::translateFilters() for filter : "+ filter);
 
         e = bind.get(filter);
         String filterName = e.getName();
@@ -449,10 +498,6 @@ public class EnrichmentDino implements Dino {
 
         // Get the attribute object.
         elem = (Attribute)bindings.get(attributeList);
-
-        Log.debug(this.getClass().getName() + "#toEnsemblGeneId()"
-                + " attributeList = "+ attributeList
-                + " element got = "+ elem);
 
         forTransAttr = getAttributeForIdTranslation(elem);
 
@@ -595,8 +640,6 @@ public class EnrichmentDino implements Dino {
                     if (geneSourceIdx == -1) {
                         geneSourceIdx = nodes.size();
                         cols.add("gene");
-                        Log.debug("guiresponse: gene ks"+ gKeys);
-                        Log.debug("guiresponse: gene vs"+ cols);
                         nodes.add(mkNode(gKeys, cols));
                     }
 
@@ -730,7 +773,6 @@ public class EnrichmentDino implements Dino {
                 geneTks = new ArrayList<String>(genes.length);
                 
                 for (String og : genes) {
-                    Log.debug("webServiceToAnnotationHgncSymbol gene: "+ og);
                     String gLine = geneCache.get(og);
                     atmp = gLine.split(delim);
                     geneTks.add(atmp[0]);
@@ -819,52 +861,38 @@ public class EnrichmentDino implements Dino {
         handleCache();
 
         if (path == null) {
-            // 1.1 get annotations and put them on disk
-            File annotationFile;
+            File annotationFile = new File(workingDir, key);
+            path = annotationFile.getCanonicalPath();
+         
+            if (!annotationFile.exists()) {
+                // 1.1 get annotations and put them on disk
 
-            try {
+                try (org.biomart.dino.SkipEmptyOutputStream oStream =
+                        new org.biomart.dino.SkipEmptyOutputStream(new FileOutputStream(annotationFile))) {
 
-                annotationFile = File.createTempFile(key, "annotations");
-                annotationFile.deleteOnExit();
+                    submitAnnotationsQuery(datasetName,
+                                           configName,
+                                           a2.getName(),
+                                           oStream);
 
-            } catch (IOException ex) {
-                Log.error(this.getClass().getName()
-                        + "#getAnnotationsFilePath(" + attributeList
-                        + ") impossible to create a temporary file", ex);
-                return "";
+                } catch (IOException ex) {
+                    Log.error(this.getClass().getName()
+                            + "#getAnnotationsFilePath(" + attributeList
+                            + ") impossible to write on temporary file.", ex);
+                    return "";
+                }
             }
 
-            try (org.biomart.dino.SkipEmptyOutputStream oStream =
-                    new org.biomart.dino.SkipEmptyOutputStream(new FileOutputStream(annotationFile))) {
-
-                path = annotationFile.getPath();
-                // TODO: check file content.
-                submitAnnotationsQuery(datasetName,
-                                       configName,
-                                       a2.getName(),
-                                       oStream);
-
-                annotationsFilePaths.put(key, path);
-
-            } catch (IOException ex) {
-                Log.error(this.getClass().getName()
-                        + "#getAnnotationsFilePath(" + attributeList
-                        + ") impossible to write on temporary file.", ex);
-                return "";
-            }
+            annotationsFilePaths.put(key, path);
         }
 
-        Log.debug(this.getClass().getName() + "#getAnnotationsFilePath() temp file "+ path);
         return path;
     }
 
 
     private boolean isSpecieTranslation(Attribute attrListElem) {
-        Log.debug(this.getClass().getName() + "#isSpecieTranslation("+attrListElem.getName() + ")");
 
         Attribute a1 = Utils.getAttributeForEnsemblGeneIdTranslation(attrListElem);
-
-        Log.debug(this.getClass().getName() + "#isSpecieTranslation() a1 name = "+ a1.getName());
 
         return a1.getName().contains("homolog");
     }
