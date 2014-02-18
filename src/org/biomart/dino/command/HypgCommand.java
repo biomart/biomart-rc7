@@ -13,6 +13,7 @@ public class HypgCommand implements ShellCommand {
 	public String build() {
 		return StringUtils.join(new String[] {
 			bin.getPath(),
+			"-B",
 			"-g", getBackground().getPath(),
 			"-s", getSets().getPath(),
 			"-a", getAnnotations().getPath(),
