@@ -8,20 +8,33 @@ public class HypgCommand implements ShellCommand {
 
 	File background, sets, annotations, bin;
 	String cutoff;
+	boolean bonferroni = false;
 
 	@Override
 	public String build() {
 		return StringUtils.join(new String[] {
 			bin.getPath(),
-			"-B",
+			bonferroni ? "-B": "",
 			"-g", getBackground().getPath(),
 			"-s", getSets().getPath(),
 			"-a", getAnnotations().getPath(),
 			"-c", getCutoff()
 		}, " ");
 	}
+	
+	
 
-	public File getCmdBinPath() {
+	public boolean isBonferroni() {
+        return bonferroni;
+    }
+
+
+    public void setBonferroni(boolean bonferroni) {
+        this.bonferroni = bonferroni;
+    }
+
+
+    public File getCmdBinPath() {
 		return bin;
 	}
 

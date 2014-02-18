@@ -53,6 +53,7 @@ public class EnrichmentDino implements Dino {
                                SETS = "sets",
                                ANNOTATION = "annotation",
                                CUTOFF = "cutoff",
+                               BONF = "bonferroni",
                                EN_BIN_OPT = "enrichment_bin",
                                DISPL_OPT = "display",
                                GENE_OPT = "gene",
@@ -84,6 +85,8 @@ public class EnrichmentDino implements Dino {
     String annotation;
     @Func(id = CUTOFF)
     String cutoff;
+    @Func(id = BONF, optional = true)
+    String bonferroni;
     
     // This is the name of the attribute used for translating annotations to
     // ensembl ids.
@@ -359,6 +362,8 @@ public class EnrichmentDino implements Dino {
                 .setSets(setsInput)
                 .setCutoff(cutoff)
                 .setCmdBinPath(bin);
+            
+            if (bonferroni != null) cmd.setBonferroni(true);
 
             start = System.nanoTime();
             List<List<String>> newResult =
