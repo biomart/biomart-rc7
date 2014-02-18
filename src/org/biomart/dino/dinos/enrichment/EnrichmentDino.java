@@ -706,47 +706,45 @@ public class EnrichmentDino implements Dino {
         
         String atmp[], genes[], delim = "\t";
         List<String> geneTks;
-
-        Log.debug("webServiceToAnnotationHgncSymbol data = "+ data.toString().substring(0, 4));
         
 
-            for (List<String> line : data) {
+        for (List<String> line : data) {
+
+            start = System.nanoTime();
+
+            atmp = annCache.get(line.get(0)).split(delim);
+
+            if (atmp.length > 1) {
+                line.set(0, atmp[0]);
+                line.add(1, atmp[1]);
+            }
+            
+            end = System.nanoTime();
+            
+            Log.info("ENRICHMENT TIMES:"+annotation+": annotation translation query took "+ ((end - start) / 1_000_000.0) + "ms");
+
+            if (line.size() > 4) {
 
                 start = System.nanoTime();
-
-                atmp = annCache.get(line.get(0)).split(delim);
-
-                if (atmp.length > 1) {
-                    line.set(0, atmp[0]);
-                    line.add(1, atmp[1]);
+                genes = line.get(4).split(",");
+                geneTks = new ArrayList<String>(genes.length);
+                
+                for (String og : genes) {
+                    Log.debug("webServiceToAnnotationHgncSymbol gene: "+ og);
+                    String gLine = geneCache.get(og);
+                    atmp = gLine.split(delim);
+                    geneTks.add(atmp[0]);
                 }
+                
+                line.set(4, StringUtils.join(geneTks, ","));
+                atmp = null;
+                geneTks = null;
                 
                 end = System.nanoTime();
-                
-                Log.info("ENRICHMENT TIMES:"+annotation+": annotation translation query took "+ ((end - start) / 1_000_000.0) + "ms");
+                Log.info("ENRICHMENT TIMES:"+annotation+": genes translation query for this annotation took "+ ((end - start) / 1_000_000.0) + "ms");
 
-                if (line.size() > 4) {
-
-                    start = System.nanoTime();
-                    genes = line.get(4).split(",");
-                    geneTks = new ArrayList<String>(genes.length);
-                    
-                    for (String og : genes) {
-                        Log.debug("webServiceToAnnotationHgncSymbol gene: "+ og);
-                        String gLine = geneCache.get(og);
-                        atmp = gLine.split(delim);
-                        geneTks.add(atmp[0]);
-                    }
-                    
-                    line.set(4, StringUtils.join(geneTks, ","));
-                    atmp = null;
-                    geneTks = null;
-                    
-                    end = System.nanoTime();
-                    Log.info("ENRICHMENT TIMES:"+annotation+": genes translation query for this annotation took "+ ((end - start) / 1_000_000.0) + "ms");
-
-                }
             }
+        }
     }
 
 
