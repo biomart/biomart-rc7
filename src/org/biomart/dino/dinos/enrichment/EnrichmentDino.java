@@ -364,7 +364,8 @@ public class EnrichmentDino implements Dino {
                 .setSets(setsInput)
                 .setCutoff(cutoff)
                 .setCmdBinPath(bin)
-                .setBonferroni(Boolean.getBoolean(bonferroni));
+                // boolean filters has "only" as truth value...
+                .setBonferroni(bonferroni.equalsIgnoreCase("only"));
 
             start = System.nanoTime();
             List<List<String>> newResult =
