@@ -33,7 +33,7 @@
                 "other_attributes": []
             },
 
-	    "Reactome (Human)": {
+            "Reactome (Human)": {
                 "filter": "pathway_id_list_1",
                 "annotation_attribute": "stableidentifier_identifier_2",
                 "description_attribute": "_displayname_1",

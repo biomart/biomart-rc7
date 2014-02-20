@@ -1,17 +1,17 @@
-package org.biomart.dino.querybuilder;
+package org.biomart.dino.cache;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.google.common.base.Joiner;
+import org.biomart.dino.querybuilder.QueryBuilder;
 
 public class Cache {
 
     private ConcurrentHashMap<String, String> c;
     private QueryBuilder qb;
     private String header, colDelim = "\t", lineDelim = "\n";
+    private CacheCallback fn;
     
     /**
      * In the data returned by the query builder call the first column
@@ -20,32 +20,36 @@ public class Cache {
      * @param qb
      * @throws IOException
      */
-    public Cache(QueryBuilder qb) throws IOException {
+    public Cache(QueryBuilder qb, CacheCallback fn) throws IOException {
         c = new ConcurrentHashMap<String, String>();
         this.qb = qb;
-        getResults();
+        this.fn = fn;
     }
     
     
-    private void getResults() throws IOException {
+    public Cache getResults() throws IOException {
         try(ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             qb.getResults(out);
             
-            String lines[] = out.toString().split(lineDelim), tks[];
+            String lines[] = out.toString().split(lineDelim);
             out.reset();
             
             if (lines.length > 0) {
-                tks = lines[0].split(colDelim);
-                header = getData(tks);
+                fn.setLine(lines[0]);
+                header = fn.getValue();
                 
                 for (int i = 1, len = lines.length; i < len; ++i) {
-                    String line = lines[i];
-                    tks = line.split(colDelim);
-                    if (tks.length > 0)
-                        c.put(tks[0], getData(tks));
+                    String line = lines[i], k;
+                    
+                    fn.setLine(line);
+                    k = fn.getKey();
+                    if (!k.isEmpty())
+                        c.put(k, fn.getValue());
                 }
             }
         }
+
+        return this;
     }
     
     
@@ -54,8 +58,9 @@ public class Cache {
     }
 
 
-    public void setColDelim(String colDelim) {
+    public Cache setColDelim(String colDelim) {
         this.colDelim = colDelim;
+        return this;
     }
 
 
@@ -64,8 +69,9 @@ public class Cache {
     }
 
 
-    public void setLineDelim(String lineDelim) {
+    public Cache setLineDelim(String lineDelim) {
         this.lineDelim = lineDelim;
+        return this;
     }
 
 
@@ -77,13 +83,6 @@ public class Cache {
     public String getHeader() {
         return header;
     }
-    
-    
-    private String getData(String[] tokens) {
-        return Joiner.on(colDelim).join((Arrays.copyOfRange(tokens, 1, tokens.length)));
-    }
-    
-    
 }
 
 

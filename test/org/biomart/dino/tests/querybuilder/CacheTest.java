@@ -7,7 +7,7 @@ import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.biomart.dino.querybuilder.Cache;
+import org.biomart.dino.cache.Cache;
 import org.biomart.dino.querybuilder.QueryBuilder;
 import org.junit.Before;
 import org.junit.Test;

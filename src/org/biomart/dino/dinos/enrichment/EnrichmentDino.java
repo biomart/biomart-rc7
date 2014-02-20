@@ -22,12 +22,14 @@ import org.biomart.dino.Binding;
 import org.biomart.dino.Utils;
 import org.biomart.dino.annotations.EnrichmentConfig;
 import org.biomart.dino.annotations.Func;
+import org.biomart.dino.cache.AnnotationCallback;
+import org.biomart.dino.cache.Cache;
+import org.biomart.dino.cache.GeneCallback;
 import org.biomart.dino.command.HypgCommand;
 import org.biomart.dino.command.ShellException;
 import org.biomart.dino.command.ShellRunner;
 import org.biomart.dino.dinos.Dino;
 import org.biomart.dino.exceptions.ConfigException;
-import org.biomart.dino.querybuilder.Cache;
 import org.biomart.dino.querybuilder.QueryBuilder;
 import org.biomart.objects.objects.Attribute;
 import org.biomart.objects.objects.Element;
@@ -361,9 +363,8 @@ public class EnrichmentDino implements Dino {
                 .setBackground(backgroundInput)
                 .setSets(setsInput)
                 .setCutoff(cutoff)
-                .setCmdBinPath(bin);
-            
-            if (bonferroni != null) cmd.setBonferroni(true);
+                .setCmdBinPath(bin)
+                .setBonferroni(Boolean.getBoolean(bonferroni));
 
             start = System.nanoTime();
             List<List<String>> newResult =
@@ -693,9 +694,9 @@ public class EnrichmentDino implements Dino {
             qb.setHeader(true)
               .setDataset(annotationDatasetName, annotationConfigName)
               .addAttribute(a2Name)
-              .addAttribute(getOpt(ann, ANN_A_OPT).asText())
+//              .addAttribute(getOpt(ann, ANN_A_OPT).asText())
               .addAttribute(getOpt(ann, DESC_A_OPT).asText());
-            Cache c = new Cache(qb);
+            Cache c = new Cache(qb, new AnnotationCallback()).getResults();
             cache.put(key, c);
         }
     }
@@ -728,7 +729,7 @@ public class EnrichmentDino implements Dino {
               .setDataset(annotationDatasetName, annotationConfigName);
             
             for (String a : geneAtts) { qb.addAttribute(a); }
-            Cache c = new Cache(qb);
+            Cache c = new Cache(qb, new GeneCallback()).getResults();
             cache.put(key, c);
         }
     }
@@ -752,40 +753,45 @@ public class EnrichmentDino implements Dino {
         
         Cache annCache = getAnnCache(), geneCache = getGeneCache();
         
-        String atmp[], genes[], delim = "\t";
+        String atmp[], genes[] = null, delim = "\t";
         List<String> geneTks;
         
 
         for (List<String> line : data) {
-
             start = System.nanoTime();
 
             atmp = annCache.get(line.get(0)).split(delim);
 
+            line.set(0, atmp[0]);
+            
+            if (line.size() > 3)
+                genes = line.get(3).split(",");
+            
+            // Description
             if (atmp.length > 1) {
-                line.set(0, atmp[0]);
                 line.add(1, atmp[1]);
             }
             
             end = System.nanoTime();
             
             Log.info("ENRICHMENT TIMES:"+annotation+": annotation translation query took "+ ((end - start) / 1_000_000.0) + "ms");
-
-            if (line.size() > 4) {
+            if (genes != null && genes.length > 0) {
 
                 start = System.nanoTime();
-                genes = line.get(4).split(",");
                 geneTks = new ArrayList<String>(genes.length);
-                
+
                 for (String og : genes) {
                     String gLine = geneCache.get(og);
                     atmp = gLine.split(delim);
-                    geneTks.add(atmp[0]);
+                    if (! geneTks.contains(atmp[0])) {
+                        geneTks.add(atmp[0]);
+                    }
                 }
                 
-                line.set(4, StringUtils.join(geneTks, ","));
+                line.set(line.size() - 1, StringUtils.join(geneTks, ","));
                 atmp = null;
                 geneTks = null;
+                genes = null;
                 
                 end = System.nanoTime();
                 Log.info("ENRICHMENT TIMES:"+annotation+": genes translation query for this annotation took "+ ((end - start) / 1_000_000.0) + "ms");
@@ -795,24 +801,24 @@ public class EnrichmentDino implements Dino {
     }
 
 
-    private void submitToHgncSymbolQuery(
-                              String datasetName,
-                              String configName,
-                              String filterName,
-                              String filterValue,
-                              List<String> attributes,
-                              boolean header,
-                              OutputStream out) {
-        initQueryBuilder();
-        qbuilder.setHeader(header)
-                .setDataset(datasetName, configName)
-                .addFilter(filterName, filterValue);
-        for (String att : attributes) {
-            qbuilder.addAttribute(att);
-        }
-
-        qbuilder.getResults(out);
-    }
+//    private void submitToHgncSymbolQuery(
+//                              String datasetName,
+//                              String configName,
+//                              String filterName,
+//                              String filterValue,
+//                              List<String> attributes,
+//                              boolean header,
+//                              OutputStream out) {
+//        initQueryBuilder();
+//        qbuilder.setHeader(header)
+//                .setDataset(datasetName, configName)
+//                .addFilter(filterName, filterValue);
+//        for (String att : attributes) {
+//            qbuilder.addAttribute(att);
+//        }
+//
+//        qbuilder.getResults(out);
+//    }
 
     private Attribute getAttributeForIdTranslation(Attribute attr) {
         return Utils.getAttributeForEnsemblGeneIdTranslation(attr);
