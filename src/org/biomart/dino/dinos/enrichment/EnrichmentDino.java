@@ -136,9 +136,6 @@ public class EnrichmentDino implements Dino {
                           String configPath,
                           GuiResponseCompiler compiler) throws IOException {
         
-        // This is an ugly trick to avoid undesired html...
-        org.biomart.api.rest.IframeOutputStream.useIframe(false);
-        
         this.cmd = cmd;
         this.cmdRunner = cmdRunner;
         this.qbuilder = qbuilder;
@@ -151,6 +148,10 @@ public class EnrichmentDino implements Dino {
     @Override
     public void run(OutputStream out) throws TechnicalException, IOException {
         Log.debug(this.getClass().getName() + "#run(OutputStream) invoked");
+        
+        // This is an ugly trick to avoid undesired html...
+        if (out instanceof org.biomart.api.rest.IframeOutputStream)
+            ((org.biomart.api.rest.IframeOutputStream)out).useIframe(false);
 
         sink = out;
 
@@ -365,7 +366,7 @@ public class EnrichmentDino implements Dino {
                 .setCutoff(cutoff)
                 .setCmdBinPath(bin)
                 // boolean filters has "only" as truth value...
-                .setBonferroni(bonferroni.equalsIgnoreCase("only"));
+                .setBonferroni(bonferroni != null && bonferroni.equalsIgnoreCase("only"));
 
             start = System.nanoTime();
             List<List<String>> newResult =
