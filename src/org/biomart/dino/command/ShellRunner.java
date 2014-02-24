@@ -51,8 +51,10 @@ public abstract class ShellRunner {
                 }
             }
         
-        } catch (InterruptedException | IOException e) {
-            throw new ShellException(e.getMessage());
+        } catch (InterruptedException e1) {
+            throw new ShellException(e1.getMessage());
+        } catch (IOException e1) {
+            throw new ShellException(e1.getMessage());
         }
 
         if (errorResult != 0) {

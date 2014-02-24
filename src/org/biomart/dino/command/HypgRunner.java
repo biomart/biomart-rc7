@@ -43,8 +43,10 @@ public class HypgRunner extends ShellRunner {
         String genes;
         List<String> tks;
         String[] lineTks;
+        BufferedReader in = null;
         
-        try (BufferedReader in = new BufferedReader(new FileReader(fin))) {
+        try {
+            in = new BufferedReader(new FileReader(fin));
             String line = null;
         
             while((line = in.readLine()) != null) {
@@ -66,6 +68,10 @@ public class HypgRunner extends ShellRunner {
             Log.error(this.getClass().getName()
                     + "#getResults() cannot find inputfile hypg.pv");
             throw e;
+        } finally {
+            if (in != null) {
+                in.close();
+            }
         }
         
         Collections.sort(results, new Comparator<List<String>>() {

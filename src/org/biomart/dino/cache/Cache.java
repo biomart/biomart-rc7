@@ -28,7 +28,9 @@ public class Cache {
     
     
     public Cache getResults() throws IOException {
-        try(ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+        ByteArrayOutputStream out = null;
+        try {
+            out = new ByteArrayOutputStream();
             qb.getResults(out);
             
             String lines[] = out.toString().split(lineDelim);
@@ -46,6 +48,10 @@ public class Cache {
                     if (!k.isEmpty())
                         c.put(k, fn.getValue());
                 }
+            }
+        } finally {
+            if (out != null) {
+                out.close();
             }
         }
 

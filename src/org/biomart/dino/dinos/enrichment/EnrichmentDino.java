@@ -239,7 +239,7 @@ public class EnrichmentDino implements Dino {
         translateFilters();
         long end = System.nanoTime();
         
-        Log.info("ENRICHMENT TIMES:"+annotation+": ensembl translation took "+ ((end - start) / 1_000_000.0) + "ms");
+        Log.info("ENRICHMENT TIMES:"+annotation+": ensembl translation took "+ ((end - start) / 1000000.0) + "ms");
         
         enrich();
         
@@ -261,7 +261,7 @@ public class EnrichmentDino implements Dino {
         this.webServiceToAnnotationHgncSymbol(res);
         long end = System.nanoTime();
         
-        Log.info("ENRICHMENT TIMES:"+annotation+": hgnc translation took "+ ((end - start) / 1_000_000.0) + "ms");
+        Log.info("ENRICHMENT TIMES:"+annotation+": hgnc translation took "+ ((end - start) / 1000000.0) + "ms");
         
         List<String[]> ares = new ArrayList<String[]>(res.size());
 
@@ -276,15 +276,20 @@ public class EnrichmentDino implements Dino {
         res = null;
         results.remove(annotation);
 
-        try {
             start = System.nanoTime(); 
-            org.biomart.dino.Processor.runProcessor(ares, processor, q, sink);
+            try {
+                org.biomart.dino.Processor.runProcessor(ares, processor, q, sink);
+            } catch (IllegalArgumentException e) {
+                Log.error("EnrichmentDino#handleWebServiceRequest(): cannot send results: ",e);
+            } catch (InstantiationException e) {
+                Log.error("EnrichmentDino#handleWebServiceRequest(): cannot send results: ",e);
+            } catch (IllegalAccessException e) {
+                Log.error("EnrichmentDino#handleWebServiceRequest(): cannot send results: ",e);
+            } catch (InvocationTargetException e) {
+                Log.error("EnrichmentDino#handleWebServiceRequest(): cannot send results: ",e);
+            }
             end = System.nanoTime();
-            Log.info("ENRICHMENT TIMES:"+annotation+": sending the result through processor took "+ ((end - start) / 1_000_000.0) + "ms");
-        } catch (IllegalArgumentException | InstantiationException
-                | IllegalAccessException | InvocationTargetException e) {
-            Log.error("EnrichmentDino#handleWebServiceRequest(): cannot send results: ",e);
-        }
+            Log.info("ENRICHMENT TIMES:"+annotation+": sending the result through processor took "+ ((end - start) / 1000000.0) + "ms");
     }
 
 
@@ -303,12 +308,18 @@ public class EnrichmentDino implements Dino {
     
     
     private void sendGuiResponse(OutputStream sink) throws IOException, ConfigException {
-        try(ByteArrayOutputStream out = byteStream()) {
+        ByteArrayOutputStream out = null;
+        try {
+            out = byteStream();
             String p = System.getProperty("user.dir") + System.getProperty("file.separator") + getOpt(config, "front-end").asText();
             mkJson(nodes, links, out);
             Map<String, Object> scope = new HashMap<String, Object>();
             scope.put("data", out.toString());
             GuiResponseCompiler.compile(new File(p), sink, scope);
+        } finally {
+            if (out != null) {
+                out.close();
+            }
         }
     }
     
@@ -375,13 +386,13 @@ public class EnrichmentDino implements Dino {
                                                   .run().getResults();
             end = System.nanoTime();
             
-            Log.info("ENRICHMENT TIMES:"+annotation+": running hpgy took "+ ((end - start) / 1_000_000.0) + "ms");
+            Log.info("ENRICHMENT TIMES:"+annotation+": running hpgy took "+ ((end - start) / 1000000.0) + "ms");
             
             start = System.nanoTime();
             results.put(annotation, newResult);
             end = System.nanoTime();
             
-            Log.info("ENRICHMENT TIMES:"+annotation+": parsing results took "+ ((end - start) / 1_000_000.0) + "ms");
+            Log.info("ENRICHMENT TIMES:"+annotation+": parsing results took "+ ((end - start) / 1000000.0) + "ms");
             
         } finally {
             this.deleteTempFiles();
@@ -429,8 +440,14 @@ public class EnrichmentDino implements Dino {
                         .setDataset(annotationDatasetName, annotationConfigName)
                         .addAttribute("ensembl_gene_id");
                 
-                try(OutputStream out = new BufferedOutputStream(new FileOutputStream(defbk))) {
+                OutputStream out = null;
+                try {
+                    out = new BufferedOutputStream(new FileOutputStream(defbk));
                     qbuilder.getResults(out);
+                } finally {
+                    if (out != null) {
+                        out.close();
+                    }
                 }
                 path = defbk.getCanonicalPath();
                 defaultBackgrounds.put(annotationDatasetName, path);
@@ -463,17 +480,29 @@ public class EnrichmentDino implements Dino {
     }
 
     private void translateSetsFilter(String filter, String filterValue, File outFile) throws IOException {
-        try (FileOutputStream oStream = new FileOutputStream(outFile)) {
+        FileOutputStream oStream = null;
+        try {
+            oStream = new FileOutputStream(outFile);
             String setName = "set";
             oStream.write((">" + setName + "\n").getBytes());
             translateSingleFilter(filter, filterValue, oStream);
             oStream.write(("<" + setName + "\n").getBytes());
+        } finally {
+            if (oStream != null) {
+                oStream.close();
+            }
         }
     }
 
     private void translateBackgroundFilter(String filter, String filterValue, File outFile) throws IOException {
-        try (FileOutputStream oStream = new FileOutputStream(outFile)) {
+        FileOutputStream oStream = null;
+        try {
+            oStream = new FileOutputStream(outFile);
             translateSingleFilter(filter, filterValue, oStream);
+        } finally {
+            if (oStream != null) {
+                oStream.close();
+            }
         }
     }
 
@@ -776,7 +805,7 @@ public class EnrichmentDino implements Dino {
             
             end = System.nanoTime();
             
-            Log.info("ENRICHMENT TIMES:"+annotation+": annotation translation query took "+ ((end - start) / 1_000_000.0) + "ms");
+            Log.info("ENRICHMENT TIMES:"+annotation+": annotation translation query took "+ ((end - start) / 1000000.0) + "ms");
             if (genes != null && genes.length > 0) {
 
                 start = System.nanoTime();
@@ -796,7 +825,7 @@ public class EnrichmentDino implements Dino {
                 genes = null;
                 
                 end = System.nanoTime();
-                Log.info("ENRICHMENT TIMES:"+annotation+": genes translation query for this annotation took "+ ((end - start) / 1_000_000.0) + "ms");
+                Log.info("ENRICHMENT TIMES:"+annotation+": genes translation query for this annotation took "+ ((end - start) / 1000000.0) + "ms");
 
             }
         }
@@ -880,9 +909,9 @@ public class EnrichmentDino implements Dino {
             if (!annotationFile.exists()) {
                 // 1.1 get annotations and put them on disk
 
-                try (org.biomart.dino.SkipEmptyOutputStream oStream =
-                        new org.biomart.dino.SkipEmptyOutputStream(new FileOutputStream(annotationFile))) {
-
+                org.biomart.dino.SkipEmptyOutputStream oStream = null;
+                try {
+                    oStream = new org.biomart.dino.SkipEmptyOutputStream(new FileOutputStream(annotationFile));
                     submitAnnotationsQuery(datasetName,
                                            configName,
                                            a2.getName(),
@@ -893,6 +922,10 @@ public class EnrichmentDino implements Dino {
                             + "#getAnnotationsFilePath(" + attributeList
                             + ") impossible to write on temporary file.", ex);
                     return "";
+                } finally {
+                    if (oStream != null) {
+                        oStream.close();
+                    }
                 }
             }
 
