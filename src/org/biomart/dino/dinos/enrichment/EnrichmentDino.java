@@ -118,7 +118,10 @@ public class EnrichmentDino implements Dino {
 
     // Links are segregated per attribute list
     Map<String, List<Map<String, Object>>> links = new HashMap<String, List<Map<String, Object>>>();
-    String id = "_id", linkSource = "source", linkTarget = "target";
+    String idHeader = "id", typeHeader = "type", descripHeader = "description", 
+            pvalueHeader = "pvalue", bpvalueHeader = "bpvalue", 
+            linkSourceHeader = "source", linkTargetHeader = "target",
+            termHeader = "term", geneHeader = "gene";
 
     OutputStream sink;
     
@@ -344,7 +347,7 @@ public class EnrichmentDino implements Dino {
         
         for (String ann : links.keySet()) {
             edges = new HashMap<String, Object>();
-            edges.put("links", links.get(ann));
+            edges.put("edges", links.get(ann));
             tabs.put(ann, edges);
         }
         
@@ -611,7 +614,8 @@ public class EnrichmentDino implements Dino {
 
         String colDelim = "\t";
 
-        List<String> cols, aKeys = null, gKeys = null, linkKeys = Arrays.asList(linkSource, linkTarget);
+        List<String> cols, aKeys = null, gKeys = null, 
+                linkKeys = Arrays.asList(linkSourceHeader, linkTargetHeader);
         String[] colsArray;
         
         links.put(annotation, new ArrayList<Map<String, Object>>());
@@ -620,13 +624,13 @@ public class EnrichmentDino implements Dino {
         Cache gCache = getGeneCache();
         
         colsArray = annCache.getHeader().split(colDelim);
-        aKeys = new ArrayList<String>(Arrays.asList(id, "p-value", "bp-value"));
-        aKeys.addAll(Arrays.asList(Arrays.copyOfRange(colsArray, 1, colsArray.length)));
-        aKeys.add("type");
+        aKeys = new ArrayList<String>(Arrays.asList(idHeader, pvalueHeader, bpvalueHeader, descripHeader));
+        aKeys.addAll(Arrays.asList(Arrays.copyOfRange(colsArray, 2, colsArray.length)));
+        aKeys.add(typeHeader);
 
         colsArray = gCache.getHeader().split(colDelim);
         gKeys = new ArrayList<String>(Arrays.asList(colsArray));
-        gKeys.set(0, id); gKeys.add("type");
+        gKeys.set(0, idHeader); gKeys.set(1, descripHeader); gKeys.add(typeHeader);
         
         for (List<String> line : data) {
             
@@ -642,7 +646,7 @@ public class EnrichmentDino implements Dino {
 
             for (int a = 0, alen = nodes.size(); a < alen; ++a) {
                 Map<String, Object> m = nodes.get(a);
-                if (m.get(id).equals(colsArray[0])) {
+                if (m.get(idHeader).equals(colsArray[0])) {
                     annotationTargetIdx = a;
                     break;
                 }
@@ -650,7 +654,7 @@ public class EnrichmentDino implements Dino {
 
             if (annotationTargetIdx == -1) {
                 annotationTargetIdx = nodes.size();
-                cols.add("term");
+                cols.add(termHeader);
                 nodes.add(mkNode(aKeys, cols));
             }
 
@@ -668,7 +672,7 @@ public class EnrichmentDino implements Dino {
                     cols = new ArrayList<String>(Arrays.asList(colsArray));
                     for (int j = 0, jlen = nodes.size(); j < jlen; ++j) {
                         Map<String, Object> m = nodes.get(j);
-                        if (m.get(id).equals(colsArray[0])) {
+                        if (m.get(idHeader).equals(colsArray[0])) {
                             geneSourceIdx = j;
                             break;
                         }
@@ -676,7 +680,7 @@ public class EnrichmentDino implements Dino {
 
                     if (geneSourceIdx == -1) {
                         geneSourceIdx = nodes.size();
-                        cols.add("gene");
+                        cols.add(geneHeader);
                         nodes.add(mkNode(gKeys, cols));
                     }
 
