@@ -111,23 +111,26 @@ public class EnrichmentDino implements Dino {
     String annotationDatasetName = "", annotationConfigName = "";
 
     Map<String, List<List<String>>> results = new HashMap<String, List<List<String>>>();
+
+    
     // These are collections to use when the request comes from a web browser
 
-    // Nodes are shared amongst attribute lists
-    List<Map<String, Object>> nodes = new ArrayList<Map<String, Object>>();
 
     // Links are segregated per attribute list
-    Map<String, List<Map<String, Object>>> links = new HashMap<String, List<Map<String, Object>>>();
+    Map<String, List<Map<String, Object>>> 
+        nodes = new HashMap<String, List<Map<String, Object>>>(),
+        edges = new HashMap<String, List<Map<String, Object>>>();
     String idHeader = "id", typeHeader = "type", descripHeader = "description", 
             pvalueHeader = "pvalue", bpvalueHeader = "bpvalue", 
             linkSourceHeader = "source", linkTargetHeader = "target",
-            termHeader = "term", geneHeader = "gene";
+            termType = "term", geneType = "gene";
 
     OutputStream sink;
     
     // TODO set config as static and cache it.
     JsonNode config;
     GuiResponseCompiler compiler;
+    Graph graph;
 
     @Inject
     public EnrichmentDino(HypgCommand cmd,
@@ -137,7 +140,8 @@ public class EnrichmentDino implements Dino {
                           QueryBuilder qbuilder,
                           @EnrichmentConfig
                           String configPath,
-                          GuiResponseCompiler compiler) throws IOException {
+                          GuiResponseCompiler compiler,
+                          Graph graph) throws IOException {
         
         this.cmd = cmd;
         this.cmdRunner = cmdRunner;
@@ -146,6 +150,7 @@ public class EnrichmentDino implements Dino {
         config = mapper.readTree(new File(configPath));
         
         this.compiler = compiler;
+        this.graph = graph;
     }
 
     @Override
@@ -315,7 +320,7 @@ public class EnrichmentDino implements Dino {
         try {
             out = byteStream();
             String p = System.getProperty("user.dir") + System.getProperty("file.separator") + getOpt(config, "front-end").asText();
-            mkJson(nodes, links, out);
+            mkJson(nodes, edges, out);
             Map<String, Object> scope = new HashMap<String, Object>();
             scope.put("data", out.toString());
             GuiResponseCompiler.compile(new File(p), sink, scope);
@@ -328,7 +333,9 @@ public class EnrichmentDino implements Dino {
     
 
     private void 
-    mkJson(List<Map<String, Object>> nodes, Map<String, List<Map<String, Object>>> links, OutputStream out) 
+    mkJson(Map<String, List<Map<String, Object>>> nodes, 
+           Map<String, List<Map<String, Object>>> links, 
+           OutputStream out) 
             throws JsonGenerationException, JsonMappingException, IOException {
         
         Map<String, Object> root = getScope(nodes, links);
@@ -337,21 +344,23 @@ public class EnrichmentDino implements Dino {
         m.writeValue(out, root);
     }
     
+    
     private Map<String, Object>
-    getScope(List<Map<String, Object>> nodes, Map<String, List<Map<String, Object>>> links) {
+    getScope(Map<String, List<Map<String, Object>>> nodes, 
+             Map<String, List<Map<String, Object>>> links) {
         
         Map<String, Object> root = new HashMap<String, Object>(),
-                tabs = new HashMap<String, Object>(), edges;
+                graphs = new HashMap<String, Object>(),
+                g = new HashMap<String, Object>();
         
-        root.put("nodes", nodes);
         
-        for (String ann : links.keySet()) {
-            edges = new HashMap<String, Object>();
-            edges.put("edges", links.get(ann));
-            tabs.put(ann, edges);
+        for (String ann : nodes.keySet()) {
+            g.put("nodes", nodes.get(ann) == null ? new ArrayList<Object>() : nodes.get(ann));
+            g.put("edges", links.get(ann) == null ? new ArrayList<Object>() : links.get(ann));
+            graphs.put(ann, g);
         }
         
-        root.put("tabs", tabs);
+        root.put("graphs", graphs);
         return root;
     }
 
@@ -553,141 +562,77 @@ public class EnrichmentDino implements Dino {
 
         submitToEnsemblIdQuery(forTransAttr, filterName, filterValue, o);
     }
-
-
-//    private String getDisplayFilter(Map<String, Object> cfg) {
-//        Object o = cfg.get("filter");
-//        return o == null ? "" : o.toString();
-//    }
-//
-//    @SuppressWarnings("unchecked")
-//    private Map<String, Object> getDisplayGeneOptions(Map<String, Object> cfg) {
-//        Object o = cfg.get("gene");
-//        return n((Map<String, Object>) o);
-//    }
-//
-//    @SuppressWarnings("unchecked")
-//    private Map<String, Object> getDisplayAnnotationOptions(Map<String, Object> cfg) {
-//        Object o = cfg.get("annotation");
-//        return n((Map<String, Object>) o);
-//    }
-//
-//    @SuppressWarnings("unchecked")
-//    private Map<String, Object> getDisplayOptions() {
-//        Object o = config.get("display");
-//        return n((Map<String, Object>) o);
-//    }
-//
-//    private Map<String, Object> n(Map<String, Object> m) {
-//        return m == null ? new HashMap<String, Object>() : m;
-//    }
-//
-//    private List<Object> n(List<Object> l) {
-//        return l == null ? new ArrayList<Object>() : l;
-//    }
-//
-//    private String getEnrichmentBinPath(Map<String, Object> cfg) {
-//        String s = (String) cfg.get("enrichment_bin");
-//        return s == null ? "" : s;
-//    }
-
-
-    private Map<String, Object> mkNode(List<String> ks, List<String> vs) {
-        Map<String, Object> n = new HashMap<String, Object>(ks.size());
-        for (int i = 0, len = ks.size(); i < len; ++i) {
-            n.put(ks.get(i), vs.get(i));
-        }
-        return n;
-    }
-
-    private Map<String, Object> mkLink(List<String> ks, List<Integer> vs) {
-        Map<String, Object> n = new HashMap<String, Object>(ks.size());
-        for (int i = 0, len = ks.size(); i < len; ++i) {
-            n.put(ks.get(i), vs.get(i));
-        }
-        return n;
-    }
+    
 
     private void guiToAnnotationHgncSymbol(List<List<String>> data) throws ConfigException, IOException {
 
         Log.debug("guiToAnnotationHgncSymbol "+ annotation);
-
-        String colDelim = "\t";
-
-        List<String> cols, aKeys = null, gKeys = null, 
-                linkKeys = Arrays.asList(linkSourceHeader, linkTargetHeader);
-        String[] colsArray;
-        
-        links.put(annotation, new ArrayList<Map<String, Object>>());
         
         Cache annCache = getAnnCache();
         Cache gCache = getGeneCache();
-        
-        colsArray = annCache.getHeader().split(colDelim);
-        aKeys = new ArrayList<String>(Arrays.asList(idHeader, pvalueHeader, bpvalueHeader, descripHeader));
-        aKeys.addAll(Arrays.asList(Arrays.copyOfRange(colsArray, 2, colsArray.length)));
-        aKeys.add(typeHeader);
 
-        colsArray = gCache.getHeader().split(colDelim);
-        gKeys = new ArrayList<String>(Arrays.asList(colsArray));
-        gKeys.set(0, idHeader); gKeys.set(1, descripHeader); gKeys.add(typeHeader);
+        String colDelim = "\t", annId, geneId;
+
+        String[] geneVals, annVals, annHeader, unknownHeader;
+        List<String> geneHeader;
+        
+        annHeader = annCache.getHeader().split(colDelim);
+        unknownHeader = Arrays.copyOfRange(annHeader, 2, annHeader.length);
+        geneHeader = new ArrayList<String>(Arrays.asList(gCache.getHeader().split(colDelim)));
+        geneHeader.set(0, idHeader); geneHeader.set(1, descripHeader);
         
         for (List<String> line : data) {
+
+            annVals = annCache.get(line.get(0)).split(colDelim);
+            annId = annVals[0];
             
-            int annotationTargetIdx = -1;
-
-            // The actual content
-            colsArray = annCache.get(line.get(0)).split(colDelim);
-
-            // Add annotation, p-value, bp-value
-            cols = new ArrayList<String>(Arrays.asList(colsArray[0], line.get(1), line.get(2)));
-            // Add the rest of the columns
-            cols.addAll(Arrays.asList(Arrays.copyOfRange(colsArray, 1, colsArray.length)));
-
-            for (int a = 0, alen = nodes.size(); a < alen; ++a) {
-                Map<String, Object> m = nodes.get(a);
-                if (m.get(idHeader).equals(colsArray[0])) {
-                    annotationTargetIdx = a;
-                    break;
+            if (!graph.containsNode(idHeader, annId)) {
+        // Building the annotation node
+                graph.initNode()
+                    .addNodeProp(idHeader, annVals[0])
+                    .addNodeProp(pvalueHeader, line.get(1))
+                    .addNodeProp(bpvalueHeader, line.get(2))
+                    .addNodeProp(descripHeader, annVals[1])
+                    .addNodeProp(typeHeader, termType);
+                for (int i = 2; i < annVals.length; ++i) {
+                    graph.addNodeProp(unknownHeader[i], annVals[i]);
                 }
+                graph.addNode();
+        // end building
             }
-
-            if (annotationTargetIdx == -1) {
-                annotationTargetIdx = nodes.size();
-                cols.add(termHeader);
-                nodes.add(mkNode(aKeys, cols));
-            }
-
-            colsArray = null; cols = null;
+            
 
             if (line.size() > 3) {
 
-                colsArray = null; cols = null;
                 String[] origGenes = line.get(3).split(",");
-
+                
+                
                 for (String og : origGenes) {
-                    int geneSourceIdx = -1;
                     String geneLine = gCache.get(og);
-                    colsArray = geneLine.split(colDelim);
-                    cols = new ArrayList<String>(Arrays.asList(colsArray));
-                    for (int j = 0, jlen = nodes.size(); j < jlen; ++j) {
-                        Map<String, Object> m = nodes.get(j);
-                        if (m.get(idHeader).equals(colsArray[0])) {
-                            geneSourceIdx = j;
-                            break;
+                    geneVals = geneLine.split(colDelim);
+                    geneId = geneVals[0];
+                    if (!graph.containsNode(idHeader, geneId)) {
+                // Build the gene node
+                        graph.initNode();
+                        for (int i = 0; i < geneVals.length; ++i) {
+                            graph.addNodeProp(geneHeader.get(i), geneVals[i]);
                         }
+                        graph.addNodeProp(typeHeader, geneType)
+                            .addNode();
+                // end building
                     }
-
-                    if (geneSourceIdx == -1) {
-                        geneSourceIdx = nodes.size();
-                        cols.add(geneHeader);
-                        nodes.add(mkNode(gKeys, cols));
-                    }
-
-                    links.get(annotation).add(mkLink(linkKeys, Arrays.asList(geneSourceIdx, annotationTargetIdx)));
+                    Map<String, Object> edge = new HashMap<String, Object>(2);
+                    edge.put(linkSourceHeader, geneId);
+                    edge.put(linkTargetHeader, annId);
+                    
+                    graph.addEdge(edge);
                 }
             }
-        } 
+        }
+        
+        nodes.put(annotation, graph.getNodes());
+        edges.put(annotation, graph.getEdges());
+        graph.clear();
     }
     
     
