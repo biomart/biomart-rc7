@@ -22,7 +22,7 @@ public class GuiResponseCompiler {
         try {
             in = new FileReader(tpl);
             writer = new BufferedWriter(new OutputStreamWriter(out));
-            MustacheFactory mf = new DefaultMustacheFactory();
+            DefaultMustacheFactory mf = new DefaultMustacheFactory();
             Mustache mustache = mf.compile(in, "enrichment.html", "[", "]");
             mustache.execute(writer, binding);
             writer.flush();
