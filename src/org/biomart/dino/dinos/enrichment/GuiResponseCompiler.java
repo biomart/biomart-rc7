@@ -14,23 +14,23 @@ import java.util.Map;
 
 public class GuiResponseCompiler {
 
-    
-    public static void 
+
+    public static void
     compile(File tpl, OutputStream out, Map<String, Object> binding) throws IOException {
-        FileReader in = null; 
+        FileReader in = null;
         BufferedWriter writer = null;
         try {
             in = new FileReader(tpl);
             writer = new BufferedWriter(new OutputStreamWriter(out));
             MustacheFactory mf = new DefaultMustacheFactory();
-            Mustache mustache = mf.compile(in, "enrichment.html");
+            Mustache mustache = mf.compile(in, "enrichment.html", "[", "]");
             mustache.execute(writer, binding);
             writer.flush();
         } finally {
             if (in != null) {
                 in.close();
             }
-            
+
             if (writer != null) {
                 writer.close();
             }
