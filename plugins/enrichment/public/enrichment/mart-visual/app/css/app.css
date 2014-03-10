@@ -1,0 +1,52 @@
+html, body {
+    height: 100%;
+}
+
+.left-panel {
+    border-right: 1px solid #FEDED9;
+}
+
+.right-panel {
+    /*border: 1px solid #909DC7;*/
+}
+
+.table td {
+    text-align: center;
+}
+
+input[type=text] {
+    margin-top: 10px;
+}
+
+.mv-vis-container {}
+
+.mv-table-container {
+    overflow-y: auto;
+    /*height: 40%;*/
+}
+
+.dataset-info {
+    padding-top: 43px;
+    text-align: right;
+}
+
+.dataset-section {
+    padding-bottom: 30px;
+    margin-top: 40px;
+}
+
+.mv-container > h2 {
+    color: #E94E77;/*#F56991;*/
+}
+
+.mv-container {
+    background-color: #FCFBE3;
+}
+
+.mv-select {
+    margin: 20px auto 20px auto;
+}
+
+.mv-tarea {
+    margin-bottom: 20px;
+}

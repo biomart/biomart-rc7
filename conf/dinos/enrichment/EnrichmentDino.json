@@ -50,5 +50,5 @@
 
     },
 
-    "front-end": "conf/dinos/enrichment/app/index.html"
+    "front-end": "web/webapps/martapps/mart-visual-enrichment/app/index.html"
 }

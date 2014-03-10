@@ -318,12 +318,14 @@ public class EnrichmentDino implements Dino {
     private void sendGuiResponse(OutputStream sink) throws IOException, ConfigException {
         ByteArrayOutputStream out = null;
         try {
-            out = byteStream();
-            String p = System.getProperty("user.dir") + System.getProperty("file.separator") + getOpt(config, "front-end").asText();
-            mkJson(nodes, edges, out);
-            Map<String, Object> scope = new HashMap<String, Object>();
-            scope.put("data", out.toString());
-            GuiResponseCompiler.compile(new File(p), sink, scope);
+            mkJson(nodes, edges, sink);
+            sink.flush();
+//            out = byteStream();
+//            String p = System.getProperty("user.dir") + System.getProperty("file.separator") + getOpt(config, "front-end").asText();
+//            mkJson(nodes, edges, out);
+//            Map<String, Object> scope = new HashMap<String, Object>();
+//            scope.put("data", out.toString());
+//            GuiResponseCompiler.compile(new File(p), sink, scope);
         } finally {
             if (out != null) {
                 out.close();

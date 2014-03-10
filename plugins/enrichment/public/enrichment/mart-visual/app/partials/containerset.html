@@ -1,0 +1,10 @@
+<div class="row">
+    <div class="col-md-9">
+        <container ng-repeat="c in flatContainers" attributes="c.attributes" filters="c.filters" ng-if="(!!c.filters.length) || (!!c.attributes.length)"></container>
+    </div>
+    <div class="col-md-3">
+        <ul class="nav">
+
+        </ul>
+    </div>
+</div>
