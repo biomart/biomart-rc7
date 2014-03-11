@@ -55,8 +55,7 @@ public class DinoHandlerTest {
         Dino dino = null;
         try {
             dino = DinoHandler.getDinoInstance(TestDino.class);
-        } catch (IllegalArgumentException | InstantiationException
-                | IllegalAccessException | InvocationTargetException e) {
+        } catch (Exception e) {
             fail(e.getMessage());
         }
         assertEquals("returns the proper instance", dino.getClass(),

@@ -19,6 +19,7 @@ import org.biomart.dino.command.HypgCommand;
 import org.biomart.dino.command.ShellRunner;
 import org.biomart.dino.dinos.Dino;
 import org.biomart.dino.dinos.enrichment.EnrichmentDino;
+import org.biomart.dino.dinos.enrichment.Graph;
 import org.biomart.dino.dinos.enrichment.GuiResponseCompiler;
 import org.biomart.dino.querybuilder.QueryBuilder;
 import org.junit.Before;
@@ -46,7 +47,8 @@ public class EnrichmentDinoTest {
                 mock(ShellRunner.class),
                 mock(QueryBuilder.class),
                 TestSupport.fixtureDir() + TestSupport.sep + "EnrichmentDino.json",
-                mock(GuiResponseCompiler.class)
+                mock(GuiResponseCompiler.class),
+                new Graph()
         );
         
         nodeList = new ArrayList<Map<String, String>>();
@@ -126,7 +128,8 @@ public class EnrichmentDinoTest {
     @Test
     public void mkJsonTest() throws IOException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         String s = "{\"nodes\":[],\"tabs\":{\"ann2\":{\"links\":[]},\"ann1\":{\"links\":[]}}}";
-        try(ByteArrayOutputStream o = new ByteArrayOutputStream()) {
+        ByteArrayOutputStream o = new ByteArrayOutputStream();
+        try {
 //            Field nodes = dino.getClass().getDeclaredField("nodes");
 //            nodes.setAccessible(true);
 //            nodes.set(dino, nodeList);
@@ -139,6 +142,8 @@ public class EnrichmentDinoTest {
             method.invoke(dino, nodeList, links, o);
             
             assertEquals(s, o.toString());
+        } finally {
+            o.close();
         }
     }
 
@@ -146,7 +151,8 @@ public class EnrichmentDinoTest {
     @Test
     public void sendGuiResponseTest() throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException, NoSuchMethodException, IOException, InvocationTargetException {
 
-        try(ByteArrayOutputStream o = new ByteArrayOutputStream()) {
+        ByteArrayOutputStream o = new ByteArrayOutputStream();
+        try {
             Field nodes = dino.getClass().getDeclaredField("nodes");
             nodes.setAccessible(true);
             nodes.set(dino, nodeList);
@@ -172,6 +178,8 @@ public class EnrichmentDinoTest {
             assertTrue(s.contains("ann1"));
             assertTrue(s.contains("ann2"));
             assertTrue(s.contains("links"));
+        } finally {
+            o.close();
         }
     }
 

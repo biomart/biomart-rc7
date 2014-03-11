@@ -17,6 +17,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.biomart.common.exceptions.TechnicalException;
+import org.biomart.common.exceptions.ValidationException;
 import org.biomart.common.resources.Log;
 import org.biomart.dino.Binding;
 import org.biomart.dino.Utils;
@@ -53,6 +54,7 @@ import com.google.inject.name.Named;
 public class EnrichmentDino implements Dino {
     static public final String BACKGROUND = "background",
                                SETS = "sets",
+                               BEDFILE = "bedfile",
                                ANNOTATION = "annotation",
                                CUTOFF = "cutoff",
                                BONF = "bonferroni",
@@ -81,8 +83,10 @@ public class EnrichmentDino implements Dino {
     // NOTE: these will contain filter values and attribute names.
     @Func(id = BACKGROUND, optional = true)
     String background;
-    @Func(id = SETS)
+    @Func(id = SETS, optional = true)
     String sets;
+    @Func(id = BEDFILE, optional = true)
+    String bedFile;
     @Func(id = ANNOTATION)
     String annotation;
     @Func(id = CUTOFF)
@@ -169,6 +173,17 @@ public class EnrichmentDino implements Dino {
                 if (! workingDir.mkdir()) {
                     throw new IOException("Cannot create working directory "+ workingDir.getPath());
                 }
+            }
+        }
+        
+        if (this.sets == null || this.sets.isEmpty()) {
+            if (this.bedFile != null && !this.bedFile.isEmpty()) {
+                // It expects the bedFile content to be already formatted as
+                // needed by BioMart.
+                // There should be a dino (decorator) for this.
+                this.sets = this.bedFile;
+            } else {
+                throw new ValidationException("Either a sets or bed file filter must be provided");
             }
         }
         
