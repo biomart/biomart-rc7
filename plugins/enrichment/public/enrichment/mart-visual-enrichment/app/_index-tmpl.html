@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Mart Visual Enrichment</title>
+    <%- head -%>
+</head>
+<body>
+    <script type="application/json" id="enrichment-data">
+    <%- enrichmentData -%>
+    </script>
+    <div  ng-app="martVisualEnrichment">
+        <div class="container-fluid" ng-controller="MartVisualEnrichmentCtrl">
+            <tabset>
+                <tab ng-repeat="mvTab in mvTabs">
+                  <tab-heading><a href="">{{mvTab.title}}</a></tab-heading>
+                    <div class="row">
+                        <div class="col-md-3 left-panel" >
+                            <div ng-controller="ResultsTableCtrl">
+                                <div>
+                                    <input class="form-control" type="text" ng-model="pattern"
+                                           ng-change="filterByDescription(pattern)"
+                                           ng-trim="false"
+                                           placeholder="Search by description...">
+                                </div>
+                                <hr />
+                                <div class="mv-table-container">
+                                    <mv-results-table></mv-results-table>
+                                </div>
+                            </div>
+                            <hr />
+
+                        </div>
+
+                        <div class="col-md-9 right-panel" ng-controller="GraphCtrl">
+                            <mv-graph nodes="nodes" edges="edges" filter-pattern="search"></mv-graph>
+                        </div>
+                    </div>
+                </tab>
+            </tabset>
+    </div>
+
+    <% ngPartials.forEach(function (sc) { %>
+    <script type="text/ng-template" id="<%= sc.id -%>">
+        <%- sc.content %>
+    </script>
+    <% }) %>
+
+    <%- tail %>
+</body>
+</html>

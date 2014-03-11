@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Mart Visual Enrichment</title>
+    <%- head -%>
+</head>
+<body>
+    <div class="container">
+      <div class="row" ng-controller="MartVisualCtrl">
+          <div class="row">
+            <div class="col-md-2">
+              <p>These are the datasets available to start from</p>
+            </div>
+            <div class="col-md-10">
+              <h3>Datasets available</h3>
+              <select ng-model="selectedDataset" ng-options="d.displayName for d in datasets"></select>
+            </div>
+          </div>
+      </div>
+      <div ng-controller="ContainerCtrl as cont">
+
+      </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "mart-visual-enrichment",
+  "description": "Visualization tool for BioMart Analysis",
+  "devDependencies": {
+    "protractor": "~0.17.0",
+    "karma-junit-reporter": "~0.2.1",
+    "mocha": "~1.17.1",
+    "karma-mocha": "~0.1.1",
+    "chai": "~1.9.0",
+    "karma-mocha-reporter": "~0.2.2",
+    "karma-safari-launcher": "~0.1.1",
+    "uglifyjs": "~2.3.6",
+    "karma-ng-html2js-preprocessor": "~0.1.0"
+  }
+}

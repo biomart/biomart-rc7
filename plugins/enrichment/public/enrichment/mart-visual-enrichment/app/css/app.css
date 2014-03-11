@@ -1,0 +1,31 @@
+html, body {
+    height: 100%;
+}
+
+.left-panel {
+    border-right: 1px solid #FEDED9;
+}
+
+.right-panel {
+    /*border: 1px solid #909DC7;*/
+}
+
+.table td {
+    text-align: center;
+}
+
+input[type=text] {
+    margin-top: 10px;
+}
+
+.mv-vis-container {}
+
+.mv-table-container {
+    overflow-y: auto;
+    /*height: 40%;*/
+}
+
+.loading {
+    font: bold 30px Verdana, sans-serif;
+    visibility: hidden;
+}
