@@ -238,11 +238,11 @@ public class QueryCompiler {
                     String[] splitValue = value.split(filter.getSplitOnValue(), -1);
                     querySQL.append("(");
                     String currentValue = null;
-                    for (int i = 0; i < filter.getFilterList(dss).size(); ++i) {
+                    for (int i = 0; i < splitValue.length; ++i) {
                         if (filter.getSplitOnValue().equals("") || splitValue.length == 1
                                 || filter.getQualifier().equals(OperatorType.RANGE)) {
                             currentValue = value;
-                        } else if (splitValue.length == filter.getFilterList(dss).size()) {
+                        } else if (i < splitValue.length) {
                             currentValue = splitValue[i];
                         } else {
                             Log.error("Invalid number of filterlist arguments! Filter " + filter.getName()
