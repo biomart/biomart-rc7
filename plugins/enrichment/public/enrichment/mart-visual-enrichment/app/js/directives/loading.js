@@ -16,11 +16,12 @@ app.directive("loading", ["$rootScope", function ($rootScope) {
                     top: "40px"
                 });
             })
-            $rootScope.$on("enrichment.dataloaded", function () {
+            var off = $rootScope.$on("enrichment.dataloaded", function () {
                 elem.css({
                     visibility: "hidden"
                 });
             })
+            scope.$on("$destroy", off);
         }
     }
 }])
