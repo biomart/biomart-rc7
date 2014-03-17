@@ -82,7 +82,7 @@ public class EnrichmentDino implements Dino {
     // NOTE: these will contain filter values and attribute names.
     @Func(id = BACKGROUND, optional = true)
     String background;
-    @Func(id = SETS, optional = true)
+    @Func(id = SETS)
     String sets;
     @Func(id = ANNOTATION)
     String annotation;
