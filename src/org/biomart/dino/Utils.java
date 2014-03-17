@@ -60,7 +60,7 @@ public class Utils {
 
     /**
      * Same as getAttributeForEnsemblGeneIdTranslation except that this is for
-     * specie translation.
+     * species translation.
      * 
      * @param qe
      * @return
