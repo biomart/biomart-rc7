@@ -89,6 +89,7 @@ public final class QueryController {
 			in = new ByteArrayInputStream(xml.getBytes("UTF-8"));
 			SAXBuilder builder = new SAXBuilder();
 			InputSource is = new InputSource(in);
+			is.setEncoding("UTF-8");
 			queryXMLobject = builder.build(is);
 			
 			boolean useMasterConfig = Boolean.parseBoolean(System.getProperty("biomart.query.masterconfig"));

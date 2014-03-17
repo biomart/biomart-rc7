@@ -261,6 +261,9 @@ public class QueryValidator {
                 	
                     String name = StringEscapeUtils.escapeSql(filterXML.getAttributeValue("name"));
                     String value = StringEscapeUtils.escapeSql(filterXML.getAttributeValue("value"));
+                    if (value == null) {
+                        value = StringEscapeUtils.escapeSql(filterXML.getText());
+                    }
 
                     Filter filter = dataset.getFilterByName(name, configName, userGroup);
 

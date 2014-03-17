@@ -92,6 +92,12 @@ public class Query {
         return filtersGroup;
     }
     
+    
+    public void addFilter(QueryElement f) {
+        this.filtersGroup.add(f);
+    }
+    
+    
     public Map<Dataset, SubQuery> getImportableOnlySubqueries() {
 		return importableOnlySubqueries;
 	}
