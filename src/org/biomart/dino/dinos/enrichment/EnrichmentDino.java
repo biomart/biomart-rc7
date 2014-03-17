@@ -54,7 +54,6 @@ import com.google.inject.name.Named;
 public class EnrichmentDino implements Dino {
     static public final String BACKGROUND = "background",
                                SETS = "sets",
-                               BEDFILE = "bedfile",
                                ANNOTATION = "annotation",
                                CUTOFF = "cutoff",
                                BONF = "bonferroni",
@@ -85,8 +84,6 @@ public class EnrichmentDino implements Dino {
     String background;
     @Func(id = SETS, optional = true)
     String sets;
-    @Func(id = BEDFILE, optional = true)
-    String bedFile;
     @Func(id = ANNOTATION)
     String annotation;
     @Func(id = CUTOFF)
@@ -176,17 +173,6 @@ public class EnrichmentDino implements Dino {
             }
         }
         
-        if (this.sets == null || this.sets.isEmpty()) {
-            if (this.bedFile != null && !this.bedFile.isEmpty()) {
-                // It expects the bedFile content to be already formatted as
-                // needed by BioMart.
-                // There should be a dino (decorator) for this.
-                this.sets = this.bedFile;
-            } else {
-                throw new ValidationException("Either a sets or bed file filter must be provided");
-            }
-        }
-        
         iterate();
     }
 
@@ -253,6 +239,14 @@ public class EnrichmentDino implements Dino {
 
         // It throws a ValidationException if any field wasn't bound.
         this.metadata.checkBinding(myFields);
+        
+//        if ((this.sets == null || this.sets.isEmpty())) {
+//            if (this.regions == null || this.regions.isEmpty()) {
+//                throw new ConfigException("`sets` or `regions` filter must be provided with the query");
+//            } else {
+//                this.sets = this.regions;
+//            }
+//        }
 
         tasks();
     }
@@ -1004,6 +998,11 @@ public class EnrichmentDino implements Dino {
 
     private boolean isGuiClient() {
         return Boolean.valueOf(client) || client.equalsIgnoreCase("webbrowser");
+    }
+
+    @Override
+    public Query getQuery() {
+        return this.q;
     }
 
 

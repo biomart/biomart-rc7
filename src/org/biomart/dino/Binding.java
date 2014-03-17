@@ -18,10 +18,10 @@ public class Binding {
 
     static final XMLElements funcKey = XMLElements.FUNCTION;
 
-    Map<String, Element> boundEls = new HashMap<String, Element>();
+    Map<String, QueryElement> boundEls = new HashMap<String, QueryElement>();
     
     public Binding clear() {
-        boundEls = new HashMap<String, Element>();
+        boundEls = new HashMap<String, QueryElement>();
         return this;
     }
 
@@ -39,7 +39,7 @@ public class Binding {
         
         Field f = null;
         for (QueryElement q : queryElements) {
-            f = bindElement(q.getElement(), fieldsCp);
+            f = bindElement(q, fieldsCp);
             if (f != null) {
                 // it's bound
                 fieldsCp.remove(f);
@@ -50,20 +50,20 @@ public class Binding {
         return this;
     }
     
-    public Binding setBindingsByElement(List<Field> fields, List<Element> els) {
-        
-        List<Field> fieldsCp = new ArrayList<Field>(fields);
-        Field f = null;
-        
-        for (Element e : els) {
-            f = bindElement(e, fieldsCp);
-            if (f != null) {
-                fieldsCp.remove(f);
-            }
-        }
-        
-        return this;
-    }
+//    public Binding setBindingsByElement(List<Field> fields, List<Element> els) {
+//        
+//        List<Field> fieldsCp = new ArrayList<Field>(fields);
+//        Field f = null;
+//        
+//        for (Element e : els) {
+//            f = bindElement(e, fieldsCp);
+//            if (f != null) {
+//                fieldsCp.remove(f);
+//            }
+//        }
+//        
+//        return this;
+//    }
     
     /**
      * Bind a single Element e to a field in the fields list.
@@ -72,15 +72,16 @@ public class Binding {
      * @param fields
      * @return the field that should be bound to this element, null otherwise.
      */
-    private Field bindElement(Element e, List<Field> fields) {
+    private Field bindElement(QueryElement q, List<Field> fields) {
         Func a = null;
+        Element e = q.getElement();
         String propVal = e.getPropertyValue(funcKey);
         
         for (Field f : fields) {
             a = f.getAnnotation(Func.class);
             if (a != null) {
                 if (a.id().equalsIgnoreCase(propVal)) {
-                    boundEls.put(a.id(), e);
+                    boundEls.put(a.id(), q);
                     return f;
                 }
             } else {
@@ -92,6 +93,8 @@ public class Binding {
         
         return null;
     }
+    
+
 
     /**
      * 
@@ -101,8 +104,19 @@ public class Binding {
      * 
      */
     public Map<String, Element> getBindings() {
+        Map<String, Element> bound = new HashMap<String, Element>(boundEls.size());
+        for (String k : boundEls.keySet()) {
+            bound.put(k, boundEls.get(k).getElement());
+        }
+        return bound;
+    }
+    
+    
+    public Map<String, QueryElement> getQueryBindings() {
         return boundEls;
     }
+    
+    
     
     /**
      * 
@@ -209,23 +223,6 @@ public class Binding {
                 break;
         }
 
-        return value;
-    }
-    
-    /**
-     * Returns the value of e, only if e contains it. That is, only for 
-     * Attributes at the moment.
-     * 
-     * @param e
-     * @return
-     */
-    private static String getElementValue(Element e) {
-        String value = "";
-        
-        if (e instanceof Attribute) {
-            value = ((Attribute) e).getName();
-        }
-        
         return value;
     }
 

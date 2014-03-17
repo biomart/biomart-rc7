@@ -1,57 +1,42 @@
 package org.biomart.dino.dinos;
 
-import java.io.OutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.biomart.dino.Binding;
+import org.biomart.common.resources.Log;
 import org.biomart.dino.annotations.Func;
-import org.biomart.queryEngine.Query;
+import org.biomart.objects.objects.Element;
+import org.biomart.objects.objects.Filter;
+import org.biomart.queryEngine.QueryElement;
 
-public class BedDino implements Dino {
 
-    static public final String BACKGROUND = "background",
-            SETS = "sets",
-            BEDFILE = "bedfile",
-            ANNOTATION = "annotation",
-            CUTOFF = "cutoff",
-            BONF = "bonferroni";
+public class BedDino extends RegionsDino {
+
+    static public final String BEDFILE = "bed_regions",
+                               FILTER_NAME_ENV = "BED_DINO_OUTPUT_FILTER_NAME";
     
-    @Func(id = BACKGROUND, optional = true)
-    String background;
-    @Func(id = SETS, optional = true)
-    String sets;
     @Func(id = BEDFILE, optional = true)
     String bedFile;
-    @Func(id = ANNOTATION)
-    String annotation;
-    @Func(id = CUTOFF)
-    String cutoff;
-    @Func(id = BONF, optional = true)
-    String bonferroni;
     
-    @Override
-    public void run(OutputStream out) throws Exception {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public Dino setQuery(Query query) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Dino setMetaData(Binding metaData) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Dino setMimes(String[] mimes) {
-        // TODO Auto-generated method stub
-        return null;
+    
+    private void doFormatAndDelegate() throws Exception {
+        if (this.bedFile != null && !this.bedFile.isEmpty()) {
+            Log.debug(this.getClass().getName() +"#run(): formatting");
+            long startTime = System.nanoTime();
+            String value = this.getEnsemblFormat(bedFile);
+            long endTime = System.nanoTime();
+            Log.info(this.getClass().getName() + " TIMES: BED to Ensembl translation took "+ (endTime - startTime) / 10e6 + "ms" );
+            QueryElement qe = this.metaData.getQueryBindings().get(BEDFILE);
+            Element thisFilter = this.metaData.getBindings().get(BEDFILE);
+            if (!thisFilter.getName().equals(outFilterName)) {
+                Filter f = getFilter(qe.getConfig(), outFilterName);
+                
+                qe = createQueryElement(qe.getDataset(), f, value);
+                q.addFilter(qe);
+            } else {
+                qe.setFilterValues(value);
+            }
+        }
     }
     
     
@@ -87,16 +72,17 @@ public class BedDino implements Dino {
         // 5: all the optional columns
         // 6: the strand
         //  "(chr)?(\\S+)\t(\\d+)\t(\\d+)(\t\\S*\t\\d*(["+Pattern.quote("+")+"-]))?"
-        String regex = "(chr)?(\\S+)\t(\\d+)\t(\\d+)(\t\\S*\t\\S*\t([-\\+]))?",
+        String regex = "(chr)?(\\S+)\t(\\d+)\t(\\d+)(\t\\S*\t\\S*\t([-\\+]).*)?",
                lines[] = null, name, start, end, strand, od = ":", rd = ",";
         StringBuilder out = new StringBuilder();
         
         Pattern p = Pattern.compile(regex);
         Matcher m = null;
         lines = bed.split("\n");
+        m = p.matcher("");
         
         for (int i = 0, len = lines.length; i < len; ++i) {
-            m = p.matcher(lines[i]);
+            m.reset(lines[i]);
             if (m.matches()) {
                 name = m.group(2);
                 start = m.group(3);
@@ -108,7 +94,7 @@ public class BedDino implements Dino {
                     .append(end);
                 if (m.group(6) != null) {
                     strand = m.group(6);
-                    out.append(od).append(strand);
+                    out.append(od).append(strand+"1");
                 }
                 if (i < len - 1) {
                     out.append(rd);
@@ -118,6 +104,12 @@ public class BedDino implements Dino {
         
         
         return out.toString();
+    }
+
+
+    @Override
+    void doRun() throws Exception {
+        this.doFormatAndDelegate();
     }
 
 }

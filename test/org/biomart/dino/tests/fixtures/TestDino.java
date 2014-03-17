@@ -57,6 +57,12 @@ public class TestDino implements Dino {
 		return null;
 	}
 
+    @Override
+    public Query getQuery() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 
 
 }

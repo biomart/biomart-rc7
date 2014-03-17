@@ -11,7 +11,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.biomart.common.exceptions.ValidationException;
 import org.biomart.common.utils.XMLElements;
 import org.biomart.dino.Binding;
 import org.biomart.dino.annotations.Func;
@@ -79,24 +78,24 @@ public class BindingTest {
         assertEquals(m, binding);
     }
     
-    @Test
-    public void setBindingsByElementTest() {
-        Binding md = new Binding();
-        md.setBindingsByElement(fields, els);
-        Map<String, Element> binding = md.getBindings();
-
-        assertTrue(binding.size() != 0);
-        assertEquals(m, binding);
-    }
+//    @Test
+//    public void setBindingsByElementTest() {
+//        Binding md = new Binding();
+//        md.setBindingsByElement(fields, els);
+//        Map<String, Element> binding = md.getBindings();
+//
+//        assertTrue(binding.size() != 0);
+//        assertEquals(m, binding);
+//    }
     
-    @Test(expected = ValidationException.class)
-    public void checkBindingTest() {
-        Binding md = new Binding();
-        els.remove(0);
-        md.setBindingsByElement(fields, els);
-        md.checkBinding(fields);
-
-    }
+//    @Test(expected = ValidationException.class)
+//    public void checkBindingTest() {
+//        Binding md = new Binding();
+//        els.remove(0);
+//        md.setBindingsByElement(fields, els);
+//        md.checkBinding(fields);
+//
+//    }
     
     @Test
     public void getAnnotatedFieldsTest() {
