@@ -234,20 +234,22 @@ public class QueryCompiler {
 
             if (filter.isFilterList()) {
                 querySQL.append("(");
-                for (String value : selectedFilters.get(filter).split("[,\\n\\r]")) {
+                String[] splittedSelectedFilters = selectedFilters.get(filter).split("[,\\n\\r]");
+                for (String value : splittedSelectedFilters) {
                     String[] splitValue = value.split(filter.getSplitOnValue(), -1);
                     querySQL.append("(");
                     String currentValue = null;
-                    for (int i = 0; i < filter.getFilterList(dss).size(); ++i) {
+                    if (splitValue.length < splittedSelectedFilters.length) {
+                        Log.warn("The number of value tokens of the filter list "+ filter.getName()
+                                + " does not match the number of filters inside the filter list");
+                    }
+                    for (int i = 0; i < splitValue.length; ++i) {
+                        currentValue = splitValue[i];
                         if (filter.getSplitOnValue().equals("") || splitValue.length == 1
                                 || filter.getQualifier().equals(OperatorType.RANGE)) {
                             currentValue = value;
-                        } else if (splitValue.length == filter.getFilterList(dss).size()) {
-                            currentValue = splitValue[i];
-                        } else {
-                            Log.error("Invalid number of filterlist arguments! Filter " + filter.getName()
-                                    + " is being ignored.");
                         }
+                        
                         Filter subFilter = filter.getFilterList(dss).get(i);
                         DatasetTable table = subFilter.getDatasetTable();
                         DatasetTableType tableType = table.getType();
