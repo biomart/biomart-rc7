@@ -33,22 +33,33 @@ public class UpstreamDownstreamDino extends RegionsDino {
     }
     
     private void doFormatAndDelegate() throws Exception {
-        if (check(regions) && (check(upstream) || check(downstream))) {
-            Log.debug(this.getClass().getName() +"#run(): formatting");
-            long startTime = System.nanoTime();
-            String value = this.upstreamDownstream(regions, upstream, downstream);
-            long endTime = System.nanoTime();
-            Log.info(this.getClass().getName() + " TIMES: upstream, downstream took "+ (endTime - startTime) / 10e6 + "ms" );
+        
+        if (check(regions)) {
+            String value = null;
             QueryElement qe = this.metaData.getQueryBindings().get(REGIONS);
             Element thisFilter = this.metaData.getBindings().get(REGIONS);
-            if (!thisFilter.getName().equals(outFilterName)) {
-                Filter f = getFilter(qe.getConfig(), outFilterName);
-                
-                qe = createQueryElement(qe.getDataset(), f, value);
-                q.addFilter(qe);
-            } else {
-                qe.setFilterValues(value);
+        
+            if (check(upstream) || check(downstream)) {
+                Log.debug(this.getClass().getName() +"#run(): formatting");
+                long startTime = System.nanoTime();
+                value = this.upstreamDownstream(regions, upstream, downstream);
+                long endTime = System.nanoTime();
+                Log.info(this.getClass().getName() + " TIMES: upstream, downstream took "+ (endTime - startTime) / 10e6 + "ms" );
             }
+            
+            send(thisFilter, qe, value == null ? regions : value);
+        }
+    }
+    
+    
+    private void send(Element thisFilter, QueryElement qe, String value) {
+        if (!thisFilter.getName().equals(outFilterName)) {
+            Filter f = getFilter(qe.getConfig(), outFilterName);
+            
+            qe = createQueryElement(qe.getDataset(), f, value);
+            q.addFilter(qe);
+        } else {
+            qe.setFilterValues(value);
         }
     }
     
