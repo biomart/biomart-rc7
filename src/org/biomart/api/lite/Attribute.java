@@ -3,11 +3,13 @@ package org.biomart.api.lite;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+
 import org.biomart.api.Jsoml;
 import org.biomart.common.exceptions.FunctionalException;
 import org.biomart.common.utils.XMLElements;
@@ -122,6 +124,14 @@ public class Attribute extends LiteMartConfiguratorObject implements Serializabl
     public boolean isHidden() {
         return this.attributeObject.getParent().isHidden();
     }
+    
+    
+    @XmlAttribute(name="function")
+    @JsonProperty("function")
+    public String getFunction() {
+        return this.attributeObject.getFunction();
+    }
+    
 	
 	public void setRange(List<String> range) {
 		this.range = range;

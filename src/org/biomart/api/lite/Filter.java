@@ -18,7 +18,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 @XmlRootElement(name="filter")
-@JsonPropertyOrder({"name", "displayName", "description", "type", "isHidden", "depends", "qualifier", "required"})
+@JsonPropertyOrder({"name", "displayName", "description", "type", "isHidden", "depends", "qualifier", "required", "function"})
 public class Filter extends LiteMartConfiguratorObject implements Serializable {
 
 	private static final long serialVersionUID = 3717403391079076481L;
@@ -74,6 +74,13 @@ public class Filter extends LiteMartConfiguratorObject implements Serializable {
     @JsonProperty("isHidden")
     public boolean isHidden() {
         return this.filterObject.getParent().isHidden();
+    }
+    
+    
+    @XmlAttribute(name="function")
+    @JsonProperty("function")
+    public String getFunction() {
+        return this.filterObject.getFunction();
     }
 
 	public void setRange(List<String> range) {

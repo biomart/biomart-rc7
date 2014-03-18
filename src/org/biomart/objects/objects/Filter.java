@@ -75,6 +75,12 @@ public class Filter extends Element	implements Comparable<Filter> {
 		this.setProperty(XMLElements.POINTEDMART, pointedMartName);
 	}
 	
+	
+	public String getFunction() {
+        return this.getPropertyValue(XMLElements.FUNCTION);
+    }
+	
+	
 	public String getPointedFilterName() {
 		return this.getPropertyValue(XMLElements.POINTEDFILTER);
 	}

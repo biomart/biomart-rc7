@@ -222,6 +222,12 @@ public class Attribute extends Element implements Comparable<Attribute> {
 		return pointedConfig.getAttributeByName(this.getPropertyValue(XMLElements.POINTEDATTRIBUTE), new ArrayList<String>());
 	}
 	
+	
+	public String getFunction() {
+	    return this.getPropertyValue(XMLElements.FUNCTION);
+	}
+	
+	
 	public String getPointedAttributeName() {
 		return this.getPropertyValue(XMLElements.POINTEDATTRIBUTE);
 	}
