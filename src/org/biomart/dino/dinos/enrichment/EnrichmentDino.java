@@ -69,8 +69,7 @@ public class EnrichmentDino implements Dino {
                                
                                FF_GENE_LIMIT = "gene_limit",
                                FF_GENE_TYPE = "gene_type",
-                               FF_HOMOLOG = "homolog",
-                               FF_STATUS = "status";
+                               FF_HOMOLOG = "homolog";
 
     // Key: dataset_config_name + attribute_list name
     // Value: path of the annotation file
@@ -102,8 +101,6 @@ public class EnrichmentDino implements Dino {
     String ffGeneType;
     @Func(id = FF_HOMOLOG, optional = true)
     String ffHomolog;
-    @Func(id = FF_STATUS, optional = true)
-    String ffStatus;
     // end
     
     // This is the name of the attribute used for translating annotations to
@@ -279,8 +276,6 @@ public class EnrichmentDino implements Dino {
             handleGuiRequest();
         } else {
             handleWebServiceRequest();
-         // Separator between results of different attribute lists
-            sink.write("\n\n\n".getBytes());
         }
     }
 
@@ -344,12 +339,6 @@ public class EnrichmentDino implements Dino {
         try {
             mkJson(nodes, edges, sink);
             sink.flush();
-//            out = byteStream();
-//            String p = System.getProperty("user.dir") + System.getProperty("file.separator") + getOpt(config, "front-end").asText();
-//            mkJson(nodes, edges, out);
-//            Map<String, Object> scope = new HashMap<String, Object>();
-//            scope.put("data", out.toString());
-//            GuiResponseCompiler.compile(new File(p), sink, scope);
         } finally {
             if (out != null) {
                 out.close();
@@ -462,21 +451,35 @@ public class EnrichmentDino implements Dino {
     }
     
     
+    private String getDefaultBackgroundFileNameKey() {
+    	List<String> tksName = new ArrayList<String>(10);
+    	tksName.add(annotationDatasetName);
+    	if (ffGeneLimit != null)
+    		tksName.add(ffGeneLimit);
+    	if (ffGeneType != null) 
+    		tksName.add(ffGeneType);
+    	if (ffHomolog != null) 
+    		tksName.add(ffHomolog);
+        tksName.add("default_background");
+        
+        return StringUtils.join(tksName, "_");
+    }
+    
+    
     private String getDefaultBackgroundPath() throws FileNotFoundException, IOException {
-        String path =  defaultBackgrounds.get(annotationDatasetName);
+        String fileName = this.getDefaultBackgroundFileNameKey(), 
+        	   path =  defaultBackgrounds.get(fileName);
 
         if (path == null) {
-            String suffix = "_default_background";
-            File defbk = new File(workingDir, annotationDatasetName + suffix);
+        	
+            File defbk = new File(workingDir, fileName);
             
-            if (defbk.exists()) {
-                path = defbk.getCanonicalPath();
-                defaultBackgrounds.put(annotationDatasetName, path);
-            } else {
+            if (!defbk.exists()) {
                 this.initQueryBuilder();
                 qbuilder.setHeader(false)
                         .setDataset(annotationDatasetName, annotationConfigName)
                         .addAttribute("ensembl_gene_id");
+                this.addFfFilters(qbuilder);
                 
                 OutputStream out = null;
                 try {
@@ -487,9 +490,11 @@ public class EnrichmentDino implements Dino {
                         out.close();
                     }
                 }
-                path = defbk.getCanonicalPath();
-                defaultBackgrounds.put(annotationDatasetName, path);
+                
             }
+            
+            path = defbk.getCanonicalPath();
+            defaultBackgrounds.put(fileName, path);
         }
         
         return path;
@@ -953,6 +958,21 @@ public class EnrichmentDino implements Dino {
                 .getResults(o);
     }
 
+    
+    private void addFfFilters(QueryBuilder q) {
+    	// TODO: remove when [1] is done
+        Map<String, Element> m = this.metadata.getBindings();
+        Element ffe = null;
+        if ((ffe = m.get(FF_GENE_LIMIT)) != null)
+            q.addFilter(ffe.getName(), ffGeneLimit);
+        if ((ffe = m.get(FF_GENE_TYPE)) != null)
+            q.addFilter(ffe.getName(), ffGeneType);
+        if ((ffe = m.get(FF_HOMOLOG)) != null)
+            q.addFilter(ffe.getName(), ffHomolog);
+        // end 
+    }
+    
+    
     private void submitToEnsemblIdQuery(Attribute transAttr,
                                         String filterName,
                                         String filterValue,
@@ -963,18 +983,7 @@ public class EnrichmentDino implements Dino {
         .addAttribute(transAttr.getName())
         .addFilter(filterName, filterValue);
         
-        // TODO: remove when [1] is done
-        Map<String, Element> m = this.metadata.getBindings();
-        Element ffe = null;
-        if ((ffe = m.get(FF_GENE_LIMIT)) != null)
-            qbuilder.addFilter(ffe.getName(), ffGeneLimit);
-        if ((ffe = m.get(FF_GENE_TYPE)) != null)
-            qbuilder.addFilter(ffe.getName(), ffGeneType);
-        if ((ffe = m.get(FF_HOMOLOG)) != null)
-            qbuilder.addFilter(ffe.getName(), ffHomolog);
-        if ((ffe = m.get(FF_STATUS)) != null)
-            qbuilder.addFilter(ffe.getName(), ffStatus);
-        // end 
+        this.addFfFilters(qbuilder);
         
         qbuilder.getResults(o);
     }
