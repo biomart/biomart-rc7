@@ -17,7 +17,6 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.biomart.common.exceptions.TechnicalException;
-import org.biomart.common.exceptions.ValidationException;
 import org.biomart.common.resources.Log;
 import org.biomart.dino.Binding;
 import org.biomart.dino.Utils;
@@ -66,7 +65,12 @@ public class EnrichmentDino implements Dino {
                                DESC_A_OPT = "description_attribute",
                                FILT_OPT = "filter",
                                OTHER_A_OPT = "other_attributes",
-                               APP_OPT = "front-end";
+                               APP_OPT = "front-end",
+                               
+                               FF_GENE_LIMIT = "gene_limit",
+                               FF_GENE_TYPE = "gene_type",
+                               FF_HOMOLOG = "homolog",
+                               FF_STATUS = "status";
 
     // Key: dataset_config_name + attribute_list name
     // Value: path of the annotation file
@@ -90,6 +94,17 @@ public class EnrichmentDino implements Dino {
     String cutoff;
     @Func(id = BONF, optional = true)
     String bonferroni;
+    
+    // TODO: [1] make possible to have requirements to be a list of values
+    @Func(id = FF_GENE_LIMIT, optional = true)
+    String ffGeneLimit;
+    @Func(id = FF_GENE_TYPE, optional = true)
+    String ffGeneType;
+    @Func(id = FF_HOMOLOG, optional = true)
+    String ffHomolog;
+    @Func(id = FF_STATUS, optional = true)
+    String ffStatus;
+    // end
     
     // This is the name of the attribute used for translating annotations to
     // ensembl ids.
@@ -946,8 +961,22 @@ public class EnrichmentDino implements Dino {
         initQueryBuilder();
         qbuilder.setDataset(getDatasetName(), getConfigName())
         .addAttribute(transAttr.getName())
-        .addFilter(filterName, filterValue)
-        .getResults(o);
+        .addFilter(filterName, filterValue);
+        
+        // TODO: remove when [1] is done
+        Map<String, Element> m = this.metadata.getBindings();
+        Element ffe = null;
+        if ((ffe = m.get(FF_GENE_LIMIT)) != null)
+            qbuilder.addFilter(ffe.getName(), ffGeneLimit);
+        if ((ffe = m.get(FF_GENE_TYPE)) != null)
+            qbuilder.addFilter(ffe.getName(), ffGeneType);
+        if ((ffe = m.get(FF_HOMOLOG)) != null)
+            qbuilder.addFilter(ffe.getName(), ffHomolog);
+        if ((ffe = m.get(FF_STATUS)) != null)
+            qbuilder.addFilter(ffe.getName(), ffStatus);
+        // end 
+        
+        qbuilder.getResults(o);
     }
 
     private void initQueryBuilder() {
