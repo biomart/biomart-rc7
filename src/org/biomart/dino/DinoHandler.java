@@ -87,6 +87,7 @@ public class DinoHandler {
             Log.error("DinoHandler#runDino ", e);
             o.write(e.getMessage().getBytes());
             o.close();
+            throw new IOException(e);
         }
     }
 

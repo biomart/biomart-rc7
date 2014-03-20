@@ -452,14 +452,22 @@ public class EnrichmentDino implements Dino {
     
     
     private String getDefaultBackgroundFileNameKey() {
+        Map<String, Element> m = this.metadata.getBindings();
+        Element eff = null;
     	List<String> tksName = new ArrayList<String>(10);
     	tksName.add(annotationDatasetName);
-    	if (ffGeneLimit != null)
-    		tksName.add(ffGeneLimit);
-    	if (ffGeneType != null) 
-    		tksName.add(ffGeneType);
-    	if (ffHomolog != null) 
-    		tksName.add(ffHomolog);
+    	if ((eff = m.get(FF_GENE_LIMIT)) != null) {
+    	    tksName.add(eff.getName());
+    	    tksName.add(ffGeneLimit);
+    	}
+    	if ((eff = m.get(FF_GENE_TYPE)) != null) {
+    	    tksName.add(eff.getName());
+    	    tksName.add(ffGeneType);
+    	}
+    	if ((eff = m.get(FF_HOMOLOG)) != null) {
+    	    tksName.add(eff.getName());
+    	    tksName.add(ffHomolog);
+    	}
         tksName.add("default_background");
         
         return StringUtils.join(tksName, "_");
