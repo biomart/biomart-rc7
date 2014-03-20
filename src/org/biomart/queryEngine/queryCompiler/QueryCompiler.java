@@ -233,13 +233,14 @@ public class QueryCompiler {
             // If we're doing a count query then only add filters from main table
 
             if (filter.isFilterList()) {
+                int expectedFilterListValuesSize = filter.getFilterList(dss).size();
                 querySQL.append("(");
                 String[] splittedSelectedFilters = selectedFilters.get(filter).split("[,\\n\\r]");
                 for (String value : splittedSelectedFilters) {
                     String[] splitValue = value.split(filter.getSplitOnValue(), -1);
                     querySQL.append("(");
                     String currentValue = null;
-                    if (splitValue.length < splittedSelectedFilters.length) {
+                    if (splitValue.length < expectedFilterListValuesSize) {
                         Log.warn("The number of value tokens of the filter list "+ filter.getName()
                                 + " does not match the number of filters inside the filter list");
                     }
