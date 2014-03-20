@@ -12,7 +12,7 @@ import org.biomart.common.constants.OutputConstants;
  */
 public class IframeOutputStream extends FilterOutputStream implements OutputConstants {
     private final byte[][] HTML;
-    private static boolean html = true, firstWrite = false;
+    private boolean html = true, firstWrite = true;
 
     public IframeOutputStream(String uuid, OutputStream out, String scope) throws IOException {
         super(out);
@@ -50,8 +50,8 @@ public class IframeOutputStream extends FilterOutputStream implements OutputCons
 		sb.append(line);
 
 		if (pos == WRITE_LIMIT-1) {
+		    out.write(sb.toString().getBytes());
 		    if (html) {
-		        out.write(sb.toString().getBytes());
 	            out.write(HTML[2]);
 		    }
 			pos = 0;
@@ -68,7 +68,7 @@ public class IframeOutputStream extends FilterOutputStream implements OutputCons
         super.close();
     }
     
-    public static void useIframe(boolean iframe) {
+    public void useIframe(boolean iframe) {
         html = iframe;
     }
 }
