@@ -1,0 +1,3 @@
+[submodule "plugins/enrichment"]
+	path = plugins/enrichment
+	url = git@github.com:lpand/biomart-enrichment-plugin.git
