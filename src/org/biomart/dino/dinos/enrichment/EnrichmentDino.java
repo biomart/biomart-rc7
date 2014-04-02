@@ -366,10 +366,11 @@ public class EnrichmentDino implements Dino {
         
         Map<String, Object> root = new HashMap<String, Object>(),
                 graphs = new HashMap<String, Object>(),
-                g = new HashMap<String, Object>();
+                g;
         
         
         for (String ann : nodes.keySet()) {
+            g = new HashMap<String, Object>();
             g.put("nodes", nodes.get(ann) == null ? new ArrayList<Object>() : nodes.get(ann));
             g.put("edges", links.get(ann) == null ? new ArrayList<Object>() : links.get(ann));
             graphs.put(ann, g);
